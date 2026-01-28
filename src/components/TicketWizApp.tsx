@@ -11,6 +11,8 @@ type PurchasePartner = "skyscanner" | "kayak" | "kiwi" | "google" | "airline";
 
 const OUTLIER_MAX_STOPS = 2;
 const OUTLIER_DURATION_MULTIPLIER = 1.6;
+const KIWI_AFFILIATE_LINK =
+  "https://tp.media/click?shmarker=699474&promo_id=3673&source_type=link&type=click&campaign_id=111&trs=493040";
 
 type Airport = {
   code: string;
@@ -86,7 +88,7 @@ function AirportPicker(props: {
   const popularOptions = POPULAR_AIRPORTS.filter((a) => a.code !== exclude);
   const regionOptions = regionAirports.filter((a) => a.code !== exclude);
   return (
-    <div className="rounded-xl border border-[#D9E2EA] bg-white p-3">
+    <div className="rounded-xl border border-[#B6C6D6] border-l-4 border-l-[#1D4F91] bg-white p-3 shadow-md">
       <div className="flex items-center justify-between">
         <div className="text-xs font-semibold text-[#000034]">{label}</div>
         <div className="text-xs text-[#0F386E]">Selected: {value}</div>
@@ -97,7 +99,7 @@ function AirportPicker(props: {
           <button
             type="button"
             onClick={() => setShowPopular((prev) => !prev)}
-            className="mt-1 inline-flex h-8 items-center rounded-lg border border-[#D9E2EA] bg-white px-2 text-[11px] font-medium text-[#1D4F91] hover:border-[#1D4F91]"
+            className="mt-1 inline-flex h-8 items-center rounded-lg border border-[#C2D1DF] bg-[#E9F0F9] px-2 text-[11px] font-medium text-[#1D4F91] hover:border-[#1D4F91]"
           >
             {showPopular ? "Hide popular airports" : "Show popular airports"}
           </button>
@@ -108,7 +110,7 @@ function AirportPicker(props: {
             onChange={(e) => {
               if (e.target.value) onChange(e.target.value);
             }}
-            className="h-9 w-full rounded-lg border border-[#D9E2EA] bg-white px-2 text-xs text-[#363535] focus:border-[#1D4F91] focus:ring-2 focus:ring-[#D9E2EA]"
+            className="h-9 w-full rounded-lg border border-[#C2D1DF] bg-[#F7FAFE] px-2 text-xs text-[#363535] focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
           >
             <option value="">Select popular airport</option>
             {popularOptions.map((airport) => (
@@ -123,7 +125,7 @@ function AirportPicker(props: {
           <select
             value={region}
             onChange={(e) => setRegion(e.target.value)}
-            className="mt-1 h-9 w-full rounded-lg border border-[#D9E2EA] bg-white px-2 text-xs text-[#363535] focus:border-[#1D4F91] focus:ring-2 focus:ring-[#D9E2EA]"
+            className="mt-1 h-9 w-full rounded-lg border border-[#C2D1DF] bg-[#F7FAFE] px-2 text-xs text-[#363535] focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
           >
             {REGION_KEYS.map((key) => (
               <option key={key} value={key}>
@@ -139,7 +141,7 @@ function AirportPicker(props: {
             onChange={(e) => {
               if (e.target.value) onChange(e.target.value);
             }}
-            className="mt-1 h-9 w-full rounded-lg border border-[#D9E2EA] bg-white px-2 text-xs text-[#363535] focus:border-[#1D4F91] focus:ring-2 focus:ring-[#D9E2EA]"
+            className="mt-1 h-9 w-full rounded-lg border border-[#C2D1DF] bg-[#F7FAFE] px-2 text-xs text-[#363535] focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
           >
             <option value="">Select airport</option>
             {regionOptions.map((airport) => (
@@ -174,6 +176,23 @@ function parseIsoDurationToMinutes(raw: string) {
   const hours = match[1] ? Number(match[1]) : 0;
   const minutes = match[2] ? Number(match[2]) : 0;
   return hours * 60 + minutes;
+}
+
+function formatDurationMinutes(totalMinutes?: number) {
+  if (typeof totalMinutes !== "number" || !Number.isFinite(totalMinutes)) return "—";
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = Math.max(0, totalMinutes % 60);
+  return `${hours}h ${minutes}m`;
+}
+
+function tripLengthDays(start?: string, end?: string) {
+  if (!start || !end) return null;
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) return null;
+  const diffMs = endDate.getTime() - startDate.getTime();
+  const diffDays = Math.round(diffMs / (24 * 60 * 60 * 1000));
+  return diffDays >= 0 ? diffDays : null;
 }
 
 function clamp01(value: number) {
@@ -258,9 +277,7 @@ function buildPurchaseUrl(args: {
         : `https://www.kayak.com/flights/${origin}-${destination}/${depart}?adults=${adults}`;
     }
     case "kiwi": {
-      return ret
-        ? `https://www.kiwi.com/en/search/results/${origin}/${destination}/${depart}/${ret}?adults=${adults}`
-        : `https://www.kiwi.com/en/search/results/${origin}/${destination}/${depart}?adults=${adults}`;
+      return KIWI_AFFILIATE_LINK;
     }
     case "google": {
       const query = ret
@@ -520,23 +537,24 @@ export function TicketWizApp() {
 
   return (
     <div
-      className="min-h-screen bg-zinc-50 text-zinc-950"
+      className="relative min-h-screen overflow-hidden bg-zinc-50 text-zinc-950"
       style={{
-        backgroundImage: "url(/Ticket-wiz.jpg)",
+        backgroundImage: "url(/Ticket-wiz3.jpg)",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
       }}
     >
-      <div className="bg-transparent">
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#0F386E]/25 via-[#1D4F91]/10 to-transparent" />
+      <div className="relative bg-transparent">
         <div className="mx-auto max-w-6xl px-6 pt-12 pb-10">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <div className="inline-flex h-[208px] w-[208px] items-center justify-center overflow-hidden rounded-full bg-white/80 ring-1 ring-[#D9E2EA]">
+              <div className="inline-flex h-[160px] w-[160px] items-center justify-center overflow-hidden rounded-full bg-white/80 ring-1 ring-[#D9E2EA]">
                 <img
                   src="/ticket-wiz-logo.png"
                   alt="Ticket Wiz logo"
-                  className="h-full w-full object-contain scale-110"
+                  className="h-full w-full object-contain scale-105"
                 />
               </div>
               <div className="mt-2 text-xs font-medium text-[#000034]">
@@ -545,26 +563,27 @@ export function TicketWizApp() {
               <h1 className="mt-4 text-balance text-3xl font-semibold tracking-tight text-[#000034] sm:text-4xl">
                 Find the best airline deals fast.
               </h1>
-              <p className="mt-2 max-w-2xl text-pretty text-sm leading-6 text-[#363535]">
-                Start with a direct search, or explore destinations by budget. (Prices depend on your
-                configured flight data provider.)
+              <p className="mt-2 max-w-2xl text-pretty text-[13px] leading-5 text-[#363535]">
+                Start with a direct search, or explore destinations by budget.
+                <br />
+                (Prices depend on your configured flight data provider.)
               </p>
             </div>
-            <div className="hidden sm:block text-right text-xs text-[#363535]">
+            <div className="hidden sm:block text-right text-xs text-[#363535] mt-[200px]">
               <div className="font-medium text-[#000034]">MVP</div>
               <div>Search + Explore</div>
             </div>
           </div>
 
-          <div className="mt-8 inline-flex rounded-xl bg-white/80 p-1 ring-1 ring-[#D9E2EA]">
+          <div className="mt-8 inline-flex rounded-xl bg-[#F2F6FA] p-1 shadow-md ring-2 ring-[#B6C6D6]">
             <button
               type="button"
               onClick={() => setTab("search")}
               className={[
-                "rounded-lg px-3 py-2 text-sm font-medium transition",
+                "rounded-lg px-3 py-2 text-sm font-medium transition ring-1 ring-transparent",
                 tab === "search"
-                  ? "bg-white text-[#000034] shadow"
-                  : "text-[#0F386E] hover:bg-white/60",
+                  ? "bg-[#0F386E] text-white shadow ring-[#0F386E]"
+                  : "bg-white text-[#1D4F91] ring-[#C2D1DF] hover:bg-[#E9F0F9]",
               ].join(" ")}
             >
               Search
@@ -573,10 +592,10 @@ export function TicketWizApp() {
               type="button"
               onClick={() => setTab("explore")}
               className={[
-                "rounded-lg px-3 py-2 text-sm font-medium transition",
+                "rounded-lg px-3 py-2 text-sm font-medium transition ring-1 ring-transparent",
                 tab === "explore"
-                  ? "bg-white text-[#000034] shadow"
-                  : "text-[#0F386E] hover:bg-white/60",
+                  ? "bg-[#0F386E] text-white shadow ring-[#0F386E]"
+                  : "bg-white text-[#1D4F91] ring-[#C2D1DF] hover:bg-[#E9F0F9]",
               ].join(" ")}
             >
               Explore
@@ -588,7 +607,7 @@ export function TicketWizApp() {
       <main className="mx-auto max-w-6xl px-6 pb-16">
         {tab === "search" ? (
           <section className="-mt-6 grid gap-6 lg:grid-cols-[420px_1fr]">
-            <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#D9E2EA]">
+            <div className="rounded-2xl border-l-4 border-[#0F386E] bg-white p-5 shadow-lg ring-2 ring-[#B6C6D6]">
               <h2 className="text-sm font-semibold">Search flights</h2>
               <p className="mt-1 text-xs text-[#363535]">
                 Uses Amadeus Flight Offers Search (live-ish pricing).
@@ -618,7 +637,7 @@ export function TicketWizApp() {
                       type="date"
                       value={departureDate}
                       onChange={(e) => setDepartureDate(e.target.value)}
-                      className="h-10 rounded-xl border border-[#D9E2EA] px-3 text-sm outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#D9E2EA]"
+                      className="h-10 rounded-xl border border-[#C2D1DF] bg-[#F7FAFE] px-3 text-sm outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
                     />
                   </label>
                   <label className="grid gap-1 text-xs font-medium text-[#000034]">
@@ -627,7 +646,7 @@ export function TicketWizApp() {
                       type="date"
                       value={returnDate}
                       onChange={(e) => setReturnDate(e.target.value)}
-                      className="h-10 rounded-xl border border-[#D9E2EA] px-3 text-sm outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#D9E2EA]"
+                      className="h-10 rounded-xl border border-[#C2D1DF] bg-[#F7FAFE] px-3 text-sm outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
                     />
                   </label>
                 </div>
@@ -641,7 +660,7 @@ export function TicketWizApp() {
                       max={9}
                       value={adults}
                       onChange={(e) => setAdults(Number(e.target.value))}
-                      className="h-10 rounded-xl border border-[#D9E2EA] px-3 text-sm outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#D9E2EA]"
+                      className="h-10 rounded-xl border border-[#C2D1DF] bg-[#F7FAFE] px-3 text-sm outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
                     />
                   </label>
                   <label className="grid gap-1 text-xs font-medium text-[#000034]">
@@ -649,11 +668,11 @@ export function TicketWizApp() {
                     <input
                       value={currency}
                       onChange={(e) => setCurrency(e.target.value.toUpperCase())}
-                      className="h-10 rounded-xl border border-[#D9E2EA] px-3 text-sm outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#D9E2EA]"
+                      className="h-10 rounded-xl border border-[#C2D1DF] bg-[#F7FAFE] px-3 text-sm outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
                       placeholder="USD"
                     />
                   </label>
-                  <label className="flex h-10 items-center gap-2 rounded-xl border border-[#D9E2EA] px-3 py-2 text-sm sm:col-span-2">
+                  <label className="flex h-10 items-center gap-2 rounded-xl border border-[#C2D1DF] bg-[#F7FAFE] px-3 py-2 text-sm sm:col-span-2">
                     <input
                       type="checkbox"
                       checked={nonStop}
@@ -667,7 +686,7 @@ export function TicketWizApp() {
                 <button
                   type="submit"
                   disabled={searchLoading}
-                  className="mt-2 inline-flex h-11 items-center justify-center rounded-xl bg-[#006A52] px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0F386E] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="mt-2 inline-flex h-11 items-center justify-center rounded-xl bg-gradient-to-r from-[#006A52] to-[#0F386E] px-4 text-sm font-semibold text-white shadow-md transition hover:from-[#0F386E] hover:to-[#1D4F91] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {searchLoading ? "Searching…" : "Find deals"}
                 </button>
@@ -680,7 +699,7 @@ export function TicketWizApp() {
               </form>
             </div>
 
-            <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#D9E2EA]">
+            <div className="rounded-2xl border-l-4 border-[#006A52] bg-white p-5 shadow-lg ring-2 ring-[#B6C6D6]">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className="text-sm font-semibold">Results</h2>
                 <div className="flex items-center gap-3 text-xs text-[#0F386E]">
@@ -690,7 +709,7 @@ export function TicketWizApp() {
                     <select
                       value={searchSort}
                       onChange={(e) => setSearchSort(e.target.value as OfferSort)}
-                      className="h-8 rounded-lg border border-[#D9E2EA] bg-white px-2 text-xs text-[#363535] focus:border-[#1D4F91] focus:ring-2 focus:ring-[#D9E2EA]"
+                      className="h-8 rounded-lg border border-[#C2D1DF] bg-[#F7FAFE] px-2 text-xs text-[#363535] focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
                     >
                       <option value="best">Best deal</option>
                       <option value="cheapest">Cheapest</option>
@@ -720,6 +739,9 @@ export function TicketWizApp() {
                   const warning = warningBadge(offerView.outliers.get(offer.id));
                   const duration = offerView.durations.get(offer.id);
                   const stops = offerView.stops.get(offer.id);
+                  const airlines = offer.validatingAirlineCodes;
+                  const airlineLabel =
+                    airlines.length > 1 ? `${airlines[0]} +${airlines.length - 1}` : airlines[0] || "—";
                   const purchaseUrl = buildPurchaseUrl({
                     partner: purchasePartner,
                     origin,
@@ -730,10 +752,13 @@ export function TicketWizApp() {
                     airlineCode: offer.validatingAirlineCodes[0],
                   });
                   return (
-                  <div key={offer.id} className="rounded-xl border border-[#D9E2EA] p-4">
+                  <div
+                    key={offer.id}
+                    className="rounded-xl border border-[#B6C6D6] border-t-2 border-t-[#FFCC30] bg-[#FDFEFF] p-4 shadow-md"
+                  >
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div>
-                        <div className="text-sm font-semibold text-[#000034]">
+                        <div className="text-lg font-semibold text-[#000034]">
                           {formatMoney(offer.currency, offer.priceTotal)}
                         </div>
                         <div className="mt-1 inline-flex flex-wrap items-center gap-2 text-xs text-[#0F386E]">
@@ -759,19 +784,39 @@ export function TicketWizApp() {
                           ) : null}
                         </div>
                       </div>
-                      <div className="text-xs text-[#363535]">
-                        {offer.validatingAirlineCodes.join(", ") || "—"}
+                      <div className="rounded-full bg-[#E9F0F9] px-2 py-0.5 text-[11px] font-semibold text-[#1D4F91] ring-1 ring-[#C9D8EA]">
+                        {airlineLabel}
                       </div>
                     </div>
-                    {typeof duration === "number" ? (
-                      <div className="mt-2 text-xs text-[#0F386E]">
-                        Total duration: {Math.round(duration / 60)}h {duration % 60}m • Stops:{" "}
-                        {stops ?? 0}
+                    <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                      <div className="rounded-lg bg-[#F7FAFE] px-2 py-1.5">
+                        <div className="text-[10px] font-semibold uppercase tracking-wide text-[#1D4F91]">
+                          Total duration
+                        </div>
+                        <div className="text-xs font-semibold text-[#000034]">
+                          {formatDurationMinutes(duration)}
+                        </div>
                       </div>
-                    ) : null}
+                      <div className="rounded-lg bg-[#F7FAFE] px-2 py-1.5">
+                        <div className="text-[10px] font-semibold uppercase tracking-wide text-[#1D4F91]">
+                          Stops
+                        </div>
+                        <div className="text-xs font-semibold text-[#000034]">
+                          {typeof stops === "number" ? stops : "—"}
+                        </div>
+                      </div>
+                      <div className="rounded-lg bg-[#F7FAFE] px-2 py-1.5">
+                        <div className="text-[10px] font-semibold uppercase tracking-wide text-[#1D4F91]">
+                          Airlines
+                        </div>
+                        <div className="text-xs font-semibold text-[#000034]">
+                          {airlines.length ? airlines.join(", ") : "—"}
+                        </div>
+                      </div>
+                    </div>
                     <div className="mt-3 grid gap-2">
                       {offer.itineraries.map((it, idx) => (
-                        <div key={idx} className="rounded-lg bg-[#F7F9FB] p-3 text-xs text-[#363535]">
+                        <div key={idx} className="rounded-lg border border-[#D3DEE8] bg-[#F2F6FA] p-3 text-xs text-[#363535]">
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <div className="font-medium">
                               {it.segments[0]?.departure.iataCode} →{" "}
@@ -807,7 +852,7 @@ export function TicketWizApp() {
                         <select
                           value={purchasePartner}
                           onChange={(e) => setPurchasePartner(e.target.value as PurchasePartner)}
-                          className="ml-2 h-8 rounded-lg border border-[#D9E2EA] bg-white px-2 text-xs text-[#363535] focus:border-[#1D4F91] focus:ring-2 focus:ring-[#D9E2EA]"
+                          className="ml-2 h-8 rounded-lg border border-[#C2D1DF] bg-[#F7FAFE] px-2 text-xs text-[#363535] focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
                         >
                           <option value="skyscanner">Skyscanner</option>
                           <option value="kayak">Kayak</option>
@@ -821,7 +866,7 @@ export function TicketWizApp() {
                           href={purchaseUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex h-8 items-center justify-center rounded-lg bg-[#1D4F91] px-3 text-xs font-semibold text-white hover:bg-[#0F386E]"
+                          className="inline-flex h-8 items-center justify-center rounded-lg bg-gradient-to-r from-[#1D4F91] to-[#0F386E] px-3 text-xs font-semibold text-white shadow-sm hover:from-[#0F386E] hover:to-[#1D4F91]"
                         >
                           Buy
                         </a>
@@ -839,7 +884,7 @@ export function TicketWizApp() {
           </section>
         ) : (
           <section className="-mt-6 grid gap-6 lg:grid-cols-[420px_1fr]">
-            <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#D9E2EA]">
+            <div className="rounded-2xl border-l-4 border-[#1D4F91] bg-white p-5 shadow-lg ring-2 ring-[#B6C6D6]">
               <h2 className="text-sm font-semibold">Explore destinations</h2>
               <p className="mt-1 text-xs text-[#363535]">
                 Uses Amadeus flight inspiration when available; otherwise falls back to sampling popular
@@ -866,7 +911,7 @@ export function TicketWizApp() {
                       min={1}
                       value={exploreMaxPrice}
                       onChange={(e) => setExploreMaxPrice(Number(e.target.value))}
-                      className="h-10 rounded-xl border border-[#D9E2EA] px-3 text-sm outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#D9E2EA]"
+                      className="h-10 rounded-xl border border-[#C2D1DF] bg-[#F7FAFE] px-3 text-sm outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
                     />
                   </label>
                 </div>
@@ -878,7 +923,7 @@ export function TicketWizApp() {
                       type="date"
                       value={exploreDepartureDate}
                       onChange={(e) => setExploreDepartureDate(e.target.value)}
-                      className="h-10 rounded-xl border border-[#D9E2EA] px-3 text-sm outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#D9E2EA]"
+                      className="h-10 rounded-xl border border-[#C2D1DF] bg-[#F7FAFE] px-3 text-sm outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
                     />
                   </label>
                   <label className="grid gap-1 text-xs font-medium text-[#000034]">
@@ -887,7 +932,7 @@ export function TicketWizApp() {
                       type="date"
                       value={exploreReturnDate}
                       onChange={(e) => setExploreReturnDate(e.target.value)}
-                      className="h-10 rounded-xl border border-[#D9E2EA] px-3 text-sm outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#D9E2EA]"
+                      className="h-10 rounded-xl border border-[#C2D1DF] bg-[#F7FAFE] px-3 text-sm outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
                     />
                   </label>
                 </div>
@@ -901,7 +946,7 @@ export function TicketWizApp() {
                       max={9}
                       value={exploreAdults}
                       onChange={(e) => setExploreAdults(Number(e.target.value))}
-                      className="h-10 rounded-xl border border-[#D9E2EA] px-3 text-sm outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#D9E2EA]"
+                      className="h-10 rounded-xl border border-[#C2D1DF] bg-[#F7FAFE] px-3 text-sm outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
                     />
                   </label>
                   <label className="grid gap-1 text-xs font-medium text-[#000034]">
@@ -909,11 +954,11 @@ export function TicketWizApp() {
                     <input
                       value={exploreCurrency}
                       onChange={(e) => setExploreCurrency(e.target.value.toUpperCase())}
-                      className="h-10 rounded-xl border border-[#D9E2EA] px-3 text-sm outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#D9E2EA]"
+                      className="h-10 rounded-xl border border-[#C2D1DF] bg-[#F7FAFE] px-3 text-sm outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
                       placeholder="USD"
                     />
                   </label>
-                  <label className="flex h-10 items-center gap-2 rounded-xl border border-[#D9E2EA] px-3 py-2 text-sm sm:col-span-2">
+                  <label className="flex h-10 items-center gap-2 rounded-xl border border-[#C2D1DF] bg-[#F7FAFE] px-3 py-2 text-sm sm:col-span-2">
                     <input
                       type="checkbox"
                       checked={exploreNonStop}
@@ -927,7 +972,7 @@ export function TicketWizApp() {
                 <button
                   type="submit"
                   disabled={exploreLoading}
-                  className="mt-2 inline-flex h-11 items-center justify-center rounded-xl bg-[#006A52] px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0F386E] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="mt-2 inline-flex h-11 items-center justify-center rounded-xl bg-gradient-to-r from-[#006A52] to-[#0F386E] px-4 text-sm font-semibold text-white shadow-md transition hover:from-[#0F386E] hover:to-[#1D4F91] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {exploreLoading ? "Searching…" : "Show deals"}
                 </button>
@@ -940,7 +985,7 @@ export function TicketWizApp() {
               </form>
             </div>
 
-            <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-[#D9E2EA]">
+            <div className="rounded-2xl border-l-4 border-[#D57800] bg-white p-5 shadow-lg ring-2 ring-[#B6C6D6]">
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-semibold">Deals</h2>
                 <div className="text-xs text-[#0F386E]">
@@ -952,7 +997,7 @@ export function TicketWizApp() {
                 <select
                   value={explorePurchasePartner}
                   onChange={(e) => setExplorePurchasePartner(e.target.value as PurchasePartner)}
-                  className="h-8 rounded-lg border border-[#D9E2EA] bg-white px-2 text-xs text-[#363535] focus:border-[#1D4F91] focus:ring-2 focus:ring-[#D9E2EA]"
+                  className="h-8 rounded-lg border border-[#C2D1DF] bg-[#F7FAFE] px-2 text-xs text-[#363535] focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
                 >
                   <option value="skyscanner">Skyscanner</option>
                   <option value="kayak">Kayak</option>
@@ -982,14 +1027,59 @@ export function TicketWizApp() {
                         adults: exploreAdults,
                       })
                     : null;
+                  const tripDays = tripLengthDays(deal.departureDate, deal.returnDate);
                   return (
-                  <div key={`${key}-${idx}`} className="rounded-xl border border-[#D9E2EA] p-4">
+                  <div
+                    key={`${key}-${idx}`}
+                    className="rounded-xl border border-[#B6C6D6] border-t-2 border-t-[#006A52] bg-white p-4 shadow-md"
+                  >
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="text-sm font-semibold text-[#000034]">
                         {deal.destination}
                       </div>
                       <div className="text-sm font-semibold text-[#000034]">
                         {formatMoney(deal.currency, deal.priceTotal)}
+                      </div>
+                    </div>
+                    <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] font-semibold">
+                      {Number.isFinite(exploreMaxPrice) ? (
+                        <span className="rounded-full bg-[#FFF4C2] px-2 py-0.5 text-[#000034] ring-1 ring-[#FFE28A]">
+                          Budget cap: {formatMoney(exploreCurrency, String(exploreMaxPrice))}
+                        </span>
+                      ) : null}
+                      {exploreNonStop ? (
+                        <span className="rounded-full bg-[#E6F3EE] px-2 py-0.5 text-[#006A52] ring-1 ring-[#CFE5DC]">
+                          Nonstop only
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className="mt-2 grid gap-2 sm:grid-cols-3">
+                      <div className="rounded-lg bg-[#F7FAFE] px-2 py-1.5">
+                        <div className="text-[10px] font-semibold uppercase tracking-wide text-[#1D4F91]">
+                          Duration
+                        </div>
+                        <div className="text-xs font-semibold text-[#000034]">
+                          {formatDurationMinutes(deal.durationMinutes)}
+                        </div>
+                      </div>
+                      <div className="rounded-lg bg-[#F7FAFE] px-2 py-1.5">
+                        <div className="text-[10px] font-semibold uppercase tracking-wide text-[#1D4F91]">
+                          Max stops
+                        </div>
+                        <div className="text-xs font-semibold text-[#000034]">
+                          {typeof deal.maxStops === "number" ? deal.maxStops : "—"}
+                        </div>
+                      </div>
+                      <div className="rounded-lg bg-[#F7FAFE] px-2 py-1.5">
+                        <div className="text-[10px] font-semibold uppercase tracking-wide text-[#1D4F91]">
+                          Trip length
+                        </div>
+                        <div className="text-xs font-semibold text-[#000034]">
+                          {(() => {
+                            const days = tripLengthDays(deal.departureDate, deal.returnDate);
+                            return typeof days === "number" ? `${days} days` : "—";
+                          })()}
+                        </div>
                       </div>
                     </div>
                     {warning ? (
@@ -1009,6 +1099,7 @@ export function TicketWizApp() {
                     <div className="mt-2 text-xs text-[#363535]">
                       {deal.departureDate ? `Depart: ${deal.departureDate}` : null}
                       {deal.returnDate ? ` • Return: ${deal.returnDate}` : null}
+                      {typeof tripDays === "number" ? ` • Trip length: ${tripDays} days` : null}
                     </div>
                     <div className="mt-3 flex flex-wrap items-center gap-2">
                       {purchaseUrl ? (
@@ -1016,7 +1107,7 @@ export function TicketWizApp() {
                           href={purchaseUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex h-8 items-center justify-center rounded-lg bg-[#1D4F91] px-3 text-xs font-semibold text-white hover:bg-[#0F386E]"
+                          className="inline-flex h-8 items-center justify-center rounded-lg bg-gradient-to-r from-[#1D4F91] to-[#0F386E] px-3 text-xs font-semibold text-white shadow-sm hover:from-[#0F386E] hover:to-[#1D4F91]"
                         >
                           Buy
                         </a>
