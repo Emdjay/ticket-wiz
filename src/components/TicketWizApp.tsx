@@ -13,9 +13,32 @@ type PurchasePartner = "skyscanner" | "kayak" | "kiwi" | "google" | "airline" | 
 
 const OUTLIER_MAX_STOPS = 2;
 const OUTLIER_DURATION_MULTIPLIER = 1.6;
-const KIWI_AFFILIATE_LINK =
-  "https://tp.media/click?shmarker=699474&promo_id=3673&source_type=link&type=click&campaign_id=111&trs=493040";
+const KIWI_DEEPLINK_TEMPLATE = process.env.NEXT_PUBLIC_KIWI_DEEPLINK_TEMPLATE ?? "";
 const KLOOK_SEARCH_URL_TEMPLATE = process.env.NEXT_PUBLIC_KLOOK_SEARCH_URL_TEMPLATE ?? "";
+const SHOW_EXPLORE_LINKS =
+  (process.env.NEXT_PUBLIC_SHOW_LINKS ?? "").trim().toLowerCase() === "true";
+const KIWI_DIRECT_LINKS =
+  (process.env.NEXT_PUBLIC_KIWI_DIRECT_LINKS ?? "").trim().toLowerCase() === "true";
+
+const KIWI_LOCATION_SLUGS: Record<string, string> = {
+  MIA: "miami-florida-united-states",
+  ATL: "atlanta-georgia-united-states",
+  ORD: "chicago-illinois-united-states",
+  LAX: "los-angeles-california-united-states",
+  DFW: "dallas-fort-worth-texas-united-states",
+  DEN: "denver-colorado-united-states",
+  LAS: "las-vegas-nevada-united-states",
+  MCO: "orlando-florida-united-states",
+  SEA: "seattle-washington-united-states",
+  SFO: "san-francisco-california-united-states",
+  IAH: "houston-texas-united-states",
+  BOS: "boston-massachusetts-united-states",
+  JFK: "new-york-city-new-york-united-states",
+  EWR: "newark-new-jersey-united-states",
+  LGA: "new-york-city-new-york-united-states",
+  CLT: "charlotte-north-carolina-united-states",
+  PHX: "phoenix-arizona-united-states",
+};
 
 const COPY = {
   en: {
@@ -495,11 +518,15 @@ function buildPurchaseUrl(args: {
   if (args.partner === "klook") {
     return buildKlookSearchUrl(args.destination);
   }
-  const origin = args.origin.toLowerCase();
-  const destination = args.destination.toLowerCase();
-  const depart = formatDateParam(args.departureDate);
+  const originUpper = args.origin.trim().toUpperCase();
+  const destinationUpper = args.destination.trim().toUpperCase();
+  const origin = originUpper.toLowerCase();
+  const destination = destinationUpper.toLowerCase();
+  const departIso = args.departureDate;
+  const returnIso = args.returnDate ?? "";
+  const depart = formatDateParam(departIso);
   if (!depart) return null;
-  const ret = formatDateParam(args.returnDate ?? "");
+  const ret = formatDateParam(returnIso);
   const adults = Math.max(1, args.adults);
 
   switch (args.partner) {
@@ -514,7 +541,13 @@ function buildPurchaseUrl(args: {
         : `https://www.kayak.com/flights/${origin}-${destination}/${depart}?adults=${adults}`;
     }
     case "kiwi": {
-      return KIWI_AFFILIATE_LINK;
+      return buildKiwiAffiliateUrl({
+        origin: originUpper,
+        destination: destinationUpper,
+        depart: departIso,
+        returnDate: returnIso || undefined,
+        adults,
+      });
     }
     case "google": {
       const query = ret
@@ -534,19 +567,10 @@ function buildPurchaseUrl(args: {
 
 const SEARCH_PURCHASE_PARTNERS: Array<{ value: PurchasePartner; label: string }> = [
   { value: "kiwi", label: "Kiwi" },
-  { value: "skyscanner", label: "Skyscanner" },
-  { value: "kayak", label: "Kayak" },
-  { value: "google", label: "Google Flights" },
-  { value: "airline", label: "Airline" },
 ];
 
 const EXPLORE_PURCHASE_PARTNERS: Array<{ value: PurchasePartner; label: string }> = [
   { value: "kiwi", label: "Kiwi" },
-  { value: "skyscanner", label: "Skyscanner" },
-  { value: "kayak", label: "Kayak" },
-  { value: "google", label: "Google Flights" },
-  { value: "airline", label: "Airline" },
-  { value: "klook", label: "Klook" },
 ];
 
 const EXPLORE_PARTNERS_VISIBLE = KLOOK_SEARCH_URL_TEMPLATE.trim()
@@ -561,6 +585,48 @@ function buildKlookSearchUrl(query: string) {
   }
   const joiner = trimmed.includes("?") ? "&" : "?";
   return `${trimmed}${joiner}query=${encodeURIComponent(query)}`;
+}
+
+function buildKiwiAffiliateUrl(args: {
+  origin: string;
+  destination: string;
+  depart: string;
+  returnDate?: string;
+  adults: number;
+}) {
+  const deepLink = buildKiwiDeepLink(args);
+  if (KIWI_DIRECT_LINKS) return deepLink;
+  if (!KIWI_DEEPLINK_TEMPLATE.trim()) return deepLink;
+  const trimmed = KIWI_DEEPLINK_TEMPLATE.trim();
+
+  if (trimmed.includes("{url}")) {
+    return trimmed.replaceAll("{url}", encodeURIComponent(deepLink));
+  }
+
+  const replaced = trimmed
+    .replaceAll("{origin}", args.origin)
+    .replaceAll("{destination}", args.destination)
+    .replaceAll("{depart}", args.depart)
+    .replaceAll("{return}", args.returnDate ?? "")
+    .replaceAll("{adults}", String(args.adults));
+
+  if (replaced !== trimmed) return replaced;
+
+  const joiner = trimmed.includes("?") ? "&" : "?";
+  return `${trimmed}${joiner}u=${encodeURIComponent(deepLink)}`;
+}
+
+function buildKiwiDeepLink(args: {
+  origin: string;
+  destination: string;
+  depart: string;
+  returnDate?: string;
+  adults: number;
+}) {
+  const originSlug = (KIWI_LOCATION_SLUGS[args.origin] ?? args.origin).toLowerCase();
+  const destinationSlug = (KIWI_LOCATION_SLUGS[args.destination] ?? args.destination).toLowerCase();
+  const returnSegment = args.returnDate ?? "no-return";
+  return `https://www.kiwi.com/en/search/results/${originSlug}/${destinationSlug}/${args.depart}/${returnSegment}?adults=${Math.max(1, args.adults)}`;
 }
 
 export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
@@ -1284,14 +1350,16 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                     onChange={setExploreOrigin}
                     labels={airportLabels}
                   />
-                  <label className="grid gap-1 text-xs font-medium text-[#000034]">
-                    {copy.maxPrice}
+                  <label className="relative text-xs font-medium text-[#000034]">
+                    <span className="pointer-events-none absolute left-3 top-2 text-[10px] text-[#000034]">
+                      {copy.maxPrice}
+                    </span>
                     <input
                       type="number"
                       min={1}
                       value={exploreMaxPrice}
                       onChange={(e) => setExploreMaxPrice(Number(e.target.value))}
-                      className="h-10 rounded-xl border border-[#C2D1DF] bg-[#F7FAFE] px-3 text-sm outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
+                      className="h-10 rounded-xl border border-[#C2D1DF] bg-[#F7FAFE] px-3 pt-4 text-sm outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
                     />
                   </label>
                 </div>
@@ -1504,7 +1572,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                           {copy.buyUnavailable}
                         </span>
                       )}
-                      {klookUrl ? (
+                      {explorePurchasePartner === "klook" && klookUrl ? (
                         <a
                           href={klookUrl}
                           target="_blank"
@@ -1525,6 +1593,11 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                         </a>
                       ) : null}
                     </div>
+                    {SHOW_EXPLORE_LINKS && purchaseUrl ? (
+                      <div className="mt-2 max-w-full rounded-lg border border-dashed border-[#C9D8EA] bg-[#F7FAFE] px-2 py-1 text-[10px] text-[#1D4F91] break-all">
+                        {purchaseUrl}
+                      </div>
+                    ) : null}
                   </div>
                 );
                 })}
