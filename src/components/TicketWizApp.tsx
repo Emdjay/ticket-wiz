@@ -91,6 +91,8 @@ const COPY = {
     basedOn: "Based on price, duration, and stops across current results.",
     fetchingFares: "Fetching fares…",
     runSearchToSee: "Run a search to see flight offers here.",
+    noResults: "No offers found for this search.",
+    tryNonstopOff: "Try turning off Nonstop to expand results.",
     runExploreToSee: "Run an explore search to see destinations here.",
     dealsTitle: "Deals",
     dealScore: "Deal score",
@@ -171,6 +173,8 @@ const COPY = {
     basedOn: "Basado en precio, duración y escalas en los resultados actuales.",
     fetchingFares: "Cargando tarifas…",
     runSearchToSee: "Ejecuta una búsqueda para ver ofertas aquí.",
+    noResults: "No se encontraron ofertas para esta búsqueda.",
+    tryNonstopOff: "Prueba desactivar Sin escalas para ver más resultados.",
     runExploreToSee: "Ejecuta una exploración para ver destinos aquí.",
     dealsTitle: "Ofertas",
     dealScore: "Puntaje de oferta",
@@ -914,18 +918,18 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                   className="h-full w-full object-contain scale-105"
                 />
               </div>
-              <div className="mt-2 text-xs font-medium text-[#000034]">
-                Ticket Wiz <span className="text-[#0F386E]">•</span> Flight deals finder
+              <div className="mt-2 text-xs font-medium text-white/80">
+                Ticket Wiz <span className="text-white/60">•</span> Flight deals finder
               </div>
-              <h1 className="mt-4 text-balance text-3xl font-semibold tracking-tight text-[#000034] sm:text-4xl">
+              <h1 className="mt-4 text-balance text-3xl font-semibold tracking-tight text-white sm:text-4xl">
                 {copy.heroTitle}
               </h1>
-              <p className="mt-2 max-w-2xl text-pretty text-[13px] leading-5 text-[#363535]">
+              <p className="mt-2 max-w-2xl text-pretty text-[13px] font-semibold leading-5 text-white/90">
                 {copy.heroSubtitle}
                 <br />
                 {copy.heroSubtitleNote}
               </p>
-              <div className="mt-2 text-xs font-semibold text-[#0F386E]">
+              <div className="mt-2 text-xs font-semibold text-white/80">
                 {copy.contactLabel}:{" "}
                 <a className="underline" href="mailto:info@ticket-wiz.com">
                   info@ticket-wiz.com
@@ -1159,7 +1163,16 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
 
                 {!searchLoading && offerView.offers.length === 0 ? (
                   <div className="rounded-xl border border-dashed border-[#D9E2EA] p-6 text-sm text-[#363535]">
-                    {copy.runSearchToSee}
+                    {searchResults ? (
+                      <div className="grid gap-2">
+                        <span>{copy.noResults}</span>
+                        {nonStop ? (
+                          <span className="text-xs text-[#1D4F91]">{copy.tryNonstopOff}</span>
+                        ) : null}
+                      </div>
+                    ) : (
+                      copy.runSearchToSee
+                    )}
                   </div>
                 ) : null}
 
