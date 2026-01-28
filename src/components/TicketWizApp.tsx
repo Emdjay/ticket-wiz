@@ -279,6 +279,18 @@ function formatAirport(airport: Airport) {
   return `${airport.code} · ${airport.city}`;
 }
 
+const AIRPORT_LOOKUP = new Map(
+  [...POPULAR_AIRPORTS, ...Object.values(AIRPORT_REGIONS).flat()].map((airport) => [
+    airport.code,
+    airport,
+  ])
+);
+
+function airportLabel(code: string) {
+  const airport = AIRPORT_LOOKUP.get(code);
+  return airport ? formatAirport(airport) : code;
+}
+
 function AirportPicker(props: {
   label: string;
   value: string;
@@ -1486,7 +1498,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="text-sm font-semibold text-[#000034]">
-                        {deal.destination}
+                        {airportLabel(deal.destination)}
                       </div>
                       <div className="text-sm font-semibold text-[#000034]">
                         {formatMoney(deal.currency, deal.priceTotal)}
