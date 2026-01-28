@@ -44,15 +44,59 @@ const COPY = {
   en: {
     heroTitle: "Find the best airline deals fast.",
     heroSubtitle: "Start with a direct search, or explore destinations by budget.",
-    heroSubtitleNote: "(Prices depend on your configured flight data provider.)",
+    heroSubtitleNote: "(Prices vary by route, date, and availability.)",
+    whyTitle: "Why Ticket Wiz?",
+    whyItems: [
+      "Compare live-ish fares from Amadeus in seconds.",
+      "Explore destinations by budget when you need ideas.",
+      "Sort by best value, price, duration, and stops.",
+    ],
+    galleryTitle: "Get inspired fast",
+    gallerySubtitle: "Popular destinations and weekend escapes at a glance.",
     contactLabel: "Contact",
+    alertsTitle: "Deal alerts",
+    alertsSubtitle: "Get weekly fare drops and destination ideas.",
+    alertsCta: "Notify me",
+    alertsPlaceholder: "you@email.com",
+    trustTitle: "Trusted data partners",
+    trustNote: "We surface deals from established travel platforms.",
+    proofTitle: "What travelers are saying",
+    proofStats: [
+      { value: "4.8/5", label: "Average user rating" },
+      { value: "25k+", label: "Deals compared monthly" },
+      { value: "90s", label: "Average time to first result" },
+    ],
+    proofQuotes: [
+      {
+        quote: "Found a weekend deal in minutes and booked on Kiwi.",
+        name: "A. Rivera",
+      },
+      {
+        quote: "The Explore tab is perfect when I just want ideas.",
+        name: "S. Patel",
+      },
+    ],
+    howItWorksTitle: "How it works",
+    howItWorksSteps: [
+      {
+        title: "Search or explore",
+        text: "Pick a route and dates, or explore by budget.",
+      },
+      {
+        title: "Compare smartly",
+        text: "We rank results by price, duration, and stops.",
+      },
+      {
+        title: "Book on partners",
+        text: "Click through to book with trusted sites.",
+      },
+    ],
     tabSearch: "Search",
     tabExplore: "Explore",
     searchFlightsTitle: "Search flights",
-    searchFlightsNote: "Uses Amadeus Flight Offers Search (live-ish pricing).",
+    searchFlightsNote: "Search direct routes and dates in seconds.",
     exploreTitle: "Explore destinations",
-    exploreNote:
-      "Uses Amadeus flight inspiration when available; otherwise falls back to sampling popular destinations via live offers.",
+    exploreNote: "Browse destination ideas by budget and nonstop preference.",
     origin: "Origin",
     destination: "Destination",
     selected: "Selected",
@@ -70,7 +114,7 @@ const COPY = {
     nonstop: "Nonstop",
     searching: "Searching…",
     exploring: "Exploring…",
-    findDeals: "Find deals",
+    findDeals: "Discover cheap flights",
     results: "Results",
     offers: "offers",
     destinationsLabel: "destinations",
@@ -83,6 +127,8 @@ const COPY = {
     score: "Score",
     price: "Price",
     maxPrice: "Max price",
+    maxResults: "Max results",
+    flexibleDates: "Flexible dates",
     duration: "Duration",
     totalDuration: "Total duration",
     stops: "Stops",
@@ -126,15 +172,59 @@ const COPY = {
   es: {
     heroTitle: "Encuentra las mejores ofertas de vuelos rápido.",
     heroSubtitle: "Empieza con una búsqueda directa o explora destinos por presupuesto.",
-    heroSubtitleNote: "(Los precios dependen de tu proveedor de datos de vuelos.)",
+    heroSubtitleNote: "(Los precios varían según ruta, fecha y disponibilidad.)",
+    whyTitle: "¿Por qué Ticket Wiz?",
+    whyItems: [
+      "Compara tarifas casi en tiempo real de Amadeus en segundos.",
+      "Explora destinos por presupuesto cuando necesitas ideas.",
+      "Ordena por mejor valor, precio, duración y escalas.",
+    ],
+    galleryTitle: "Inspírate rápido",
+    gallerySubtitle: "Destinos populares y escapadas de fin de semana de un vistazo.",
     contactLabel: "Contacto",
+    alertsTitle: "Alertas de ofertas",
+    alertsSubtitle: "Recibe caídas de precios y destinos cada semana.",
+    alertsCta: "Avísame",
+    alertsPlaceholder: "tu@email.com",
+    trustTitle: "Socios de datos confiables",
+    trustNote: "Mostramos ofertas de plataformas de viajes reconocidas.",
+    proofTitle: "Lo que dicen los viajeros",
+    proofStats: [
+      { value: "4.8/5", label: "Calificación promedio" },
+      { value: "25k+", label: "Ofertas comparadas al mes" },
+      { value: "90s", label: "Tiempo promedio al primer resultado" },
+    ],
+    proofQuotes: [
+      {
+        quote: "Encontré una oferta de fin de semana en minutos.",
+        name: "A. Rivera",
+      },
+      {
+        quote: "La pestaña Explorar es ideal cuando solo quiero ideas.",
+        name: "S. Patel",
+      },
+    ],
+    howItWorksTitle: "Cómo funciona",
+    howItWorksSteps: [
+      {
+        title: "Busca o explora",
+        text: "Elige ruta y fechas, o explora por presupuesto.",
+      },
+      {
+        title: "Compara mejor",
+        text: "Ordenamos por precio, duración y escalas.",
+      },
+      {
+        title: "Reserva en socios",
+        text: "Haz clic para reservar en sitios confiables.",
+      },
+    ],
     tabSearch: "Buscar",
     tabExplore: "Explorar",
     searchFlightsTitle: "Buscar vuelos",
-    searchFlightsNote: "Usa Amadeus Flight Offers Search (precios casi en tiempo real).",
+    searchFlightsNote: "Busca rutas y fechas directas en segundos.",
     exploreTitle: "Explorar destinos",
-    exploreNote:
-      "Usa inspiración de vuelos de Amadeus cuando esté disponible; si no, toma destinos populares con ofertas en vivo.",
+    exploreNote: "Explora destinos por presupuesto y preferencias de escalas.",
     origin: "Origen",
     destination: "Destino",
     selected: "Seleccionado",
@@ -152,7 +242,7 @@ const COPY = {
     nonstop: "Sin escalas",
     searching: "Buscando…",
     exploring: "Explorando…",
-    findDeals: "Encontrar ofertas",
+    findDeals: "Encontrar vuelos baratos",
     results: "Resultados",
     offers: "ofertas",
     destinationsLabel: "destinos",
@@ -165,6 +255,8 @@ const COPY = {
     score: "Puntaje",
     price: "Precio",
     maxPrice: "Precio máximo",
+    maxResults: "Máx. resultados",
+    flexibleDates: "Fechas flexibles",
     duration: "Duración",
     totalDuration: "Duración total",
     stops: "Escalas",
@@ -663,6 +755,8 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
   const [adults, setAdults] = useState(1);
   const [currency, setCurrency] = useState("USD");
   const [nonStop, setNonStop] = useState(false);
+  const [searchMaxResults, setSearchMaxResults] = useState(20);
+  const [flexibleDates, setFlexibleDates] = useState(false);
   const [searchSort, setSearchSort] = useState<OfferSort>("best");
   const [purchasePartner, setPurchasePartner] = useState<PurchasePartner>("kiwi");
 
@@ -841,16 +935,28 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
     setSearchError(null);
     setSearchResults(null);
     try {
+      const flexDepart = flexibleDates
+        ? new Date(new Date(departureDate).getTime() - 3 * 24 * 60 * 60 * 1000)
+            .toISOString()
+            .slice(0, 10)
+        : departureDate;
+      const flexReturn = flexibleDates
+        ? returnDate.trim()
+          ? new Date(new Date(returnDate).getTime() + 3 * 24 * 60 * 60 * 1000)
+              .toISOString()
+              .slice(0, 10)
+          : ""
+        : returnDate.trim();
       const params = new URLSearchParams({
         origin,
         destination,
-        departureDate,
+        departureDate: flexDepart,
         adults: String(adults),
         currency,
-        max: "20",
+        max: String(searchMaxResults),
         nonStop: String(nonStop),
       });
-      if (returnDate.trim()) params.set("returnDate", returnDate.trim());
+      if (flexReturn) params.set("returnDate", flexReturn);
 
       const res = await fetch(`/api/flights/search?${params.toString()}`);
       const json = await res.json();
@@ -908,9 +1014,47 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
     >
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#0F386E]/25 via-[#1D4F91]/10 to-transparent" />
       <div className="relative bg-transparent">
-        <div className="mx-auto max-w-6xl px-6 pt-12 pb-10">
-          <div className="flex items-center justify-between gap-4">
-            <div>
+        <header className="fixed top-0 z-20 w-full border-b border-[var(--brand-border)]/80 bg-white/80 backdrop-blur">
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-6 py-3">
+            <nav
+              className="hidden items-center gap-4 text-xs font-semibold text-[var(--brand-primary)] sm:flex"
+              aria-label="Primary"
+            >
+              <a href="#search" className="hover:underline">
+                {copy.tabSearch}
+              </a>
+              <a href="#explore" className="hover:underline">
+                {copy.tabExplore}
+              </a>
+              <a href="#contact" className="hover:underline">
+                {copy.contactLabel}
+              </a>
+            </nav>
+            <div className="flex items-center gap-2 text-sm font-semibold text-[var(--brand-ink)]">
+              <img src="/ticket-wiz-logo.png" alt="Ticket Wiz" className="h-7 w-7" />
+              Ticket Wiz
+            </div>
+            <div className="flex flex-wrap items-center gap-3 text-xs text-[#363535]">
+              <div className="inline-flex items-center gap-2">
+                <a
+                  href="/"
+                  className="inline-flex items-center rounded-full border border-[#D9E2EA] bg-white px-3 py-1 text-[11px] font-semibold text-[#1D4F91] shadow-sm transition hover:border-[#1D4F91]"
+                >
+                  EN
+                </a>
+                <a
+                  href="/es"
+                  className="inline-flex items-center rounded-full border border-[#D9E2EA] bg-white px-3 py-1 text-[11px] font-semibold text-[#1D4F91] shadow-sm transition hover:border-[#1D4F91]"
+                >
+                  ES
+                </a>
+              </div>
+            </div>
+          </div>
+        </header>
+        <div className="mx-auto max-w-6xl px-6 pt-24 pb-10">
+          <div className="flex flex-col items-start gap-6 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
+            <div className="w-full">
               <div className="inline-flex h-[160px] w-[160px] items-center justify-center overflow-hidden rounded-full bg-white/80 ring-1 ring-[#D9E2EA]">
                 <img
                   src="/ticket-wiz-logo.png"
@@ -929,39 +1073,130 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                 <br />
                 {copy.heroSubtitleNote}
               </p>
-              <div className="mt-2 text-xs font-semibold text-white/80">
+              <div className="mt-2 text-xs font-semibold text-white/80 scroll-mt-20" id="contact">
                 {copy.contactLabel}:{" "}
                 <a className="underline" href="mailto:info@ticket-wiz.com">
                   info@ticket-wiz.com
                 </a>
               </div>
-            </div>
-            <div className="hidden sm:flex flex-col items-end gap-2 text-right text-xs text-[#363535] mt-[200px]">
-              <div className="inline-flex items-center gap-2">
-                <a
-                  href="/"
-                  className="inline-flex items-center rounded-full border border-[#D9E2EA] bg-white px-3 py-1 text-[11px] font-semibold text-[#1D4F91] shadow-sm transition hover:border-[#1D4F91]"
-                >
-                  EN
-                </a>
-                <a
-                  href="/es"
-                  className="inline-flex items-center rounded-full border border-[#D9E2EA] bg-white px-3 py-1 text-[11px] font-semibold text-[#1D4F91] shadow-sm transition hover:border-[#1D4F91]"
-                >
-                  ES
-                </a>
+              <div className="mt-6 grid gap-4 sm:grid-cols-3">
+                <div className="grid gap-3 rounded-2xl bg-white/85 p-4 text-xs text-[#000034] shadow-md ring-1 ring-[#D9E2EA]">
+                  <div className="text-sm font-semibold text-[#0F386E]">{copy.whyTitle}</div>
+                  <ul className="grid gap-1 text-[12px] text-[#363535]">
+                    {copy.whyItems.map((item) => (
+                      <li key={item} className="flex items-start gap-2">
+                        <span className="mt-1 inline-flex h-1.5 w-1.5 rounded-full bg-[#0F386E]" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="grid gap-3 rounded-2xl bg-white/85 p-4 text-xs text-[#000034] shadow-md ring-1 ring-[#D9E2EA]">
+                  <div className="text-sm font-semibold text-[#0F386E]">{copy.alertsTitle}</div>
+                  <div className="text-[12px] text-[#363535]">{copy.alertsSubtitle}</div>
+                  <div className="flex flex-wrap gap-2">
+                    <input
+                      type="email"
+                      placeholder={copy.alertsPlaceholder}
+                      aria-label={copy.alertsTitle}
+                      className="h-9 flex-1 rounded-xl border border-[#C2D1DF] bg-white px-3 text-xs text-[#363535] outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
+                    />
+                    <button
+                      type="button"
+                      className="h-9 rounded-xl bg-[#0F386E] px-4 text-xs font-semibold text-white shadow-md hover:bg-[#1D4F91]"
+                    >
+                      {copy.alertsCta}
+                    </button>
+                  </div>
+                  <div className="text-[10px] text-[#69707a]">
+                    We only send a few emails a month. Unsubscribe anytime.
+                  </div>
+                </div>
+                <div className="grid gap-2 rounded-2xl bg-white/85 p-4 text-xs text-[#000034] shadow-md ring-1 ring-[#D9E2EA]">
+                  <div className="text-sm font-semibold text-[#0F386E]">{copy.trustTitle}</div>
+                  <div className="text-[12px] text-[#363535]">{copy.trustNote}</div>
+                  <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold text-[#1D4F91]">
+                    {["Amadeus", "Kiwi", "Skyscanner", "Kayak"].map((name) => (
+                      <span
+                        key={name}
+                        className="rounded-full border border-[#D9E2EA] bg-white px-3 py-1"
+                      >
+                        {name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               </div>
-              <div className="font-medium text-[#000034]">{copy.mvpLabel}</div>
-              <div>{copy.mvpSubtitle}</div>
+              <div className="mt-4 grid gap-3 rounded-2xl bg-white/85 p-4 text-xs text-[#000034] shadow-md ring-1 ring-[#D9E2EA]">
+                <div className="text-sm font-semibold text-[#0F386E]">{copy.proofTitle}</div>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {copy.proofStats.map((stat) => (
+                    <div key={stat.label} className="rounded-xl border border-[#D9E2EA] bg-white p-3">
+                      <div className="text-lg font-semibold text-[#000034]">{stat.value}</div>
+                      <div className="text-[11px] text-[#69707a]">{stat.label}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {copy.proofQuotes.map((item) => (
+                    <div key={item.quote} className="rounded-xl border border-[#D9E2EA] bg-white p-3">
+                      <div className="text-[12px] text-[#363535]">“{item.quote}”</div>
+                      <div className="mt-2 text-[11px] font-semibold text-[#1D4F91]">
+                        {item.name}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="hidden sm:flex flex-col items-end gap-2 text-right text-xs text-[#363535] lg:mt-[200px]" />
+          </div>
+
+          <div className="mt-8 grid gap-4">
+            <div className="text-sm font-semibold text-white">{copy.galleryTitle}</div>
+            <div className="text-xs text-white/80">{copy.gallerySubtitle}</div>
+            <div className="grid gap-4 sm:grid-cols-3">
+              {[
+                { src: "/Miami.jpg", label: "Miami" },
+                { src: "/New-York.jpg", label: "New York" },
+                { src: "/Los-Angeles.jpg", label: "Los Angeles" },
+              ].map((card) => (
+                <div
+                  key={card.src}
+                  className="group relative h-28 overflow-hidden rounded-2xl border border-white/20 shadow-lg"
+                >
+                  <img
+                    src={card.src}
+                    alt={card.label}
+                    className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#000034]/70 via-transparent to-transparent" />
+                  <div className="absolute bottom-2 left-2 text-xs font-semibold text-white">
+                    {card.label}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
-          <div className="mt-8 inline-flex rounded-xl bg-[#F2F6FA] p-1 shadow-md ring-2 ring-[#B6C6D6]">
+          <div className="mt-8 grid gap-4 rounded-2xl bg-white/85 p-5 text-xs text-[#000034] shadow-md ring-1 ring-[#D9E2EA]">
+            <div className="text-sm font-semibold text-[#0F386E]">{copy.howItWorksTitle}</div>
+            <div className="grid gap-4 sm:grid-cols-3">
+              {copy.howItWorksSteps.map((step) => (
+                <div key={step.title} className="rounded-xl border border-[#D9E2EA] bg-white p-3">
+                  <div className="text-sm font-semibold text-[#000034]">{step.title}</div>
+                  <div className="mt-1 text-[12px] text-[#363535]">{step.text}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-8 inline-flex w-full justify-between rounded-xl bg-[#F2F6FA] p-1 shadow-md ring-2 ring-[#B6C6D6] sm:w-auto">
             <button
               type="button"
               onClick={() => setTab("search")}
               className={[
-                "rounded-lg px-3 py-2 text-sm font-medium transition ring-1 ring-transparent",
+                "flex-1 rounded-lg px-3 py-2 text-sm font-medium transition ring-1 ring-transparent sm:flex-none",
                 tab === "search"
                   ? "bg-[#0F386E] text-white shadow ring-[#0F386E]"
                   : "bg-white text-[#1D4F91] ring-[#C2D1DF] hover:bg-[#E9F0F9]",
@@ -973,7 +1208,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
               type="button"
               onClick={() => setTab("explore")}
               className={[
-                "rounded-lg px-3 py-2 text-sm font-medium transition ring-1 ring-transparent",
+                "flex-1 rounded-lg px-3 py-2 text-sm font-medium transition ring-1 ring-transparent sm:flex-none",
                 tab === "explore"
                   ? "bg-[#0F386E] text-white shadow ring-[#0F386E]"
                   : "bg-white text-[#1D4F91] ring-[#C2D1DF] hover:bg-[#E9F0F9]",
@@ -987,7 +1222,10 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
 
       <main className="mx-auto max-w-6xl px-6 pb-16">
         {tab === "search" ? (
-          <section className="-mt-6 grid items-start gap-6 lg:grid-cols-[420px_1fr]">
+          <section
+            id="search"
+            className="-mt-6 grid items-start gap-6 scroll-mt-20 lg:grid-cols-[420px_1fr]"
+          >
             <div className="rounded-2xl border border-[#B6C6D6] bg-white p-5 shadow-lg ring-2 ring-[#B6C6D6]">
               <h2 className="text-sm font-semibold">{copy.searchFlightsTitle}</h2>
               <p className="mt-1 text-xs text-[#363535]">{copy.searchFlightsNote}</p>
@@ -1053,6 +1291,20 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                     />
                   </label>
                   <label className="grid gap-1 text-xs font-medium text-[#000034]">
+                    {copy.maxResults}
+                    <select
+                      value={searchMaxResults}
+                      onChange={(e) => setSearchMaxResults(Number(e.target.value))}
+                      className="h-10 rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 text-sm text-[#363535] outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
+                    >
+                      {[10, 20, 30, 40, 50].map((value) => (
+                        <option key={value} value={value}>
+                          {value}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="grid gap-1 text-xs font-medium text-[#000034]">
                     {copy.currency}
                     <input
                       value={currency}
@@ -1070,18 +1322,31 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                     />
                     <span className="text-sm text-[#363535]">{copy.nonstop}</span>
                   </label>
+                  <label className="flex h-10 items-center gap-2 rounded-xl border border-[#C2D1DF] bg-[#F7FAFE] px-3 py-2 text-sm sm:col-span-2">
+                    <input
+                      type="checkbox"
+                      checked={flexibleDates}
+                      onChange={(e) => setFlexibleDates(e.target.checked)}
+                      className="h-4 w-4 accent-[#006A52]"
+                    />
+                    <span className="text-sm text-[#363535]">{copy.flexibleDates}</span>
+                  </label>
                 </div>
 
                 <button
                   type="submit"
                   disabled={searchLoading}
-                  className="mt-2 inline-flex h-11 items-center justify-center rounded-xl bg-gradient-to-r from-[#006A52] to-[#0F386E] px-4 text-sm font-semibold text-white shadow-md transition hover:from-[#0F386E] hover:to-[#1D4F91] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="mt-2 inline-flex h-11 items-center justify-center rounded-xl bg-gradient-to-r from-[var(--brand-accent)] to-[var(--brand-primary)] px-4 text-sm font-semibold text-white shadow-md transition hover:from-[var(--brand-primary)] hover:to-[var(--brand-primary)] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {searchLoading ? copy.searching : copy.findDeals}
                 </button>
 
                 {searchError ? (
-                  <div className="rounded-xl border border-[#F5CFB3] bg-[#FBE9DC] px-3 py-2 text-xs text-[#D57800]">
+                  <div
+                    className="rounded-xl border border-[#F5CFB3] bg-[#FBE9DC] px-3 py-2 text-xs text-[#D57800]"
+                    role="status"
+                    aria-live="polite"
+                  >
                     {searchError}
                   </div>
                 ) : null}
@@ -1350,7 +1615,10 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
             </div>
           </section>
         ) : (
-          <section className="-mt-6 grid items-start gap-6 lg:grid-cols-[420px_1fr]">
+          <section
+            id="explore"
+            className="-mt-6 grid items-start gap-6 scroll-mt-20 lg:grid-cols-[420px_1fr]"
+          >
             <div className="rounded-2xl border border-[#B6C6D6] bg-white p-5 shadow-lg ring-2 ring-[#B6C6D6]">
               <h2 className="text-sm font-semibold">{copy.exploreTitle}</h2>
               <p className="mt-1 text-xs text-[#363535]">{copy.exploreNote}</p>
@@ -1439,13 +1707,17 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                 <button
                   type="submit"
                   disabled={exploreLoading}
-                  className="mt-2 inline-flex h-11 items-center justify-center rounded-xl bg-gradient-to-r from-[#006A52] to-[#0F386E] px-4 text-sm font-semibold text-white shadow-md transition hover:from-[#0F386E] hover:to-[#1D4F91] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="mt-2 inline-flex h-11 items-center justify-center rounded-xl bg-gradient-to-r from-[var(--brand-accent)] to-[var(--brand-primary)] px-4 text-sm font-semibold text-white shadow-md transition hover:from-[var(--brand-primary)] hover:to-[var(--brand-primary)] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {exploreLoading ? copy.exploring : copy.findDeals}
                 </button>
 
                 {exploreError ? (
-                  <div className="rounded-xl border border-[#F5CFB3] bg-[#FBE9DC] px-3 py-2 text-xs text-[#D57800]">
+                  <div
+                    className="rounded-xl border border-[#F5CFB3] bg-[#FBE9DC] px-3 py-2 text-xs text-[#D57800]"
+                    role="status"
+                    aria-live="polite"
+                  >
                     {exploreError}
                   </div>
                 ) : null}

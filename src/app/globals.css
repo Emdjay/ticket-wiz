@@ -11,6 +11,12 @@
   --yellow-400: #ffcc30;
   --orange-500: #d57800;
   --surface-200: #d9e2ea;
+  --brand-ink: #000034;
+  --brand-primary: #1d4f91;
+  --brand-accent: #006a52;
+  --brand-surface: #f7fafe;
+  --brand-border: #c2d1df;
+  --brand-muted: #363535;
 }
 
 @theme inline {
