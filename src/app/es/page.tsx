@@ -42,10 +42,16 @@ export default function SpanishHomePage() {
             Ir a la app
           </a>
           <a
-            href="mailto:hello@ticketwiz.app"
+            href="mailto:info@ticket-wiz.com"
             className="inline-flex h-11 items-center justify-center rounded-xl border border-[#D9E2EA] bg-white px-5 text-sm font-semibold text-[#1D4F91] shadow-sm transition hover:border-[#1D4F91]"
           >
             Contáctanos
+          </a>
+        </div>
+        <div className="mt-3 text-xs text-[#0F386E]">
+          Correo:{" "}
+          <a className="underline" href="mailto:info@ticket-wiz.com">
+            info@ticket-wiz.com
           </a>
         </div>
       </div>

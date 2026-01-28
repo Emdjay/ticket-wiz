@@ -634,6 +634,12 @@ export function TicketWizApp() {
                 <br />
                 (Prices depend on your configured flight data provider.)
               </p>
+              <div className="mt-2 text-xs font-semibold text-[#0F386E]">
+                Contact:{" "}
+                <a className="underline" href="mailto:info@ticket-wiz.com">
+                  info@ticket-wiz.com
+                </a>
+              </div>
             </div>
             <div className="hidden sm:block text-right text-xs text-[#363535] mt-[200px]">
               <div className="font-medium text-[#000034]">MVP</div>
