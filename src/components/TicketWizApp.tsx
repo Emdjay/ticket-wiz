@@ -1149,7 +1149,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                         {copy.stops}: {offerView.stops.get(bestOffer.id) ?? "—"}
                       </div>
                       <div className="text-xs font-semibold text-[#1D4F91]">
-                        {copy.airline}: {bestOffer.validatingAirlineCodes[0] ?? "—"}
+                        {copy.airline}: {airlineName(bestOffer.validatingAirlineCodes[0] ?? "") || "—"}
                       </div>
                     </div>
                     <div className="mt-1 text-[11px] font-semibold text-[#1D4F91]">
@@ -1252,7 +1252,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                           {copy.airlines}
                         </div>
                         <div className="text-xs font-semibold text-[#000034]">
-                          {airlines.length ? airlines.join(", ") : "—"}
+                          {airlines.length ? airlines.map(airlineName).join(", ") : "—"}
                         </div>
                       </div>
                     </div>
