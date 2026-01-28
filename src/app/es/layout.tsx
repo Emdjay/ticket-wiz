@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Figtree } from "next/font/google";
 import Script from "next/script";
-import "./globals.css";
+import "../globals.css";
 
 const figtree = Figtree({
   variable: "--font-figtree",
@@ -10,35 +10,19 @@ const figtree = Figtree({
 
 export const metadata: Metadata = {
   title: "Ticket Wiz",
-  description: "Find airline deals fast: search + explore by budget.",
-  metadataBase: new URL("https://ticket-wiz.com"),
-  openGraph: {
-    title: "Ticket Wiz",
-    description: "Find airline deals fast: search + explore by budget.",
-    url: "/",
-    siteName: "Ticket Wiz",
-    locale: "en_US",
-    type: "website",
-    images: [{ url: "/ticket-wiz-logo.png" }],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Ticket Wiz",
-    description: "Find airline deals fast: search + explore by budget.",
-    images: ["/ticket-wiz-logo.png"],
-  },
+  description: "Encuentra ofertas de vuelos rápido: busca y explora por presupuesto.",
 };
 
-export default function RootLayout({
+export default function EsLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="es">
       <body className={`${figtree.variable} antialiased`}>
         <Script
-          id="schema-org"
+          id="schema-org-es"
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify([
@@ -50,7 +34,7 @@ export default function RootLayout({
                 logo: "https://ticket-wiz.com/ticket-wiz-logo.png",
                 contactPoint: {
                   "@type": "ContactPoint",
-                  contactType: "partnerships",
+                  contactType: "alianzas",
                   email: "hello@ticketwiz.app",
                 },
               },
@@ -59,17 +43,12 @@ export default function RootLayout({
                 "@type": "WebSite",
                 name: "Ticket Wiz",
                 url: "https://ticket-wiz.com",
-                potentialAction: {
-                  "@type": "SearchAction",
-                  target: "https://ticket-wiz.com/?origin={origin}&destination={destination}",
-                  "query-input": "required name=origin,required name=destination",
-                },
               },
             ]),
           }}
         />
         <Script
-          id="tp-em"
+          id="tp-em-es"
           data-noptimize="1"
           data-cfasync="false"
           data-wpfc-render="false"
