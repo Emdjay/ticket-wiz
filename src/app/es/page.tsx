@@ -36,16 +36,16 @@ export default function SpanishHomePage() {
         </p>
         <div className="mt-6 flex flex-wrap items-center gap-3">
           <a
-            href="/"
+            href="/app"
             className="inline-flex h-11 items-center justify-center rounded-xl bg-[#006A52] px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0F386E]"
           >
             Ir a la app
           </a>
           <a
-            href="/es/landing"
+            href="mailto:hello@ticketwiz.app"
             className="inline-flex h-11 items-center justify-center rounded-xl border border-[#D9E2EA] bg-white px-5 text-sm font-semibold text-[#1D4F91] shadow-sm transition hover:border-[#1D4F91]"
           >
-            Ver más
+            Contáctanos
           </a>
         </div>
       </div>
