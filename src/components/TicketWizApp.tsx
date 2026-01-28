@@ -672,7 +672,7 @@ export function TicketWizApp() {
 
       <main className="mx-auto max-w-6xl px-6 pb-16">
         {tab === "search" ? (
-          <section className="-mt-6 grid gap-6 lg:grid-cols-[420px_1fr]">
+          <section className="-mt-6 grid items-start gap-6 lg:grid-cols-[420px_1fr]">
             <div className="rounded-2xl border border-[#B6C6D6] bg-white p-5 shadow-lg ring-2 ring-[#B6C6D6]">
               <h2 className="text-sm font-semibold">Search flights</h2>
               <p className="mt-1 text-xs text-[#363535]">
@@ -1005,7 +1005,7 @@ export function TicketWizApp() {
             </div>
           </section>
         ) : (
-          <section className="-mt-6 grid gap-6 lg:grid-cols-[420px_1fr]">
+          <section className="-mt-6 grid items-start gap-6 lg:grid-cols-[420px_1fr]">
             <div className="rounded-2xl border border-[#B6C6D6] bg-white p-5 shadow-lg ring-2 ring-[#B6C6D6]">
               <h2 className="text-sm font-semibold">Explore destinations</h2>
               <p className="mt-1 text-xs text-[#363535]">
