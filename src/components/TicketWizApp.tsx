@@ -91,7 +91,10 @@ function AirportPicker(props: {
     <div className="rounded-xl border border-[#B6C6D6] border-l-4 border-l-[#1D4F91] bg-white p-3 shadow-md">
       <div className="flex items-center justify-between">
         <div className="text-xs font-semibold text-[#000034]">{label}</div>
-        <div className="text-xs text-[#0F386E]">Selected: {value}</div>
+        <div className="inline-flex items-center gap-2 rounded-full bg-[#E9F0F9] px-2 py-0.5 text-[11px] font-semibold text-[#0F386E] ring-1 ring-[#C9D8EA]">
+          <span>Selected</span>
+          <span className="rounded-full bg-[#0F386E] px-2 py-0.5 text-white">{value}</span>
+        </div>
       </div>
       <div className="mt-3 grid gap-2">
         <label className="text-xs font-medium text-[#000034]">
@@ -765,17 +768,12 @@ export function TicketWizApp() {
                       <div className="text-xs font-semibold uppercase tracking-wide text-[#1D4F91]">
                         Best value right now
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="rounded-full bg-[#E6F3EE] px-2 py-0.5 text-[11px] font-semibold text-[#006A52] ring-1 ring-[#CFE5DC]">
-                          Top deal score
-                        </span>
-                        <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-semibold text-[#0F386E] ring-1 ring-[#C9D8EA]">
-                          Score {Math.round((offerView.scores.get(bestOffer.id) ?? 0) * 100)}
-                        </span>
-                      </div>
+                      <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-semibold text-[#0F386E] ring-1 ring-[#C9D8EA]">
+                        Score {Math.round((offerView.scores.get(bestOffer.id) ?? 0) * 100)}
+                      </span>
                     </div>
                     <div className="mt-2 flex flex-wrap items-center gap-4 text-sm font-semibold text-[#000034]">
-                      <div>{formatMoney(bestOffer.currency, bestOffer.priceTotal)}</div>
+                      <div>Price: {formatMoney(bestOffer.currency, bestOffer.priceTotal)}</div>
                       <div className="text-xs font-semibold text-[#1D4F91]">
                         Duration: {formatDurationMinutes(offerView.durations.get(bestOffer.id))}
                       </div>
@@ -783,8 +781,11 @@ export function TicketWizApp() {
                         Stops: {offerView.stops.get(bestOffer.id) ?? "—"}
                       </div>
                       <div className="text-xs font-semibold text-[#1D4F91]">
-                        Airlines: {bestOffer.validatingAirlineCodes.join(", ") || "—"}
+                        Airline: {bestOffer.validatingAirlineCodes[0] ?? "—"}
                       </div>
+                    </div>
+                    <div className="mt-1 text-[11px] font-semibold text-[#1D4F91]">
+                      Based on price, duration, and stops across current results.
                     </div>
                   </div>
                 ) : null}
