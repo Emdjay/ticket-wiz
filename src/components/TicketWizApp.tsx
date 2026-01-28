@@ -296,7 +296,6 @@ function AirportPicker(props: {
   value: string;
   onChange: (code: string) => void;
   exclude?: string;
-  stackSelected?: boolean;
   labels: {
     selected: string;
     popular: string;
@@ -308,89 +307,82 @@ function AirportPicker(props: {
     selectAirport: string;
   };
 }) {
-  const { label, value, onChange, exclude, stackSelected, labels } = props;
+  const { label, value, onChange, exclude, labels } = props;
   const [region, setRegion] = useState(REGION_KEYS[0] ?? "");
   const [showPopular, setShowPopular] = useState(false);
   const regionAirports = AIRPORT_REGIONS[region] ?? [];
   const popularOptions = POPULAR_AIRPORTS.filter((a) => a.code !== exclude);
   const regionOptions = regionAirports.filter((a) => a.code !== exclude);
   return (
-    <div className="rounded-xl border border-[#B6C6D6] border-l-4 border-l-[#1D4F91] bg-[#EFF5FB] p-3 shadow-md">
-      {stackSelected ? (
-        <div className="grid gap-1">
+    <div className="rounded-xl border border-[#B6C6D6] bg-[#EFF5FB] p-4 shadow-md">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="grid gap-1.5">
           <div className="text-xs font-semibold text-[#000034]">{label}</div>
-          <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[#E9F0F9] px-2 py-0.5 text-[11px] font-semibold text-[#0F386E] ring-1 ring-[#C9D8EA]">
-            <span>{labels.selected}</span>
-            <span className="rounded-full bg-[#0F386E] px-2 py-0.5 text-white">{value}</span>
+          <div className="text-[11px] font-semibold text-[#1D4F91]">
+            {labels.selected}: {airportLabel(value)}
           </div>
         </div>
-      ) : (
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="text-xs font-semibold text-[#000034]">{label}</div>
-          <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[#E9F0F9] px-2 py-0.5 text-[11px] font-semibold text-[#0F386E] ring-1 ring-[#C9D8EA]">
-            <span>{labels.selected}</span>
-            <span className="rounded-full bg-[#0F386E] px-2 py-0.5 text-white">{value}</span>
-          </div>
-        </div>
-      )}
-      <div className="mt-3 grid gap-2">
-        <label className="text-xs font-medium text-[#000034]">
-          {labels.popular}
-          <button
-            type="button"
-            onClick={() => setShowPopular((prev) => !prev)}
-            className="mt-1 inline-flex h-8 items-center rounded-lg border border-[#C2D1DF] bg-[#E9F0F9] px-2 text-[11px] font-medium text-[#1D4F91] hover:border-[#1D4F91]"
-          >
-            {showPopular ? labels.hidePopular : labels.showPopular}
-          </button>
-        </label>
+        <button
+          type="button"
+          onClick={() => setShowPopular((prev) => !prev)}
+          className="inline-flex h-8 items-center rounded-lg border border-[#C2D1DF] bg-white px-2 text-[11px] font-medium text-[#1D4F91] hover:border-[#1D4F91]"
+        >
+          {showPopular ? labels.hidePopular : labels.showPopular}
+        </button>
+      </div>
+      <div className="mt-4 grid gap-3">
         {showPopular ? (
-          <select
-            value={popularOptions.some((a) => a.code === value) ? value : ""}
-            onChange={(e) => {
-              if (e.target.value) onChange(e.target.value);
-            }}
-            className="h-9 w-full rounded-lg border border-[#C2D1DF] bg-[#F7FAFE] px-2 text-xs text-[#363535] focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
-          >
-            <option value="">{labels.selectPopularAirport}</option>
-            {popularOptions.map((airport) => (
-              <option key={airport.code} value={airport.code}>
-                {formatAirport(airport)}
-              </option>
-            ))}
-          </select>
+          <label className="text-xs font-medium text-[#000034]">
+            {labels.popular}
+            <select
+              value={popularOptions.some((a) => a.code === value) ? value : ""}
+              onChange={(e) => {
+                if (e.target.value) onChange(e.target.value);
+              }}
+              className="mt-2 h-9 w-full rounded-lg border border-[#C2D1DF] bg-[#F7FAFE] px-2 text-xs text-[#363535] focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
+            >
+              <option value="">{labels.selectPopularAirport}</option>
+              {popularOptions.map((airport) => (
+                <option key={airport.code} value={airport.code}>
+                  {formatAirport(airport)}
+                </option>
+              ))}
+            </select>
+          </label>
         ) : null}
-        <label className="text-xs font-medium text-[#000034]">
-          {labels.region}
-          <select
-            value={region}
-            onChange={(e) => setRegion(e.target.value)}
-            className="mt-1 h-9 w-full rounded-lg border border-[#C2D1DF] bg-[#F7FAFE] px-2 text-xs text-[#363535] focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
-          >
-            {REGION_KEYS.map((key) => (
-              <option key={key} value={key}>
-                {key}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-xs font-medium text-[#000034]">
-          {labels.airportsInRegion}
-          <select
-            value={regionOptions.some((a) => a.code === value) ? value : ""}
-            onChange={(e) => {
-              if (e.target.value) onChange(e.target.value);
-            }}
-            className="mt-1 h-9 w-full rounded-lg border border-[#C2D1DF] bg-[#F7FAFE] px-2 text-xs text-[#363535] focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
-          >
-            <option value="">{labels.selectAirport}</option>
-            {regionOptions.map((airport) => (
-              <option key={airport.code} value={airport.code}>
-                {formatAirport(airport)}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="grid gap-3 items-start sm:grid-cols-2">
+          <label className="grid grid-rows-[28px_auto] gap-2 text-xs font-medium text-[#000034]">
+            <span className="block">{labels.region}</span>
+            <select
+              value={region}
+              onChange={(e) => setRegion(e.target.value)}
+              className="h-9 w-full rounded-lg border border-[#C2D1DF] bg-white px-2 text-xs text-[#363535] focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
+            >
+              {REGION_KEYS.map((key) => (
+                <option key={key} value={key}>
+                  {key}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="grid grid-rows-[28px_auto] gap-2 text-xs font-medium text-[#000034]">
+            <span className="block">{labels.airportsInRegion}</span>
+            <select
+              value={regionOptions.some((a) => a.code === value) ? value : ""}
+              onChange={(e) => {
+                if (e.target.value) onChange(e.target.value);
+              }}
+              className="h-9 w-full rounded-lg border border-[#C2D1DF] bg-white px-2 text-xs text-[#363535] focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
+            >
+              <option value="">{labels.selectAirport}</option>
+              {regionOptions.map((airport) => (
+                <option key={airport.code} value={airport.code}>
+                  {formatAirport(airport)}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
       </div>
     </div>
   );
@@ -1003,13 +995,15 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                   void runSearch();
                 }}
               >
-                <div className="grid gap-3 lg:grid-cols-2">
+                <fieldset className="grid gap-4 rounded-xl border border-[#D9E2EA] bg-[#F7FAFE] p-4 lg:grid-cols-2">
+                  <legend className="px-2 text-[11px] font-semibold text-[#1D4F91]">
+                    From / To
+                  </legend>
                   <AirportPicker
                     label={copy.origin}
                     value={origin}
                     onChange={setOrigin}
                     exclude={destination}
-                    stackSelected
                     labels={airportLabels}
                   />
                   <AirportPicker
@@ -1019,7 +1013,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                     exclude={origin}
                     labels={airportLabels}
                   />
-                </div>
+                </fieldset>
 
                 <div className="grid grid-cols-2 gap-3">
                   <label className="grid gap-1 text-xs font-medium text-[#000034]">
@@ -1363,7 +1357,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                     labels={airportLabels}
                   />
                   <label className="relative text-xs font-medium text-[#000034]">
-                    <span className="pointer-events-none absolute left-3 top-2 text-[10px] text-[#000034]">
+                    <span className="pointer-events-none absolute left-3 top-1.5 text-[10px] text-[#000034]">
                       {copy.maxPrice}
                     </span>
                     <input
@@ -1371,7 +1365,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                       min={1}
                       value={exploreMaxPrice}
                       onChange={(e) => setExploreMaxPrice(Number(e.target.value))}
-                      className="h-10 rounded-xl border border-[#C2D1DF] bg-[#F7FAFE] px-3 pt-4 text-sm outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
+                      className="h-10 rounded-xl border border-[#C2D1DF] bg-[#F7FAFE] px-3 pt-3 pb-1 text-sm outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
                     />
                   </label>
                 </div>
