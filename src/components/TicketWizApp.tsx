@@ -80,8 +80,9 @@ function AirportPicker(props: {
   value: string;
   onChange: (code: string) => void;
   exclude?: string;
+  stackSelected?: boolean;
 }) {
-  const { label, value, onChange, exclude } = props;
+  const { label, value, onChange, exclude, stackSelected } = props;
   const [region, setRegion] = useState(REGION_KEYS[0] ?? "");
   const [showPopular, setShowPopular] = useState(false);
   const regionAirports = AIRPORT_REGIONS[region] ?? [];
@@ -89,13 +90,23 @@ function AirportPicker(props: {
   const regionOptions = regionAirports.filter((a) => a.code !== exclude);
   return (
     <div className="rounded-xl border border-[#B6C6D6] border-l-4 border-l-[#1D4F91] bg-white p-3 shadow-md">
-      <div className="flex items-center justify-between">
-        <div className="text-xs font-semibold text-[#000034]">{label}</div>
-        <div className="inline-flex items-center gap-2 rounded-full bg-[#E9F0F9] px-2 py-0.5 text-[11px] font-semibold text-[#0F386E] ring-1 ring-[#C9D8EA]">
-          <span>Selected</span>
-          <span className="rounded-full bg-[#0F386E] px-2 py-0.5 text-white">{value}</span>
+      {stackSelected ? (
+        <div className="grid gap-1">
+          <div className="text-xs font-semibold text-[#000034]">{label}</div>
+          <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[#E9F0F9] px-2 py-0.5 text-[11px] font-semibold text-[#0F386E] ring-1 ring-[#C9D8EA]">
+            <span>Selected</span>
+            <span className="rounded-full bg-[#0F386E] px-2 py-0.5 text-white">{value}</span>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="text-xs font-semibold text-[#000034]">{label}</div>
+          <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[#E9F0F9] px-2 py-0.5 text-[11px] font-semibold text-[#0F386E] ring-1 ring-[#C9D8EA]">
+            <span>Selected</span>
+            <span className="rounded-full bg-[#0F386E] px-2 py-0.5 text-white">{value}</span>
+          </div>
+        </div>
+      )}
       <div className="mt-3 grid gap-2">
         <label className="text-xs font-medium text-[#000034]">
           Popular
@@ -662,7 +673,13 @@ export function TicketWizApp() {
                 }}
               >
                 <div className="grid gap-3 lg:grid-cols-2">
-                  <AirportPicker label="Origin" value={origin} onChange={setOrigin} exclude={destination} />
+                  <AirportPicker
+                    label="Origin"
+                    value={origin}
+                    onChange={setOrigin}
+                    exclude={destination}
+                    stackSelected
+                  />
                   <AirportPicker
                     label="Destination"
                     value={destination}
