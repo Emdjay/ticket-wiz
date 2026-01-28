@@ -185,6 +185,35 @@ function formatDurationMinutes(totalMinutes?: number) {
   return `${hours}h ${minutes}m`;
 }
 
+function formatIsoDuration(raw?: string) {
+  if (!raw) return "—";
+  return formatDurationMinutes(parseIsoDurationToMinutes(raw));
+}
+
+function formatDateTime(iso?: string) {
+  if (!iso) return "—";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  const day = new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+  }).format(date);
+  const time = new Intl.DateTimeFormat(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
+  return `${day} · ${time}`;
+}
+
+function minutesBetween(start?: string, end?: string) {
+  if (!start || !end) return null;
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) return null;
+  const diff = Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60));
+  return diff >= 0 ? diff : null;
+}
+
 function tripLengthDays(start?: string, end?: string) {
   if (!start || !end) return null;
   const startDate = new Date(start);
@@ -434,6 +463,15 @@ export function TicketWizApp() {
       outliers: outliersById,
     };
   }, [searchResults, searchSort]);
+
+  const bestOffer = useMemo(() => {
+    if (offerView.offers.length === 0) return null;
+    return offerView.offers.reduce((best, offer) => {
+      const bestScore = offerView.scores.get(best.id) ?? 0;
+      const offerScore = offerView.scores.get(offer.id) ?? 0;
+      return offerScore > bestScore ? offer : best;
+    }, offerView.offers[0]);
+  }, [offerView]);
 
   const exploreView = useMemo(() => {
     const deals = exploreResults?.deals ?? [];
@@ -721,6 +759,35 @@ export function TicketWizApp() {
               </div>
 
               <div className="mt-4 grid gap-3">
+                {bestOffer ? (
+                  <div className="rounded-xl border border-[#C9D8EA] bg-[#E9F0F9] p-4 shadow-sm">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="text-xs font-semibold uppercase tracking-wide text-[#1D4F91]">
+                        Best value right now
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="rounded-full bg-[#E6F3EE] px-2 py-0.5 text-[11px] font-semibold text-[#006A52] ring-1 ring-[#CFE5DC]">
+                          Top deal score
+                        </span>
+                        <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-semibold text-[#0F386E] ring-1 ring-[#C9D8EA]">
+                          Score {Math.round((offerView.scores.get(bestOffer.id) ?? 0) * 100)}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="mt-2 flex flex-wrap items-center gap-4 text-sm font-semibold text-[#000034]">
+                      <div>{formatMoney(bestOffer.currency, bestOffer.priceTotal)}</div>
+                      <div className="text-xs font-semibold text-[#1D4F91]">
+                        Duration: {formatDurationMinutes(offerView.durations.get(bestOffer.id))}
+                      </div>
+                      <div className="text-xs font-semibold text-[#1D4F91]">
+                        Stops: {offerView.stops.get(bestOffer.id) ?? "—"}
+                      </div>
+                      <div className="text-xs font-semibold text-[#1D4F91]">
+                        Airlines: {bestOffer.validatingAirlineCodes.join(", ") || "—"}
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
                 {searchLoading ? (
                   <div className="rounded-xl border border-[#D9E2EA] p-4 text-sm text-[#363535]">
                     Fetching fares…
@@ -814,6 +881,9 @@ export function TicketWizApp() {
                         </div>
                       </div>
                     </div>
+                    <div className="mt-3 rounded-lg border border-[#C9D8EA] bg-[#E9F0F9] px-3 py-2 text-[11px] font-semibold text-[#1D4F91]">
+                      You book on partner sites. We don’t add fees.
+                    </div>
                     <div className="mt-3 grid gap-2">
                       {offer.itineraries.map((it, idx) => (
                         <div key={idx} className="rounded-lg border border-[#D3DEE8] bg-[#F2F6FA] p-3 text-xs text-[#363535]">
@@ -822,26 +892,48 @@ export function TicketWizApp() {
                               {it.segments[0]?.departure.iataCode} →{" "}
                               {it.segments[it.segments.length - 1]?.arrival.iataCode}
                             </div>
-                            <div className="text-[#0F386E]">Duration: {it.duration}</div>
+                            <div className="text-[#0F386E]">Duration: {formatIsoDuration(it.duration)}</div>
                           </div>
                           <div className="mt-2 grid gap-1">
-                            {it.segments.map((seg, sidx) => (
-                              <div key={sidx} className="flex flex-wrap items-center justify-between gap-2">
-                                <div>
-                                  <span className="font-medium">
-                                    {seg.departure.iataCode} {seg.departure.at}
-                                  </span>{" "}
-                                  →{" "}
-                                  <span className="font-medium">
-                                    {seg.arrival.iataCode} {seg.arrival.at}
-                                  </span>
+                            {it.segments.map((seg, sidx) => {
+                              const next = it.segments[sidx + 1];
+                              const layoverMinutes = next
+                                ? minutesBetween(seg.arrival.at, next.departure.at)
+                                : null;
+                              return (
+                                <div key={`${seg.departure.at}-${seg.arrival.at}`}>
+                                  <div className="flex flex-wrap items-center justify-between gap-2">
+                                    <div>
+                                      <span className="font-medium">
+                                        {seg.departure.iataCode} {formatDateTime(seg.departure.at)}
+                                      </span>{" "}
+                                      →{" "}
+                                      <span className="font-medium">
+                                        {seg.arrival.iataCode} {formatDateTime(seg.arrival.at)}
+                                      </span>
+                                    </div>
+                                    <div className="flex flex-wrap items-center gap-1 text-[11px] font-semibold text-[#1D4F91]">
+                                      <span className="rounded-full bg-[#E9F0F9] px-2 py-0.5 ring-1 ring-[#C9D8EA]">
+                                        Flight {seg.carrierCode}
+                                        {seg.number}
+                                      </span>
+                                      <span className="rounded-full bg-[#E9F0F9] px-2 py-0.5 ring-1 ring-[#C9D8EA]">
+                                        {formatIsoDuration(seg.duration)}
+                                      </span>
+                                      <span className="rounded-full bg-[#E9F0F9] px-2 py-0.5 ring-1 ring-[#C9D8EA]">
+                                        Stops: {seg.numberOfStops}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  {next && typeof layoverMinutes === "number" ? (
+                                    <div className="mt-2 rounded-lg border border-[#C9D8EA] bg-[#F7FAFE] px-2 py-1 text-[11px] font-semibold text-[#1D4F91]">
+                                      Layover {formatDurationMinutes(layoverMinutes)} ·{" "}
+                                      {seg.arrival.iataCode}
+                                    </div>
+                                  ) : null}
                                 </div>
-                                <div className="text-[#0F386E]">
-                                  {seg.carrierCode}
-                                  {seg.number} • {seg.duration} • stops: {seg.numberOfStops}
-                                </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         </div>
                       ))}
@@ -1100,6 +1192,9 @@ export function TicketWizApp() {
                       {deal.departureDate ? `Depart: ${deal.departureDate}` : null}
                       {deal.returnDate ? ` • Return: ${deal.returnDate}` : null}
                       {typeof tripDays === "number" ? ` • Trip length: ${tripDays} days` : null}
+                    </div>
+                    <div className="mt-3 rounded-lg border border-[#C9D8EA] bg-[#E9F0F9] px-3 py-2 text-[11px] font-semibold text-[#1D4F91]">
+                      You book on partner sites. We don’t add fees.
                     </div>
                     <div className="mt-3 flex flex-wrap items-center gap-2">
                       {purchaseUrl ? (
