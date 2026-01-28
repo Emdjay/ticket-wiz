@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Figtree } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const figtree = Figtree({
@@ -20,6 +21,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${figtree.variable} antialiased`}>
+        <Script
+          id="tp-em"
+          data-noptimize="1"
+          data-cfasync="false"
+          data-wpfc-render="false"
+          src="https://tp-em.com/NDkzMDQw.js?t=493040"
+          strategy="beforeInteractive"
+        />
         {children}
       </body>
     </html>
