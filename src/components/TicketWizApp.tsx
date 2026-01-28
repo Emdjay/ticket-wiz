@@ -9,12 +9,13 @@ type OfferSort = "best" | "cheapest" | "fastest" | "fewest-stops";
 type Locale = "en" | "es";
 type Copy = (typeof COPY)[keyof typeof COPY];
 
-type PurchasePartner = "skyscanner" | "kayak" | "kiwi" | "google" | "airline";
+type PurchasePartner = "skyscanner" | "kayak" | "kiwi" | "google" | "airline" | "klook";
 
 const OUTLIER_MAX_STOPS = 2;
 const OUTLIER_DURATION_MULTIPLIER = 1.6;
 const KIWI_AFFILIATE_LINK =
   "https://tp.media/click?shmarker=699474&promo_id=3673&source_type=link&type=click&campaign_id=111&trs=493040";
+const KLOOK_SEARCH_URL_TEMPLATE = process.env.NEXT_PUBLIC_KLOOK_SEARCH_URL_TEMPLATE ?? "";
 
 const COPY = {
   en: {
@@ -85,6 +86,7 @@ const COPY = {
     buyVia: "Buy via",
     buy: "Buy",
     buyUnavailable: "Buy unavailable",
+    klookCta: "See activities on Klook",
     outlierPrefix: "Outlier: ",
     dealBest: "Best deal",
     dealGood: "Good deal",
@@ -164,6 +166,7 @@ const COPY = {
     buyVia: "Compra vía",
     buy: "Comprar",
     buyUnavailable: "Compra no disponible",
+    klookCta: "Ver actividades en Klook",
     outlierPrefix: "Atípico: ",
     dealBest: "Mejor oferta",
     dealGood: "Buena oferta",
@@ -489,6 +492,9 @@ function buildPurchaseUrl(args: {
   adults: number;
   airlineCode?: string;
 }) {
+  if (args.partner === "klook") {
+    return buildKlookSearchUrl(args.destination);
+  }
   const origin = args.origin.toLowerCase();
   const destination = args.destination.toLowerCase();
   const depart = formatDateParam(args.departureDate);
@@ -526,6 +532,37 @@ function buildPurchaseUrl(args: {
   }
 }
 
+const SEARCH_PURCHASE_PARTNERS: Array<{ value: PurchasePartner; label: string }> = [
+  { value: "kiwi", label: "Kiwi" },
+  { value: "skyscanner", label: "Skyscanner" },
+  { value: "kayak", label: "Kayak" },
+  { value: "google", label: "Google Flights" },
+  { value: "airline", label: "Airline" },
+];
+
+const EXPLORE_PURCHASE_PARTNERS: Array<{ value: PurchasePartner; label: string }> = [
+  { value: "kiwi", label: "Kiwi" },
+  { value: "skyscanner", label: "Skyscanner" },
+  { value: "kayak", label: "Kayak" },
+  { value: "google", label: "Google Flights" },
+  { value: "airline", label: "Airline" },
+  { value: "klook", label: "Klook" },
+];
+
+const EXPLORE_PARTNERS_VISIBLE = KLOOK_SEARCH_URL_TEMPLATE.trim()
+  ? EXPLORE_PURCHASE_PARTNERS
+  : EXPLORE_PURCHASE_PARTNERS.filter((partner) => partner.value !== "klook");
+
+function buildKlookSearchUrl(query: string) {
+  if (!KLOOK_SEARCH_URL_TEMPLATE.trim()) return null;
+  const trimmed = KLOOK_SEARCH_URL_TEMPLATE.trim();
+  if (trimmed.includes("{query}")) {
+    return trimmed.replaceAll("{query}", encodeURIComponent(query));
+  }
+  const joiner = trimmed.includes("?") ? "&" : "?";
+  return `${trimmed}${joiner}query=${encodeURIComponent(query)}`;
+}
+
 export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
   const copy = COPY[locale] ?? COPY.en;
   const airportLabels = {
@@ -553,7 +590,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
   const [currency, setCurrency] = useState("USD");
   const [nonStop, setNonStop] = useState(false);
   const [searchSort, setSearchSort] = useState<OfferSort>("best");
-  const [purchasePartner] = useState<PurchasePartner>("kiwi");
+  const [purchasePartner, setPurchasePartner] = useState<PurchasePartner>("kiwi");
 
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
@@ -571,7 +608,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
   const [exploreReturnDate, setExploreReturnDate] = useState<string>("");
   const [exploreAdults, setExploreAdults] = useState(1);
   const [exploreNonStop, setExploreNonStop] = useState(false);
-  const [explorePurchasePartner] = useState<PurchasePartner>("kiwi");
+  const [explorePurchasePartner, setExplorePurchasePartner] = useState<PurchasePartner>("kiwi");
 
   const [exploreLoading, setExploreLoading] = useState(false);
   const [exploreError, setExploreError] = useState<string | null>(null);
@@ -983,6 +1020,20 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                     {searchResults ? `${searchResults.offers.length} ${copy.offers}` : "—"}
                   </div>
                   <label className="flex items-center gap-2">
+                    {copy.buyVia}
+                    <select
+                      value={purchasePartner}
+                      onChange={(e) => setPurchasePartner(e.target.value as PurchasePartner)}
+                      className="h-8 rounded-lg border border-[#C2D1DF] bg-[#F7FAFE] px-2 text-xs text-[#363535] focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
+                    >
+                      {SEARCH_PURCHASE_PARTNERS.map((partner) => (
+                        <option key={partner.value} value={partner.value}>
+                          {partner.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="flex items-center gap-2">
                     {copy.sort}
                     <select
                       value={searchSort}
@@ -1192,10 +1243,6 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                       ))}
                     </div>
                     <div className="mt-4 flex flex-wrap items-center gap-2">
-                      <span className="inline-flex items-center gap-2 rounded-full bg-[#E9F0F9] px-2 py-1 text-xs font-semibold text-[#1D4F91] ring-1 ring-[#C9D8EA]">
-                        {copy.buyVia}{" "}
-                        <span className="rounded-full bg-[#0F386E] px-2 py-0.5 text-white">Kiwi</span>
-                      </span>
                       {purchaseUrl ? (
                         <a
                           href={purchaseUrl}
@@ -1325,11 +1372,21 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                   {exploreResults ? `${exploreResults.deals.length} ${copy.destinationsLabel}` : "—"}
                 </div>
               </div>
-              <div className="mt-3">
-                <span className="inline-flex items-center gap-2 rounded-full bg-[#E9F0F9] px-2 py-1 text-xs font-semibold text-[#1D4F91] ring-1 ring-[#C9D8EA]">
-                  {copy.buyVia}{" "}
-                  <span className="rounded-full bg-[#0F386E] px-2 py-0.5 text-white">Kiwi</span>
-                </span>
+              <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-[#0F386E]">
+                <label className="flex items-center gap-2">
+                  {copy.buyVia}
+                  <select
+                    value={explorePurchasePartner}
+                    onChange={(e) => setExplorePurchasePartner(e.target.value as PurchasePartner)}
+                    className="h-8 rounded-lg border border-[#C2D1DF] bg-[#F7FAFE] px-2 text-xs text-[#363535] focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
+                  >
+                    {EXPLORE_PARTNERS_VISIBLE.map((partner) => (
+                      <option key={partner.value} value={partner.value}>
+                        {partner.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
               </div>
 
               <div className="mt-4 grid gap-3">
@@ -1352,6 +1409,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                         adults: exploreAdults,
                       })
                     : null;
+                  const klookUrl = buildKlookSearchUrl(deal.destination);
                   const tripDays = tripLengthDays(deal.departureDate, deal.returnDate);
                   return (
                   <div
@@ -1446,6 +1504,16 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                           {copy.buyUnavailable}
                         </span>
                       )}
+                      {klookUrl ? (
+                        <a
+                          href={klookUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex text-xs font-medium text-[#1D4F91] hover:underline"
+                        >
+                          {copy.klookCta}
+                        </a>
+                      ) : null}
                       {deal.links?.flightOffers ? (
                         <a
                           href={deal.links.flightOffers}
