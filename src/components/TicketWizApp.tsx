@@ -7,6 +7,7 @@ type Tab = "search" | "explore";
 
 type OfferSort = "best" | "cheapest" | "fastest" | "fewest-stops";
 type Locale = "en" | "es";
+type Copy = (typeof COPY)[keyof typeof COPY];
 
 type PurchasePartner = "skyscanner" | "kayak" | "kiwi" | "google" | "airline";
 
@@ -439,7 +440,7 @@ function median(values: number[]) {
   return sorted[mid];
 }
 
-function dealBadge(score: number | undefined, copy: (typeof COPY)["en"]) {
+function dealBadge(score: number | undefined, copy: Copy) {
   if (typeof score !== "number") return null;
   const pct = Math.round(score * 100);
   if (pct >= 85) {
@@ -466,7 +467,7 @@ function dealBadge(score: number | undefined, copy: (typeof COPY)["en"]) {
   };
 }
 
-function warningBadge(reason: string | undefined, copy: (typeof COPY)["en"]) {
+function warningBadge(reason: string | undefined, copy: Copy) {
   if (!reason) return null;
   return {
     label: `${copy.outlierPrefix}${reason}`,
