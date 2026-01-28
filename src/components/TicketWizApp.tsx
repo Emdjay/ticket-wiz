@@ -641,7 +641,21 @@ export function TicketWizApp() {
                 </a>
               </div>
             </div>
-            <div className="hidden sm:block text-right text-xs text-[#363535] mt-[200px]">
+            <div className="hidden sm:flex flex-col items-end gap-2 text-right text-xs text-[#363535] mt-[200px]">
+              <div className="inline-flex items-center gap-2">
+                <a
+                  href="/"
+                  className="inline-flex items-center rounded-full border border-[#D9E2EA] bg-white px-3 py-1 text-[11px] font-semibold text-[#1D4F91] shadow-sm transition hover:border-[#1D4F91]"
+                >
+                  EN
+                </a>
+                <a
+                  href="/es"
+                  className="inline-flex items-center rounded-full border border-[#D9E2EA] bg-white px-3 py-1 text-[11px] font-semibold text-[#1D4F91] shadow-sm transition hover:border-[#1D4F91]"
+                >
+                  ES
+                </a>
+              </div>
               <div className="font-medium text-[#000034]">MVP</div>
               <div>Search + Explore</div>
             </div>

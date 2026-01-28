@@ -35,6 +35,14 @@ export default function Home() {
     >
       <div className="min-h-screen bg-white/80 backdrop-blur-sm">
         <div className="mx-auto flex min-h-screen max-w-5xl flex-col items-center justify-center gap-8 px-6 py-16 text-center">
+          <div className="flex w-full justify-end">
+            <a
+              href="/es"
+              className="inline-flex items-center rounded-full border border-[#D9E2EA] bg-white px-3 py-1 text-[11px] font-semibold text-[#1D4F91] shadow-sm transition hover:border-[#1D4F91]"
+            >
+              ES
+            </a>
+          </div>
           <div className="inline-flex h-[140px] w-[140px] items-center justify-center overflow-hidden rounded-full bg-white ring-1 ring-[#D9E2EA]">
             <img
               src="/ticket-wiz-logo.png"

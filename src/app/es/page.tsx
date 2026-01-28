@@ -21,6 +21,14 @@ export default function SpanishHomePage() {
   return (
     <div className="min-h-screen bg-zinc-50 text-zinc-950">
       <div className="mx-auto max-w-4xl px-6 py-16">
+        <div className="flex w-full justify-end">
+          <a
+            href="/"
+            className="inline-flex items-center rounded-full border border-[#D9E2EA] bg-white px-3 py-1 text-[11px] font-semibold text-[#1D4F91] shadow-sm transition hover:border-[#1D4F91]"
+          >
+            EN
+          </a>
+        </div>
         <div className="inline-flex h-[120px] w-[120px] items-center justify-center overflow-hidden rounded-full bg-white ring-1 ring-[#D9E2EA]">
           <img
             src="/ticket-wiz-logo.png"
