@@ -20,6 +20,21 @@ type Airport = {
   name: string;
 };
 
+const AIRLINE_NAMES: Record<string, string> = {
+  AA: "American",
+  AS: "Alaska",
+  B6: "JetBlue",
+  DL: "Delta",
+  F9: "Frontier",
+  NK: "Spirit",
+  UA: "United",
+  WN: "Southwest",
+};
+
+function airlineName(code: string) {
+  return AIRLINE_NAMES[code] ?? code;
+}
+
 const POPULAR_AIRPORTS: Airport[] = [
   { code: "JFK", city: "New York", name: "John F. Kennedy" },
   { code: "LAX", city: "Los Angeles", name: "Los Angeles Intl" },
@@ -89,7 +104,7 @@ function AirportPicker(props: {
   const popularOptions = POPULAR_AIRPORTS.filter((a) => a.code !== exclude);
   const regionOptions = regionAirports.filter((a) => a.code !== exclude);
   return (
-    <div className="rounded-xl border border-[#B6C6D6] border-l-4 border-l-[#1D4F91] bg-white p-3 shadow-md">
+    <div className="rounded-xl border border-[#B6C6D6] border-l-4 border-l-[#1D4F91] bg-[#EFF5FB] p-3 shadow-md">
       {stackSelected ? (
         <div className="grid gap-1">
           <div className="text-xs font-semibold text-[#000034]">{label}</div>
@@ -354,7 +369,7 @@ export function TicketWizApp() {
   const [currency, setCurrency] = useState("USD");
   const [nonStop, setNonStop] = useState(false);
   const [searchSort, setSearchSort] = useState<OfferSort>("best");
-  const [purchasePartner, setPurchasePartner] = useState<PurchasePartner>("skyscanner");
+  const [purchasePartner] = useState<PurchasePartner>("kiwi");
 
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
@@ -372,8 +387,7 @@ export function TicketWizApp() {
   const [exploreReturnDate, setExploreReturnDate] = useState<string>("");
   const [exploreAdults, setExploreAdults] = useState(1);
   const [exploreNonStop, setExploreNonStop] = useState(false);
-  const [explorePurchasePartner, setExplorePurchasePartner] =
-    useState<PurchasePartner>("skyscanner");
+  const [explorePurchasePartner] = useState<PurchasePartner>("kiwi");
 
   const [exploreLoading, setExploreLoading] = useState(false);
   const [exploreError, setExploreError] = useState<string | null>(null);
@@ -659,7 +673,7 @@ export function TicketWizApp() {
       <main className="mx-auto max-w-6xl px-6 pb-16">
         {tab === "search" ? (
           <section className="-mt-6 grid gap-6 lg:grid-cols-[420px_1fr]">
-            <div className="rounded-2xl border-l-4 border-[#0F386E] bg-white p-5 shadow-lg ring-2 ring-[#B6C6D6]">
+            <div className="rounded-2xl border border-[#B6C6D6] bg-white p-5 shadow-lg ring-2 ring-[#B6C6D6]">
               <h2 className="text-sm font-semibold">Search flights</h2>
               <p className="mt-1 text-xs text-[#363535]">
                 Uses Amadeus Flight Offers Search (live-ish pricing).
@@ -757,7 +771,7 @@ export function TicketWizApp() {
               </form>
             </div>
 
-            <div className="rounded-2xl border-l-4 border-[#006A52] bg-white p-5 shadow-lg ring-2 ring-[#B6C6D6]">
+            <div className="rounded-2xl border border-[#B6C6D6] bg-white p-5 shadow-lg ring-2 ring-[#B6C6D6]">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className="text-sm font-semibold">Results</h2>
                 <div className="flex items-center gap-3 text-xs text-[#0F386E]">
@@ -825,8 +839,12 @@ export function TicketWizApp() {
                   const duration = offerView.durations.get(offer.id);
                   const stops = offerView.stops.get(offer.id);
                   const airlines = offer.validatingAirlineCodes;
-                  const airlineLabel =
-                    airlines.length > 1 ? `${airlines[0]} +${airlines.length - 1}` : airlines[0] || "—";
+                  const primaryAirline = airlines[0] ?? "";
+                  const airlineLabel = primaryAirline
+                    ? airlines.length > 1
+                      ? `${airlineName(primaryAirline)} +${airlines.length - 1}`
+                      : airlineName(primaryAirline)
+                    : "—";
                   const purchaseUrl = buildPurchaseUrl({
                     partner: purchasePartner,
                     origin,
@@ -904,11 +922,16 @@ export function TicketWizApp() {
                     </div>
                     <div className="mt-3 grid gap-2">
                       {offer.itineraries.map((it, idx) => (
-                        <div key={idx} className="rounded-lg border border-[#D3DEE8] bg-[#F2F6FA] p-3 text-xs text-[#363535]">
+                        <div key={idx} className="rounded-lg border border-[#C2D1DF] bg-[#E8F0FA] p-3 text-xs text-[#363535]">
                           <div className="flex flex-wrap items-center justify-between gap-2">
-                            <div className="font-medium">
-                              {it.segments[0]?.departure.iataCode} →{" "}
-                              {it.segments[it.segments.length - 1]?.arrival.iataCode}
+                            <div className="text-sm font-semibold text-[#000034]">
+                              <span className="rounded-md bg-[#DDEBFA] px-2 py-0.5 ring-1 ring-[#B6C6D6]">
+                                {it.segments[0]?.departure.iataCode}
+                              </span>{" "}
+                              <span className="text-[#1D4F91]">→</span>{" "}
+                              <span className="rounded-md bg-[#DDEBFA] px-2 py-0.5 ring-1 ring-[#B6C6D6]">
+                                {it.segments[it.segments.length - 1]?.arrival.iataCode}
+                              </span>
                             </div>
                             <div className="text-[#0F386E]">Duration: {formatIsoDuration(it.duration)}</div>
                           </div>
@@ -957,20 +980,9 @@ export function TicketWizApp() {
                       ))}
                     </div>
                     <div className="mt-4 flex flex-wrap items-center gap-2">
-                      <label className="text-xs font-medium text-[#000034]">
-                        Buy via
-                        <select
-                          value={purchasePartner}
-                          onChange={(e) => setPurchasePartner(e.target.value as PurchasePartner)}
-                          className="ml-2 h-8 rounded-lg border border-[#C2D1DF] bg-[#F7FAFE] px-2 text-xs text-[#363535] focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
-                        >
-                          <option value="skyscanner">Skyscanner</option>
-                          <option value="kayak">Kayak</option>
-                          <option value="kiwi">Kiwi</option>
-                          <option value="google">Google Flights</option>
-                          <option value="airline">Airline direct</option>
-                        </select>
-                      </label>
+                      <span className="inline-flex items-center gap-2 rounded-full bg-[#E9F0F9] px-2 py-1 text-xs font-semibold text-[#1D4F91] ring-1 ring-[#C9D8EA]">
+                        Buy via <span className="rounded-full bg-[#0F386E] px-2 py-0.5 text-white">Kiwi</span>
+                      </span>
                       {purchaseUrl ? (
                         <a
                           href={purchaseUrl}
@@ -994,7 +1006,7 @@ export function TicketWizApp() {
           </section>
         ) : (
           <section className="-mt-6 grid gap-6 lg:grid-cols-[420px_1fr]">
-            <div className="rounded-2xl border-l-4 border-[#1D4F91] bg-white p-5 shadow-lg ring-2 ring-[#B6C6D6]">
+            <div className="rounded-2xl border border-[#B6C6D6] bg-white p-5 shadow-lg ring-2 ring-[#B6C6D6]">
               <h2 className="text-sm font-semibold">Explore destinations</h2>
               <p className="mt-1 text-xs text-[#363535]">
                 Uses Amadeus flight inspiration when available; otherwise falls back to sampling popular
@@ -1095,26 +1107,17 @@ export function TicketWizApp() {
               </form>
             </div>
 
-            <div className="rounded-2xl border-l-4 border-[#D57800] bg-white p-5 shadow-lg ring-2 ring-[#B6C6D6]">
+            <div className="rounded-2xl border border-[#B6C6D6] bg-white p-5 shadow-lg ring-2 ring-[#B6C6D6]">
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-semibold">Deals</h2>
                 <div className="text-xs text-[#0F386E]">
                   {exploreResults ? `${exploreResults.deals.length} destinations` : "—"}
                 </div>
               </div>
-              <div className="mt-3 flex items-center gap-2 text-xs text-[#000034]">
-                Buy via
-                <select
-                  value={explorePurchasePartner}
-                  onChange={(e) => setExplorePurchasePartner(e.target.value as PurchasePartner)}
-                  className="h-8 rounded-lg border border-[#C2D1DF] bg-[#F7FAFE] px-2 text-xs text-[#363535] focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
-                >
-                  <option value="skyscanner">Skyscanner</option>
-                  <option value="kayak">Kayak</option>
-                  <option value="kiwi">Kiwi</option>
-                  <option value="google">Google Flights</option>
-                  <option value="airline">Airline direct</option>
-                </select>
+              <div className="mt-3">
+                <span className="inline-flex items-center gap-2 rounded-full bg-[#E9F0F9] px-2 py-1 text-xs font-semibold text-[#1D4F91] ring-1 ring-[#C9D8EA]">
+                  Buy via <span className="rounded-full bg-[#0F386E] px-2 py-0.5 text-white">Kiwi</span>
+                </span>
               </div>
 
               <div className="mt-4 grid gap-3">
