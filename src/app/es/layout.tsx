@@ -1,12 +1,5 @@
 import type { Metadata } from "next";
-import { Figtree } from "next/font/google";
 import Script from "next/script";
-import "../globals.css";
-
-const figtree = Figtree({
-  variable: "--font-figtree",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Ticket Wiz",
@@ -19,44 +12,42 @@ export default function EsLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
-      <body className={`${figtree.variable} antialiased`}>
-        <Script
-          id="schema-org-es"
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify([
-              {
-                "@context": "https://schema.org",
-                "@type": "Organization",
-                name: "Ticket Wiz",
-                url: "https://ticket-wiz.com",
-                logo: "https://ticket-wiz.com/ticket-wiz-logo.png",
-                contactPoint: {
-                  "@type": "ContactPoint",
-                  contactType: "alianzas",
-                  email: "hello@ticketwiz.app",
-                },
+    <>
+      <Script
+        id="schema-org-es"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify([
+            {
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "Ticket Wiz",
+              url: "https://ticket-wiz.com",
+              logo: "https://ticket-wiz.com/ticket-wiz-logo.png",
+              contactPoint: {
+                "@type": "ContactPoint",
+                contactType: "alianzas",
+                email: "hello@ticketwiz.app",
               },
-              {
-                "@context": "https://schema.org",
-                "@type": "WebSite",
-                name: "Ticket Wiz",
-                url: "https://ticket-wiz.com",
-              },
-            ]),
-          }}
-        />
-        <Script
-          id="tp-em-es"
-          data-noptimize="1"
-          data-cfasync="false"
-          data-wpfc-render="false"
-          src="https://tp-em.com/NDkzMDQw.js?t=493040"
-          strategy="beforeInteractive"
-        />
-        {children}
-      </body>
-    </html>
+            },
+            {
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "Ticket Wiz",
+              url: "https://ticket-wiz.com",
+            },
+          ]),
+        }}
+      />
+      <Script
+        id="tp-em-es"
+        data-noptimize="1"
+        data-cfasync="false"
+        data-wpfc-render="false"
+        src="https://tp-em.com/NDkzMDQw.js?t=493040"
+        strategy="beforeInteractive"
+      />
+      {children}
+    </>
   );
 }

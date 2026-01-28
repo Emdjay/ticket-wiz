@@ -6,6 +6,7 @@ import type { ExploreResponse, FlightSearchResponse } from "@/lib/flights";
 type Tab = "search" | "explore";
 
 type OfferSort = "best" | "cheapest" | "fastest" | "fewest-stops";
+type Locale = "en" | "es";
 
 type PurchasePartner = "skyscanner" | "kayak" | "kiwi" | "google" | "airline";
 
@@ -13,6 +14,167 @@ const OUTLIER_MAX_STOPS = 2;
 const OUTLIER_DURATION_MULTIPLIER = 1.6;
 const KIWI_AFFILIATE_LINK =
   "https://tp.media/click?shmarker=699474&promo_id=3673&source_type=link&type=click&campaign_id=111&trs=493040";
+
+const COPY = {
+  en: {
+    heroTitle: "Find the best airline deals fast.",
+    heroSubtitle: "Start with a direct search, or explore destinations by budget.",
+    heroSubtitleNote: "(Prices depend on your configured flight data provider.)",
+    contactLabel: "Contact",
+    tabSearch: "Search",
+    tabExplore: "Explore",
+    searchFlightsTitle: "Search flights",
+    searchFlightsNote: "Uses Amadeus Flight Offers Search (live-ish pricing).",
+    exploreTitle: "Explore destinations",
+    exploreNote:
+      "Uses Amadeus flight inspiration when available; otherwise falls back to sampling popular destinations via live offers.",
+    origin: "Origin",
+    destination: "Destination",
+    selected: "Selected",
+    popular: "Popular",
+    showPopular: "Show popular airports",
+    hidePopular: "Hide popular airports",
+    region: "Region",
+    airportsInRegion: "Airports in region",
+    selectPopularAirport: "Select popular airport",
+    selectAirport: "Select airport",
+    depart: "Depart",
+    returnOptional: "Return (optional)",
+    adults: "Adults",
+    currency: "Currency",
+    nonstop: "Nonstop",
+    searching: "Searching…",
+    exploring: "Exploring…",
+    findDeals: "Find deals",
+    results: "Results",
+    offers: "offers",
+    destinationsLabel: "destinations",
+    sort: "Sort",
+    bestDeal: "Best deal",
+    cheapest: "Cheapest",
+    fastest: "Fastest",
+    fewestStops: "Fewest stops",
+    bestValueRightNow: "Best value right now",
+    score: "Score",
+    price: "Price",
+    maxPrice: "Max price",
+    duration: "Duration",
+    totalDuration: "Total duration",
+    stops: "Stops",
+    airlines: "Airlines",
+    airline: "Airline",
+    basedOn: "Based on price, duration, and stops across current results.",
+    fetchingFares: "Fetching fares…",
+    runSearchToSee: "Run a search to see flight offers here.",
+    runExploreToSee: "Run an explore search to see destinations here.",
+    dealsTitle: "Deals",
+    dealScore: "Deal score",
+    bookOnPartnerSites: "You book on partner sites. We don’t add fees.",
+    budgetCap: "Budget cap",
+    nonstopOnly: "Nonstop only",
+    maxStops: "Max stops",
+    tripLength: "Trip length",
+    departLabel: "Depart",
+    returnLabel: "Return",
+    daysLabel: "days",
+    viewAmadeusOffer: "View Amadeus offer →",
+    durationLabel: "Duration",
+    flightLabel: "Flight",
+    layoverLabel: "Layover",
+    buyVia: "Buy via",
+    buy: "Buy",
+    buyUnavailable: "Buy unavailable",
+    outlierPrefix: "Outlier: ",
+    dealBest: "Best deal",
+    dealGood: "Good deal",
+    dealFair: "Fair deal",
+    dealPricey: "Pricey",
+    searchFailed: "Search failed.",
+    exploreFailed: "Explore failed.",
+    returnDateError: "Return date must be on/after the departure date.",
+    mvpLabel: "MVP",
+    mvpSubtitle: "Search + Explore",
+  },
+  es: {
+    heroTitle: "Encuentra las mejores ofertas de vuelos rápido.",
+    heroSubtitle: "Empieza con una búsqueda directa o explora destinos por presupuesto.",
+    heroSubtitleNote: "(Los precios dependen de tu proveedor de datos de vuelos.)",
+    contactLabel: "Contacto",
+    tabSearch: "Buscar",
+    tabExplore: "Explorar",
+    searchFlightsTitle: "Buscar vuelos",
+    searchFlightsNote: "Usa Amadeus Flight Offers Search (precios casi en tiempo real).",
+    exploreTitle: "Explorar destinos",
+    exploreNote:
+      "Usa inspiración de vuelos de Amadeus cuando esté disponible; si no, toma destinos populares con ofertas en vivo.",
+    origin: "Origen",
+    destination: "Destino",
+    selected: "Seleccionado",
+    popular: "Populares",
+    showPopular: "Mostrar aeropuertos populares",
+    hidePopular: "Ocultar aeropuertos populares",
+    region: "Región",
+    airportsInRegion: "Aeropuertos en la región",
+    selectPopularAirport: "Selecciona un aeropuerto popular",
+    selectAirport: "Selecciona un aeropuerto",
+    depart: "Salida",
+    returnOptional: "Regreso (opcional)",
+    adults: "Adultos",
+    currency: "Moneda",
+    nonstop: "Sin escalas",
+    searching: "Buscando…",
+    exploring: "Explorando…",
+    findDeals: "Encontrar ofertas",
+    results: "Resultados",
+    offers: "ofertas",
+    destinationsLabel: "destinos",
+    sort: "Ordenar",
+    bestDeal: "Mejor oferta",
+    cheapest: "Más barato",
+    fastest: "Más rápido",
+    fewestStops: "Menos escalas",
+    bestValueRightNow: "Mejor valor ahora",
+    score: "Puntaje",
+    price: "Precio",
+    maxPrice: "Precio máximo",
+    duration: "Duración",
+    totalDuration: "Duración total",
+    stops: "Escalas",
+    airlines: "Aerolíneas",
+    airline: "Aerolínea",
+    basedOn: "Basado en precio, duración y escalas en los resultados actuales.",
+    fetchingFares: "Cargando tarifas…",
+    runSearchToSee: "Ejecuta una búsqueda para ver ofertas aquí.",
+    runExploreToSee: "Ejecuta una exploración para ver destinos aquí.",
+    dealsTitle: "Ofertas",
+    dealScore: "Puntaje de oferta",
+    bookOnPartnerSites: "Reservas en sitios asociados. No añadimos cargos.",
+    budgetCap: "Tope de presupuesto",
+    nonstopOnly: "Solo sin escalas",
+    maxStops: "Máx. escalas",
+    tripLength: "Duración del viaje",
+    departLabel: "Salida",
+    returnLabel: "Regreso",
+    daysLabel: "días",
+    viewAmadeusOffer: "Ver oferta de Amadeus →",
+    durationLabel: "Duración",
+    flightLabel: "Vuelo",
+    layoverLabel: "Escala",
+    buyVia: "Compra vía",
+    buy: "Comprar",
+    buyUnavailable: "Compra no disponible",
+    outlierPrefix: "Atípico: ",
+    dealBest: "Mejor oferta",
+    dealGood: "Buena oferta",
+    dealFair: "Oferta regular",
+    dealPricey: "Caro",
+    searchFailed: "Búsqueda fallida.",
+    exploreFailed: "Exploración fallida.",
+    returnDateError: "La fecha de regreso debe ser igual o posterior a la de salida.",
+    mvpLabel: "MVP",
+    mvpSubtitle: "Buscar + Explorar",
+  },
+} as const;
 
 type Airport = {
   code: string;
@@ -96,8 +258,18 @@ function AirportPicker(props: {
   onChange: (code: string) => void;
   exclude?: string;
   stackSelected?: boolean;
+  labels: {
+    selected: string;
+    popular: string;
+    showPopular: string;
+    hidePopular: string;
+    region: string;
+    airportsInRegion: string;
+    selectPopularAirport: string;
+    selectAirport: string;
+  };
 }) {
-  const { label, value, onChange, exclude, stackSelected } = props;
+  const { label, value, onChange, exclude, stackSelected, labels } = props;
   const [region, setRegion] = useState(REGION_KEYS[0] ?? "");
   const [showPopular, setShowPopular] = useState(false);
   const regionAirports = AIRPORT_REGIONS[region] ?? [];
@@ -109,7 +281,7 @@ function AirportPicker(props: {
         <div className="grid gap-1">
           <div className="text-xs font-semibold text-[#000034]">{label}</div>
           <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[#E9F0F9] px-2 py-0.5 text-[11px] font-semibold text-[#0F386E] ring-1 ring-[#C9D8EA]">
-            <span>Selected</span>
+            <span>{labels.selected}</span>
             <span className="rounded-full bg-[#0F386E] px-2 py-0.5 text-white">{value}</span>
           </div>
         </div>
@@ -117,20 +289,20 @@ function AirportPicker(props: {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="text-xs font-semibold text-[#000034]">{label}</div>
           <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[#E9F0F9] px-2 py-0.5 text-[11px] font-semibold text-[#0F386E] ring-1 ring-[#C9D8EA]">
-            <span>Selected</span>
+            <span>{labels.selected}</span>
             <span className="rounded-full bg-[#0F386E] px-2 py-0.5 text-white">{value}</span>
           </div>
         </div>
       )}
       <div className="mt-3 grid gap-2">
         <label className="text-xs font-medium text-[#000034]">
-          Popular
+          {labels.popular}
           <button
             type="button"
             onClick={() => setShowPopular((prev) => !prev)}
             className="mt-1 inline-flex h-8 items-center rounded-lg border border-[#C2D1DF] bg-[#E9F0F9] px-2 text-[11px] font-medium text-[#1D4F91] hover:border-[#1D4F91]"
           >
-            {showPopular ? "Hide popular airports" : "Show popular airports"}
+            {showPopular ? labels.hidePopular : labels.showPopular}
           </button>
         </label>
         {showPopular ? (
@@ -141,7 +313,7 @@ function AirportPicker(props: {
             }}
             className="h-9 w-full rounded-lg border border-[#C2D1DF] bg-[#F7FAFE] px-2 text-xs text-[#363535] focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
           >
-            <option value="">Select popular airport</option>
+            <option value="">{labels.selectPopularAirport}</option>
             {popularOptions.map((airport) => (
               <option key={airport.code} value={airport.code}>
                 {formatAirport(airport)}
@@ -150,7 +322,7 @@ function AirportPicker(props: {
           </select>
         ) : null}
         <label className="text-xs font-medium text-[#000034]">
-          Region
+          {labels.region}
           <select
             value={region}
             onChange={(e) => setRegion(e.target.value)}
@@ -164,7 +336,7 @@ function AirportPicker(props: {
           </select>
         </label>
         <label className="text-xs font-medium text-[#000034]">
-          Airports in region
+          {labels.airportsInRegion}
           <select
             value={regionOptions.some((a) => a.code === value) ? value : ""}
             onChange={(e) => {
@@ -172,7 +344,7 @@ function AirportPicker(props: {
             }}
             className="mt-1 h-9 w-full rounded-lg border border-[#C2D1DF] bg-[#F7FAFE] px-2 text-xs text-[#363535] focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
           >
-            <option value="">Select airport</option>
+            <option value="">{labels.selectAirport}</option>
             {regionOptions.map((airport) => (
               <option key={airport.code} value={airport.code}>
                 {formatAirport(airport)}
@@ -267,37 +439,37 @@ function median(values: number[]) {
   return sorted[mid];
 }
 
-function dealBadge(score: number | undefined) {
+function dealBadge(score: number | undefined, copy: (typeof COPY)["en"]) {
   if (typeof score !== "number") return null;
   const pct = Math.round(score * 100);
   if (pct >= 85) {
     return {
-      label: "Best deal",
+      label: copy.dealBest,
       tone: "bg-[#E6F3EE] text-[#006A52] ring-1 ring-[#CFE5DC]",
     };
   }
   if (pct >= 70) {
     return {
-      label: "Good deal",
+      label: copy.dealGood,
       tone: "bg-[#E8EFF7] text-[#1D4F91] ring-1 ring-[#C9D8EA]",
     };
   }
   if (pct >= 55) {
     return {
-      label: "Fair deal",
+      label: copy.dealFair,
       tone: "bg-[#FFF4C2] text-[#000034] ring-1 ring-[#FFE28A]",
     };
   }
   return {
-    label: "Pricey",
+    label: copy.dealPricey,
     tone: "bg-[#FBE9DC] text-[#D57800] ring-1 ring-[#F5CFB3]",
   };
 }
 
-function warningBadge(reason: string | undefined) {
+function warningBadge(reason: string | undefined, copy: (typeof COPY)["en"]) {
   if (!reason) return null;
   return {
-    label: `Outlier: ${reason}`,
+    label: `${copy.outlierPrefix}${reason}`,
     tone: "bg-[#FBE9DC] text-[#D57800] ring-1 ring-[#F5CFB3]",
   };
 }
@@ -353,7 +525,18 @@ function buildPurchaseUrl(args: {
   }
 }
 
-export function TicketWizApp() {
+export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
+  const copy = COPY[locale] ?? COPY.en;
+  const airportLabels = {
+    selected: copy.selected,
+    popular: copy.popular,
+    showPopular: copy.showPopular,
+    hidePopular: copy.hidePopular,
+    region: copy.region,
+    airportsInRegion: copy.airportsInRegion,
+    selectPopularAirport: copy.selectPopularAirport,
+    selectAirport: copy.selectAirport,
+  };
   const [tab, setTab] = useState<Tab>("search");
 
   // Search
@@ -559,10 +742,10 @@ export function TicketWizApp() {
 
       const res = await fetch(`/api/flights/search?${params.toString()}`);
       const json = await res.json();
-      if (!res.ok) throw new Error(json?.error || "Search failed.");
+      if (!res.ok) throw new Error(json?.error || copy.searchFailed);
       setSearchResults(json as FlightSearchResponse);
     } catch (e) {
-      setSearchError(e instanceof Error ? e.message : "Search failed.");
+      setSearchError(e instanceof Error ? e.message : copy.searchFailed);
     } finally {
       setSearchLoading(false);
     }
@@ -574,7 +757,7 @@ export function TicketWizApp() {
 
     const trimmedReturn = exploreReturnDate.trim();
     if (trimmedReturn && trimmedReturn < exploreDepartureDate) {
-      setExploreError("Return date must be on/after the departure date.");
+      setExploreError(copy.returnDateError);
       return;
     }
 
@@ -592,10 +775,10 @@ export function TicketWizApp() {
 
       const res = await fetch(`/api/flights/explore?${params.toString()}`);
       const json = await res.json();
-      if (!res.ok) throw new Error(json?.error || "Explore failed.");
+      if (!res.ok) throw new Error(json?.error || copy.exploreFailed);
       setExploreResults(json as ExploreResponse);
     } catch (e) {
-      setExploreError(e instanceof Error ? e.message : "Explore failed.");
+      setExploreError(e instanceof Error ? e.message : copy.exploreFailed);
     } finally {
       setExploreLoading(false);
     }
@@ -627,15 +810,15 @@ export function TicketWizApp() {
                 Ticket Wiz <span className="text-[#0F386E]">•</span> Flight deals finder
               </div>
               <h1 className="mt-4 text-balance text-3xl font-semibold tracking-tight text-[#000034] sm:text-4xl">
-                Find the best airline deals fast.
+                {copy.heroTitle}
               </h1>
               <p className="mt-2 max-w-2xl text-pretty text-[13px] leading-5 text-[#363535]">
-                Start with a direct search, or explore destinations by budget.
+                {copy.heroSubtitle}
                 <br />
-                (Prices depend on your configured flight data provider.)
+                {copy.heroSubtitleNote}
               </p>
               <div className="mt-2 text-xs font-semibold text-[#0F386E]">
-                Contact:{" "}
+                {copy.contactLabel}:{" "}
                 <a className="underline" href="mailto:info@ticket-wiz.com">
                   info@ticket-wiz.com
                 </a>
@@ -656,8 +839,8 @@ export function TicketWizApp() {
                   ES
                 </a>
               </div>
-              <div className="font-medium text-[#000034]">MVP</div>
-              <div>Search + Explore</div>
+              <div className="font-medium text-[#000034]">{copy.mvpLabel}</div>
+              <div>{copy.mvpSubtitle}</div>
             </div>
           </div>
 
@@ -672,7 +855,7 @@ export function TicketWizApp() {
                   : "bg-white text-[#1D4F91] ring-[#C2D1DF] hover:bg-[#E9F0F9]",
               ].join(" ")}
             >
-              Search
+              {copy.tabSearch}
             </button>
             <button
               type="button"
@@ -684,7 +867,7 @@ export function TicketWizApp() {
                   : "bg-white text-[#1D4F91] ring-[#C2D1DF] hover:bg-[#E9F0F9]",
               ].join(" ")}
             >
-              Explore
+              {copy.tabExplore}
             </button>
           </div>
         </div>
@@ -694,10 +877,8 @@ export function TicketWizApp() {
         {tab === "search" ? (
           <section className="-mt-6 grid items-start gap-6 lg:grid-cols-[420px_1fr]">
             <div className="rounded-2xl border border-[#B6C6D6] bg-white p-5 shadow-lg ring-2 ring-[#B6C6D6]">
-              <h2 className="text-sm font-semibold">Search flights</h2>
-              <p className="mt-1 text-xs text-[#363535]">
-                Uses Amadeus Flight Offers Search (live-ish pricing).
-              </p>
+              <h2 className="text-sm font-semibold">{copy.searchFlightsTitle}</h2>
+              <p className="mt-1 text-xs text-[#363535]">{copy.searchFlightsNote}</p>
 
               <form
                 className="mt-4 grid gap-3"
@@ -708,23 +889,25 @@ export function TicketWizApp() {
               >
                 <div className="grid gap-3 lg:grid-cols-2">
                   <AirportPicker
-                    label="Origin"
+                    label={copy.origin}
                     value={origin}
                     onChange={setOrigin}
                     exclude={destination}
                     stackSelected
+                    labels={airportLabels}
                   />
                   <AirportPicker
-                    label="Destination"
+                    label={copy.destination}
                     value={destination}
                     onChange={setDestination}
                     exclude={origin}
+                    labels={airportLabels}
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <label className="grid gap-1 text-xs font-medium text-[#000034]">
-                    Depart
+                    {copy.depart}
                     <input
                       type="date"
                       value={departureDate}
@@ -733,7 +916,7 @@ export function TicketWizApp() {
                     />
                   </label>
                   <label className="grid gap-1 text-xs font-medium text-[#000034]">
-                    Return (optional)
+                    {copy.returnOptional}
                     <input
                       type="date"
                       value={returnDate}
@@ -745,7 +928,7 @@ export function TicketWizApp() {
 
                 <div className="grid gap-3 sm:grid-cols-2">
                   <label className="grid gap-1 text-xs font-medium text-[#000034]">
-                    Adults
+                    {copy.adults}
                     <input
                       type="number"
                       min={1}
@@ -756,7 +939,7 @@ export function TicketWizApp() {
                     />
                   </label>
                   <label className="grid gap-1 text-xs font-medium text-[#000034]">
-                    Currency
+                    {copy.currency}
                     <input
                       value={currency}
                       onChange={(e) => setCurrency(e.target.value.toUpperCase())}
@@ -771,7 +954,7 @@ export function TicketWizApp() {
                       onChange={(e) => setNonStop(e.target.checked)}
                       className="h-4 w-4 accent-[#006A52]"
                     />
-                    <span className="text-sm text-[#363535]">Nonstop</span>
+                    <span className="text-sm text-[#363535]">{copy.nonstop}</span>
                   </label>
                 </div>
 
@@ -780,7 +963,7 @@ export function TicketWizApp() {
                   disabled={searchLoading}
                   className="mt-2 inline-flex h-11 items-center justify-center rounded-xl bg-gradient-to-r from-[#006A52] to-[#0F386E] px-4 text-sm font-semibold text-white shadow-md transition hover:from-[#0F386E] hover:to-[#1D4F91] disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {searchLoading ? "Searching…" : "Find deals"}
+                  {searchLoading ? copy.searching : copy.findDeals}
                 </button>
 
                 {searchError ? (
@@ -793,20 +976,22 @@ export function TicketWizApp() {
 
             <div className="rounded-2xl border border-[#B6C6D6] bg-white p-5 shadow-lg ring-2 ring-[#B6C6D6]">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <h2 className="text-sm font-semibold">Results</h2>
+                <h2 className="text-sm font-semibold">{copy.results}</h2>
                 <div className="flex items-center gap-3 text-xs text-[#0F386E]">
-                  <div>{searchResults ? `${searchResults.offers.length} offers` : "—"}</div>
+                  <div>
+                    {searchResults ? `${searchResults.offers.length} ${copy.offers}` : "—"}
+                  </div>
                   <label className="flex items-center gap-2">
-                    Sort
+                    {copy.sort}
                     <select
                       value={searchSort}
                       onChange={(e) => setSearchSort(e.target.value as OfferSort)}
                       className="h-8 rounded-lg border border-[#C2D1DF] bg-[#F7FAFE] px-2 text-xs text-[#363535] focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
                     >
-                      <option value="best">Best deal</option>
-                      <option value="cheapest">Cheapest</option>
-                      <option value="fastest">Fastest</option>
-                      <option value="fewest-stops">Fewest stops</option>
+                      <option value="best">{copy.bestDeal}</option>
+                      <option value="cheapest">{copy.cheapest}</option>
+                      <option value="fastest">{copy.fastest}</option>
+                      <option value="fewest-stops">{copy.fewestStops}</option>
                     </select>
                   </label>
                 </div>
@@ -817,45 +1002,47 @@ export function TicketWizApp() {
                   <div className="rounded-xl border border-[#C9D8EA] bg-[#E9F0F9] p-4 shadow-sm">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="text-xs font-semibold uppercase tracking-wide text-[#1D4F91]">
-                        Best value right now
+                        {copy.bestValueRightNow}
                       </div>
                       <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-semibold text-[#0F386E] ring-1 ring-[#C9D8EA]">
-                        Score {Math.round((offerView.scores.get(bestOffer.id) ?? 0) * 100)}
+                        {copy.score} {Math.round((offerView.scores.get(bestOffer.id) ?? 0) * 100)}
                       </span>
                     </div>
                     <div className="mt-2 flex flex-wrap items-center gap-4 text-sm font-semibold text-[#000034]">
-                      <div>Price: {formatMoney(bestOffer.currency, bestOffer.priceTotal)}</div>
-                      <div className="text-xs font-semibold text-[#1D4F91]">
-                        Duration: {formatDurationMinutes(offerView.durations.get(bestOffer.id))}
+                      <div>
+                        {copy.price}: {formatMoney(bestOffer.currency, bestOffer.priceTotal)}
                       </div>
                       <div className="text-xs font-semibold text-[#1D4F91]">
-                        Stops: {offerView.stops.get(bestOffer.id) ?? "—"}
+                        {copy.duration}: {formatDurationMinutes(offerView.durations.get(bestOffer.id))}
                       </div>
                       <div className="text-xs font-semibold text-[#1D4F91]">
-                        Airline: {bestOffer.validatingAirlineCodes[0] ?? "—"}
+                        {copy.stops}: {offerView.stops.get(bestOffer.id) ?? "—"}
+                      </div>
+                      <div className="text-xs font-semibold text-[#1D4F91]">
+                        {copy.airline}: {bestOffer.validatingAirlineCodes[0] ?? "—"}
                       </div>
                     </div>
                     <div className="mt-1 text-[11px] font-semibold text-[#1D4F91]">
-                      Based on price, duration, and stops across current results.
+                      {copy.basedOn}
                     </div>
                   </div>
                 ) : null}
                 {searchLoading ? (
                   <div className="rounded-xl border border-[#D9E2EA] p-4 text-sm text-[#363535]">
-                    Fetching fares…
+                    {copy.fetchingFares}
                   </div>
                 ) : null}
 
                 {!searchLoading && offerView.offers.length === 0 ? (
                   <div className="rounded-xl border border-dashed border-[#D9E2EA] p-6 text-sm text-[#363535]">
-                    Run a search to see flight offers here.
+                    {copy.runSearchToSee}
                   </div>
                 ) : null}
 
                 {offerView.offers.map((offer) => {
                   const score = offerView.scores.get(offer.id);
-                  const badge = dealBadge(score);
-                  const warning = warningBadge(offerView.outliers.get(offer.id));
+                  const badge = dealBadge(score, copy);
+                  const warning = warningBadge(offerView.outliers.get(offer.id), copy);
                   const duration = offerView.durations.get(offer.id);
                   const stops = offerView.stops.get(offer.id);
                   const airlines = offer.validatingAirlineCodes;
@@ -886,7 +1073,9 @@ export function TicketWizApp() {
                         </div>
                         <div className="mt-1 inline-flex flex-wrap items-center gap-2 text-xs text-[#0F386E]">
                           {searchSort === "best" && typeof score === "number" ? (
-                            <span>Deal score: {Math.round(score * 100)}</span>
+                            <span>
+                              {copy.dealScore}: {Math.round(score * 100)}
+                            </span>
                           ) : null}
                           {badge ? (
                             <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${badge.tone}`}>
@@ -901,7 +1090,7 @@ export function TicketWizApp() {
                                 {warning.label}
                               </span>
                               <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-2 w-44 -translate-x-1/2 rounded-lg bg-[#000034] px-2 py-1 text-[11px] text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100">
-                                {warning.label.replace("Outlier: ", "")}
+                                {warning.label.replace(copy.outlierPrefix, "")}
                               </span>
                             </span>
                           ) : null}
@@ -914,7 +1103,7 @@ export function TicketWizApp() {
                     <div className="mt-3 grid gap-2 sm:grid-cols-3">
                       <div className="rounded-lg bg-[#F7FAFE] px-2 py-1.5">
                         <div className="text-[10px] font-semibold uppercase tracking-wide text-[#1D4F91]">
-                          Total duration
+                          {copy.totalDuration}
                         </div>
                         <div className="text-xs font-semibold text-[#000034]">
                           {formatDurationMinutes(duration)}
@@ -922,7 +1111,7 @@ export function TicketWizApp() {
                       </div>
                       <div className="rounded-lg bg-[#F7FAFE] px-2 py-1.5">
                         <div className="text-[10px] font-semibold uppercase tracking-wide text-[#1D4F91]">
-                          Stops
+                          {copy.stops}
                         </div>
                         <div className="text-xs font-semibold text-[#000034]">
                           {typeof stops === "number" ? stops : "—"}
@@ -930,7 +1119,7 @@ export function TicketWizApp() {
                       </div>
                       <div className="rounded-lg bg-[#F7FAFE] px-2 py-1.5">
                         <div className="text-[10px] font-semibold uppercase tracking-wide text-[#1D4F91]">
-                          Airlines
+                          {copy.airlines}
                         </div>
                         <div className="text-xs font-semibold text-[#000034]">
                           {airlines.length ? airlines.join(", ") : "—"}
@@ -938,7 +1127,7 @@ export function TicketWizApp() {
                       </div>
                     </div>
                     <div className="mt-3 rounded-lg border border-[#C9D8EA] bg-[#E9F0F9] px-3 py-2 text-[11px] font-semibold text-[#1D4F91]">
-                      You book on partner sites. We don’t add fees.
+                      {copy.bookOnPartnerSites}
                     </div>
                     <div className="mt-3 grid gap-2">
                       {offer.itineraries.map((it, idx) => (
@@ -953,7 +1142,9 @@ export function TicketWizApp() {
                                 {it.segments[it.segments.length - 1]?.arrival.iataCode}
                               </span>
                             </div>
-                            <div className="text-[#0F386E]">Duration: {formatIsoDuration(it.duration)}</div>
+                            <div className="text-[#0F386E]">
+                              {copy.durationLabel}: {formatIsoDuration(it.duration)}
+                            </div>
                           </div>
                           <div className="mt-2 grid gap-1">
                             {it.segments.map((seg, sidx) => {
@@ -975,20 +1166,20 @@ export function TicketWizApp() {
                                     </div>
                                     <div className="flex flex-wrap items-center gap-1 text-[11px] font-semibold text-[#1D4F91]">
                                       <span className="rounded-full bg-[#E9F0F9] px-2 py-0.5 ring-1 ring-[#C9D8EA]">
-                                        Flight {seg.carrierCode}
+                                        {copy.flightLabel} {seg.carrierCode}
                                         {seg.number}
                                       </span>
                                       <span className="rounded-full bg-[#E9F0F9] px-2 py-0.5 ring-1 ring-[#C9D8EA]">
                                         {formatIsoDuration(seg.duration)}
                                       </span>
                                       <span className="rounded-full bg-[#E9F0F9] px-2 py-0.5 ring-1 ring-[#C9D8EA]">
-                                        Stops: {seg.numberOfStops}
+                                        {copy.stops}: {seg.numberOfStops}
                                       </span>
                                     </div>
                                   </div>
                                   {next && typeof layoverMinutes === "number" ? (
                                     <div className="mt-2 rounded-lg border border-[#C9D8EA] bg-[#F7FAFE] px-2 py-1 text-[11px] font-semibold text-[#1D4F91]">
-                                      Layover {formatDurationMinutes(layoverMinutes)} ·{" "}
+                                      {copy.layoverLabel} {formatDurationMinutes(layoverMinutes)} ·{" "}
                                       {seg.arrival.iataCode}
                                     </div>
                                   ) : null}
@@ -1001,7 +1192,8 @@ export function TicketWizApp() {
                     </div>
                     <div className="mt-4 flex flex-wrap items-center gap-2">
                       <span className="inline-flex items-center gap-2 rounded-full bg-[#E9F0F9] px-2 py-1 text-xs font-semibold text-[#1D4F91] ring-1 ring-[#C9D8EA]">
-                        Buy via <span className="rounded-full bg-[#0F386E] px-2 py-0.5 text-white">Kiwi</span>
+                        {copy.buyVia}{" "}
+                        <span className="rounded-full bg-[#0F386E] px-2 py-0.5 text-white">Kiwi</span>
                       </span>
                       {purchaseUrl ? (
                         <a
@@ -1010,11 +1202,11 @@ export function TicketWizApp() {
                           rel="noreferrer"
                           className="inline-flex h-8 items-center justify-center rounded-lg bg-gradient-to-r from-[#1D4F91] to-[#0F386E] px-3 text-xs font-semibold text-white shadow-sm hover:from-[#0F386E] hover:to-[#1D4F91]"
                         >
-                          Buy
+                          {copy.buy}
                         </a>
                       ) : (
                         <span className="inline-flex h-8 items-center rounded-lg border border-[#D9E2EA] px-3 text-xs text-[#0F386E]">
-                          Buy unavailable
+                          {copy.buyUnavailable}
                         </span>
                       )}
                     </div>
@@ -1027,11 +1219,8 @@ export function TicketWizApp() {
         ) : (
           <section className="-mt-6 grid items-start gap-6 lg:grid-cols-[420px_1fr]">
             <div className="rounded-2xl border border-[#B6C6D6] bg-white p-5 shadow-lg ring-2 ring-[#B6C6D6]">
-              <h2 className="text-sm font-semibold">Explore destinations</h2>
-              <p className="mt-1 text-xs text-[#363535]">
-                Uses Amadeus flight inspiration when available; otherwise falls back to sampling popular
-                destinations via live offers.
-              </p>
+              <h2 className="text-sm font-semibold">{copy.exploreTitle}</h2>
+              <p className="mt-1 text-xs text-[#363535]">{copy.exploreNote}</p>
 
               <form
                 className="mt-4 grid gap-3"
@@ -1042,12 +1231,13 @@ export function TicketWizApp() {
               >
                 <div className="grid gap-3 lg:grid-cols-2">
                   <AirportPicker
-                    label="Origin"
+                    label={copy.origin}
                     value={exploreOrigin}
                     onChange={setExploreOrigin}
+                    labels={airportLabels}
                   />
                   <label className="grid gap-1 text-xs font-medium text-[#000034]">
-                    Max price
+                    {copy.maxPrice}
                     <input
                       type="number"
                       min={1}
@@ -1060,7 +1250,7 @@ export function TicketWizApp() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <label className="grid gap-1 text-xs font-medium text-[#000034]">
-                    Depart
+                    {copy.depart}
                     <input
                       type="date"
                       value={exploreDepartureDate}
@@ -1069,7 +1259,7 @@ export function TicketWizApp() {
                     />
                   </label>
                   <label className="grid gap-1 text-xs font-medium text-[#000034]">
-                    Return (optional)
+                    {copy.returnOptional}
                     <input
                       type="date"
                       value={exploreReturnDate}
@@ -1081,7 +1271,7 @@ export function TicketWizApp() {
 
                 <div className="grid gap-3 sm:grid-cols-2">
                   <label className="grid gap-1 text-xs font-medium text-[#000034]">
-                    Adults
+                    {copy.adults}
                     <input
                       type="number"
                       min={1}
@@ -1092,7 +1282,7 @@ export function TicketWizApp() {
                     />
                   </label>
                   <label className="grid gap-1 text-xs font-medium text-[#000034]">
-                    Currency
+                    {copy.currency}
                     <input
                       value={exploreCurrency}
                       onChange={(e) => setExploreCurrency(e.target.value.toUpperCase())}
@@ -1107,7 +1297,7 @@ export function TicketWizApp() {
                       onChange={(e) => setExploreNonStop(e.target.checked)}
                       className="h-4 w-4 accent-[#006A52]"
                     />
-                    <span className="text-sm text-[#363535]">Nonstop only</span>
+                    <span className="text-sm text-[#363535]">{copy.nonstop}</span>
                   </label>
                 </div>
 
@@ -1116,7 +1306,7 @@ export function TicketWizApp() {
                   disabled={exploreLoading}
                   className="mt-2 inline-flex h-11 items-center justify-center rounded-xl bg-gradient-to-r from-[#006A52] to-[#0F386E] px-4 text-sm font-semibold text-white shadow-md transition hover:from-[#0F386E] hover:to-[#1D4F91] disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {exploreLoading ? "Searching…" : "Show deals"}
+                  {exploreLoading ? copy.exploring : copy.findDeals}
                 </button>
 
                 {exploreError ? (
@@ -1129,27 +1319,28 @@ export function TicketWizApp() {
 
             <div className="rounded-2xl border border-[#B6C6D6] bg-white p-5 shadow-lg ring-2 ring-[#B6C6D6]">
               <div className="flex items-center justify-between">
-                <h2 className="text-sm font-semibold">Deals</h2>
+                <h2 className="text-sm font-semibold">{copy.dealsTitle}</h2>
                 <div className="text-xs text-[#0F386E]">
-                  {exploreResults ? `${exploreResults.deals.length} destinations` : "—"}
+                  {exploreResults ? `${exploreResults.deals.length} ${copy.destinationsLabel}` : "—"}
                 </div>
               </div>
               <div className="mt-3">
                 <span className="inline-flex items-center gap-2 rounded-full bg-[#E9F0F9] px-2 py-1 text-xs font-semibold text-[#1D4F91] ring-1 ring-[#C9D8EA]">
-                  Buy via <span className="rounded-full bg-[#0F386E] px-2 py-0.5 text-white">Kiwi</span>
+                  {copy.buyVia}{" "}
+                  <span className="rounded-full bg-[#0F386E] px-2 py-0.5 text-white">Kiwi</span>
                 </span>
               </div>
 
               <div className="mt-4 grid gap-3">
                 {!exploreLoading && exploreView.deals.length === 0 ? (
                   <div className="rounded-xl border border-dashed border-[#D9E2EA] p-6 text-sm text-[#363535]">
-                    Run an explore search to see destinations here.
+                    {copy.runExploreToSee}
                   </div>
                 ) : null}
 
                 {exploreView.deals.map((deal, idx) => {
                   const key = `${deal.destination}-${deal.priceTotal}-${deal.departureDate ?? ""}`;
-                  const warning = warningBadge(exploreView.outliers.get(key));
+                  const warning = warningBadge(exploreView.outliers.get(key), copy);
                   const purchaseUrl = deal.departureDate
                     ? buildPurchaseUrl({
                         partner: explorePurchasePartner,
@@ -1177,19 +1368,19 @@ export function TicketWizApp() {
                     <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] font-semibold">
                       {Number.isFinite(exploreMaxPrice) ? (
                         <span className="rounded-full bg-[#FFF4C2] px-2 py-0.5 text-[#000034] ring-1 ring-[#FFE28A]">
-                          Budget cap: {formatMoney(exploreCurrency, String(exploreMaxPrice))}
+                          {copy.budgetCap}: {formatMoney(exploreCurrency, String(exploreMaxPrice))}
                         </span>
                       ) : null}
                       {exploreNonStop ? (
                         <span className="rounded-full bg-[#E6F3EE] px-2 py-0.5 text-[#006A52] ring-1 ring-[#CFE5DC]">
-                          Nonstop only
+                          {copy.nonstopOnly}
                         </span>
                       ) : null}
                     </div>
                     <div className="mt-2 grid gap-2 sm:grid-cols-3">
                       <div className="rounded-lg bg-[#F7FAFE] px-2 py-1.5">
                         <div className="text-[10px] font-semibold uppercase tracking-wide text-[#1D4F91]">
-                          Duration
+                          {copy.duration}
                         </div>
                         <div className="text-xs font-semibold text-[#000034]">
                           {formatDurationMinutes(deal.durationMinutes)}
@@ -1197,7 +1388,7 @@ export function TicketWizApp() {
                       </div>
                       <div className="rounded-lg bg-[#F7FAFE] px-2 py-1.5">
                         <div className="text-[10px] font-semibold uppercase tracking-wide text-[#1D4F91]">
-                          Max stops
+                          {copy.maxStops}
                         </div>
                         <div className="text-xs font-semibold text-[#000034]">
                           {typeof deal.maxStops === "number" ? deal.maxStops : "—"}
@@ -1205,12 +1396,12 @@ export function TicketWizApp() {
                       </div>
                       <div className="rounded-lg bg-[#F7FAFE] px-2 py-1.5">
                         <div className="text-[10px] font-semibold uppercase tracking-wide text-[#1D4F91]">
-                          Trip length
+                          {copy.tripLength}
                         </div>
                         <div className="text-xs font-semibold text-[#000034]">
                           {(() => {
                             const days = tripLengthDays(deal.departureDate, deal.returnDate);
-                            return typeof days === "number" ? `${days} days` : "—";
+                            return typeof days === "number" ? `${days} ${copy.daysLabel}` : "—";
                           })()}
                         </div>
                       </div>
@@ -1224,18 +1415,20 @@ export function TicketWizApp() {
                             {warning.label}
                           </span>
                           <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-2 w-44 -translate-x-1/2 rounded-lg bg-[#000034] px-2 py-1 text-[11px] text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100">
-                            {warning.label.replace("Outlier: ", "")}
+                            {warning.label.replace(copy.outlierPrefix, "")}
                           </span>
                         </span>
                       </div>
                     ) : null}
                     <div className="mt-2 text-xs text-[#363535]">
-                      {deal.departureDate ? `Depart: ${deal.departureDate}` : null}
-                      {deal.returnDate ? ` • Return: ${deal.returnDate}` : null}
-                      {typeof tripDays === "number" ? ` • Trip length: ${tripDays} days` : null}
+                      {deal.departureDate ? `${copy.departLabel}: ${deal.departureDate}` : null}
+                      {deal.returnDate ? ` • ${copy.returnLabel}: ${deal.returnDate}` : null}
+                      {typeof tripDays === "number"
+                        ? ` • ${copy.tripLength}: ${tripDays} ${copy.daysLabel}`
+                        : null}
                     </div>
                     <div className="mt-3 rounded-lg border border-[#C9D8EA] bg-[#E9F0F9] px-3 py-2 text-[11px] font-semibold text-[#1D4F91]">
-                      You book on partner sites. We don’t add fees.
+                      {copy.bookOnPartnerSites}
                     </div>
                     <div className="mt-3 flex flex-wrap items-center gap-2">
                       {purchaseUrl ? (
@@ -1245,11 +1438,11 @@ export function TicketWizApp() {
                           rel="noreferrer"
                           className="inline-flex h-8 items-center justify-center rounded-lg bg-gradient-to-r from-[#1D4F91] to-[#0F386E] px-3 text-xs font-semibold text-white shadow-sm hover:from-[#0F386E] hover:to-[#1D4F91]"
                         >
-                          Buy
+                          {copy.buy}
                         </a>
                       ) : (
                         <span className="inline-flex h-8 items-center rounded-lg border border-[#D9E2EA] px-3 text-xs text-[#0F386E]">
-                          Buy unavailable
+                          {copy.buyUnavailable}
                         </span>
                       )}
                       {deal.links?.flightOffers ? (
@@ -1259,7 +1452,7 @@ export function TicketWizApp() {
                           rel="noreferrer"
                           className="inline-flex text-xs font-medium text-[#1D4F91] hover:underline"
                         >
-                          View Amadeus offer →
+                          {copy.viewAmadeusOffer}
                         </a>
                       ) : null}
                     </div>

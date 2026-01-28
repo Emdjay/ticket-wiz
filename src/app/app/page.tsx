@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     canonical: "/app",
     languages: {
       "en-US": "/app",
-      "es-ES": "/es",
+      "es-ES": "/es/app",
     },
   },
   openGraph: {

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { HtmlLangSetter } from "@/components/HtmlLangSetter";
 
 export const metadata: Metadata = {
   title: "Ticket Wiz | Ofertas de vuelos rápido",
@@ -20,6 +21,7 @@ export const metadata: Metadata = {
 export default function SpanishHomePage() {
   return (
     <div className="min-h-screen bg-zinc-50 text-zinc-950">
+      <HtmlLangSetter lang="es" />
       <div className="mx-auto max-w-4xl px-6 py-16">
         <div className="flex w-full justify-end">
           <a
@@ -44,7 +46,7 @@ export default function SpanishHomePage() {
         </p>
         <div className="mt-6 flex flex-wrap items-center gap-3">
           <a
-            href="/app"
+            href="/es/app"
             className="inline-flex h-11 items-center justify-center rounded-xl bg-[#006A52] px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0F386E]"
           >
             Ir a la app
