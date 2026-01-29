@@ -825,6 +825,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
   const [searchResults, setSearchResults] = useState<FlightSearchResponse | null>(null);
   const [showAlertPrompt, setShowAlertPrompt] = useState(false);
   const [promptDismissed, setPromptDismissed] = useState(false);
+  const [quoteIndex, setQuoteIndex] = useState(0);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -886,6 +887,14 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
       setShowAlertPrompt(false);
     }
   }, [searchResults, promptDismissed]);
+
+  useEffect(() => {
+    if (copy.proofQuotes.length <= 1) return;
+    const interval = window.setInterval(() => {
+      setQuoteIndex((prev) => (prev + 1) % copy.proofQuotes.length);
+    }, 6000);
+    return () => window.clearInterval(interval);
+  }, [copy.proofQuotes.length]);
 
   const [alertsEmail, setAlertsEmail] = useState("");
   const [alertsStatus, setAlertsStatus] = useState<
@@ -1308,10 +1317,20 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                   </div>
                 </div>
                 <div className="grid gap-2 rounded-2xl bg-white/85 p-4 text-xs text-[#000034] shadow-md ring-1 ring-[#D9E2EA]">
-                  <div className="text-sm font-semibold text-[#0F386E]">{copy.trustTitle}</div>
+                  <div className="flex items-center gap-2 text-sm font-semibold text-[#0F386E]">
+                    <Image
+                      src="/badge.png"
+                      alt="Partner badge"
+                      width={36}
+                      height={36}
+                      unoptimized={isDev}
+                      className="h-8 w-8 object-contain"
+                    />
+                    {copy.trustTitle}
+                  </div>
                   <div className="text-[12px] text-[#363535]">{copy.trustNote}</div>
                   <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold text-[#1D4F91]">
-                    {["Amadeus", "Kiwi", "Aviasales", "Skyscanner", "Kayak"].map((name) => (
+                    {["Amadeus", "Kiwi", "Aviasales"].map((name) => (
                       <span
                         key={name}
                         className="rounded-full border border-[#D9E2EA] bg-white px-3 py-1"
@@ -1327,13 +1346,22 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                 <div className="grid gap-3 sm:grid-cols-3">
                   {copy.proofStats.map((stat) => (
                     <div key={stat.label} className="rounded-xl border border-[#D9E2EA] bg-white p-3">
-                      <div className="text-lg font-semibold text-[#000034]">{stat.value}</div>
+                      <div className="flex items-center gap-1 text-lg font-semibold text-[#000034]">
+                        {stat.value === "4.8/5" ? <span className="text-[#F4B400]">★</span> : null}
+                        {stat.value}
+                      </div>
                       <div className="text-[11px] text-[#69707a]">{stat.label}</div>
                     </div>
                   ))}
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  {copy.proofQuotes.map((item) => (
+                  {(copy.proofQuotes.length <= 1
+                    ? copy.proofQuotes
+                    : [
+                        copy.proofQuotes[quoteIndex % copy.proofQuotes.length],
+                        copy.proofQuotes[(quoteIndex + 1) % copy.proofQuotes.length],
+                      ]
+                  ).map((item) => (
                     <div key={item.quote} className="rounded-xl border border-[#D9E2EA] bg-white p-3">
                       <div className="text-[12px] text-[#363535]">“{item.quote}”</div>
                       <div className="mt-2 text-[11px] font-semibold text-[#1D4F91]">
@@ -1349,7 +1377,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
 
           <div className="mt-8 grid gap-4">
             <div className="text-sm font-semibold text-white">{copy.galleryTitle}</div>
-            <div className="text-xs text-white/80">{copy.gallerySubtitle}</div>
+            <div className="text-xs font-semibold text-white/80">{copy.gallerySubtitle}</div>
             <div className="grid gap-4 sm:grid-cols-3">
               {[
                 { src: "/Miami.jpg", label: "Miami" },
@@ -2480,7 +2508,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
           Powered by Amadeus
         </div>
         <div className="mt-3 flex flex-wrap items-center justify-center gap-2 text-[11px] font-semibold text-white/80">
-          {["Amadeus", "Kiwi", "Aviasales", "Skyscanner", "Kayak"].map((name) => (
+          {["Amadeus", "Kiwi", "Aviasales"].map((name) => (
             <span
               key={name}
               className="rounded-full border border-white/40 bg-white/10 px-3 py-1"
