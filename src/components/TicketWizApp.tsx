@@ -195,6 +195,25 @@ const COPY = {
     returnDateError: "Return date must be on/after the departure date.",
     mvpLabel: "MVP",
     mvpSubtitle: "Search + Explore",
+    faqTitle: "FAQ",
+    faqItems: [
+      {
+        question: "How do you find deals?",
+        answer: "We compare price, duration, and stops, then rank options by a deal score.",
+      },
+      {
+        question: "Do you sell tickets?",
+        answer: "No. We send you to partner sites to complete booking.",
+      },
+      {
+        question: "Are prices final?",
+        answer: "Prices can change fast. Always confirm the final fare on the booking site.",
+      },
+    ],
+    poweredBy: "Powered by Amadeus",
+    affiliateDisclosure:
+      "Affiliate disclosure: We may earn a commission when you book through partner links.",
+    rightsReserved: "All rights reserved.",
   },
   es: {
     heroTitle: "Encuentra las mejores ofertas de vuelos rápido.",
@@ -350,6 +369,26 @@ const COPY = {
     returnDateError: "La fecha de regreso debe ser igual o posterior a la de salida.",
     mvpLabel: "MVP",
     mvpSubtitle: "Buscar + Explorar",
+    faqTitle: "Preguntas frecuentes",
+    faqItems: [
+      {
+        question: "¿Cómo encuentran ofertas?",
+        answer: "Comparamos precio, duración y escalas, y ordenamos por un puntaje de oferta.",
+      },
+      {
+        question: "¿Venden boletos?",
+        answer: "No. Te enviamos a sitios asociados para completar la reserva.",
+      },
+      {
+        question: "¿Los precios son finales?",
+        answer:
+          "Los precios pueden cambiar rápido. Confirma el precio final en el sitio de reserva.",
+      },
+    ],
+    poweredBy: "Con tecnología de Amadeus",
+    affiliateDisclosure:
+      "Aviso de afiliados: Podemos ganar una comisión cuando reservas con enlaces asociados.",
+    rightsReserved: "Todos los derechos reservados.",
   },
 } as const;
 
@@ -2521,29 +2560,17 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
         </div>
         <div className="mt-6 flex w-full justify-center">
           <div className="grid w-full max-w-md gap-3 rounded-2xl bg-white/10 p-4 text-center text-xs text-white/90 ring-1 ring-white/20">
-            <div className="text-sm font-semibold text-white">FAQ</div>
-            <div>
-              <div className="font-semibold">How do you find deals?</div>
-              <div className="text-white/80">
-                We compare price, duration, and stops, then rank options by a deal score.
+            <div className="text-sm font-semibold text-white">{copy.faqTitle}</div>
+            {copy.faqItems.map((item) => (
+              <div key={item.question}>
+                <div className="font-semibold">{item.question}</div>
+                <div className="text-white/80">{item.answer}</div>
               </div>
-            </div>
-            <div>
-              <div className="font-semibold">Do you sell tickets?</div>
-              <div className="text-white/80">
-                No. We send you to partner sites to complete booking.
-              </div>
-            </div>
-            <div>
-              <div className="font-semibold">Are prices final?</div>
-              <div className="text-white/80">
-                Prices can change fast. Always confirm the final fare on the booking site.
-              </div>
-            </div>
+            ))}
           </div>
         </div>
         <div className="mt-4 text-center text-xs font-semibold text-white/80">
-          Powered by Amadeus
+          {copy.poweredBy}
         </div>
         <div className="mt-3 flex flex-wrap items-center justify-center gap-2 text-[11px] font-semibold text-white/80">
           {["Amadeus", "Kiwi", "Aviasales"].map((name) => (
@@ -2560,10 +2587,10 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
           className="mt-6 flex flex-wrap items-center justify-center gap-4 text-[11px] font-semibold text-white/80"
         />
         <div className="mt-4 text-center text-[11px] text-white/70">
-          Affiliate disclosure: We may earn a commission when you book through partner links.
+          {copy.affiliateDisclosure}
         </div>
         <div className="mt-2 text-center text-[11px] text-white/70">
-          © {new Date().getFullYear()} Ticket Wiz. All rights reserved.
+          © {new Date().getFullYear()} Ticket Wiz. {copy.rightsReserved}
         </div>
         </main>
       </div>
