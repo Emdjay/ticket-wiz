@@ -27,7 +27,7 @@ export default function EsLayout({
               contactPoint: {
                 "@type": "ContactPoint",
                 contactType: "alianzas",
-                email: "hello@ticketwiz.app",
+                email: "info@ticket-wiz.com",
               },
             },
             {

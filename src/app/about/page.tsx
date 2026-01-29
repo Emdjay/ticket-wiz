@@ -29,6 +29,10 @@ export default function AboutPage() {
         <p className="mt-4 text-base text-[#363535]">
           You always book on partner sites—Ticket Wiz does not add fees to your fare.
         </p>
+        <p className="mt-4 text-base text-[#363535]">
+          We build for clarity: fewer steps, transparent scoring, and links that take you directly to
+          booking partners.
+        </p>
       </div>
     </div>
   );

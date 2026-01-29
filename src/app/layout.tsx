@@ -36,6 +36,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://test.api.amadeus.com" />
+        <link rel="preconnect" href="https://api.amadeus.com" />
+      </head>
       <body className={`${figtree.variable} antialiased`}>
         <Script
           id="schema-org"
@@ -51,7 +55,7 @@ export default function RootLayout({
                 contactPoint: {
                   "@type": "ContactPoint",
                   contactType: "partnerships",
-                  email: "hello@ticketwiz.app",
+                email: "info@ticket-wiz.com",
                 },
               },
               {

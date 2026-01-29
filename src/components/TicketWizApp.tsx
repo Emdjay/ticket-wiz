@@ -1,7 +1,23 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import type { ExploreResponse, FlightSearchResponse } from "@/lib/flights";
+import {
+  OUTLIER_DURATION_MULTIPLIER,
+  OUTLIER_MAX_STOPS,
+  median,
+  parseIsoDurationToMinutes,
+  scoreOffers,
+} from "@/lib/dealScore";
+import {
+  buildKayakLink,
+  buildKiwiAffiliateUrl,
+  buildKlookSearchUrl,
+  buildSkyscannerLink,
+  PARTNER_ENV,
+} from "@/lib/partners";
+import { LegalLinksModal } from "@/components/LegalLinksModal";
 
 type Tab = "search" | "explore";
 
@@ -11,34 +27,9 @@ type Copy = (typeof COPY)[keyof typeof COPY];
 
 type PurchasePartner = "skyscanner" | "kayak" | "kiwi" | "google" | "airline" | "klook";
 
-const OUTLIER_MAX_STOPS = 2;
-const OUTLIER_DURATION_MULTIPLIER = 1.6;
-const KIWI_DEEPLINK_TEMPLATE = process.env.NEXT_PUBLIC_KIWI_DEEPLINK_TEMPLATE ?? "";
-const KLOOK_SEARCH_URL_TEMPLATE = process.env.NEXT_PUBLIC_KLOOK_SEARCH_URL_TEMPLATE ?? "";
+const KLOOK_SEARCH_URL_TEMPLATE = PARTNER_ENV.KLOOK_SEARCH_URL_TEMPLATE;
 const SHOW_EXPLORE_LINKS =
   (process.env.NEXT_PUBLIC_SHOW_LINKS ?? "").trim().toLowerCase() === "true";
-const KIWI_DIRECT_LINKS =
-  (process.env.NEXT_PUBLIC_KIWI_DIRECT_LINKS ?? "").trim().toLowerCase() === "true";
-
-const KIWI_LOCATION_SLUGS: Record<string, string> = {
-  MIA: "miami-florida-united-states",
-  ATL: "atlanta-georgia-united-states",
-  ORD: "chicago-illinois-united-states",
-  LAX: "los-angeles-california-united-states",
-  DFW: "dallas-fort-worth-texas-united-states",
-  DEN: "denver-colorado-united-states",
-  LAS: "las-vegas-nevada-united-states",
-  MCO: "orlando-florida-united-states",
-  SEA: "seattle-washington-united-states",
-  SFO: "san-francisco-california-united-states",
-  IAH: "houston-texas-united-states",
-  BOS: "boston-massachusetts-united-states",
-  JFK: "new-york-city-new-york-united-states",
-  EWR: "newark-new-jersey-united-states",
-  LGA: "new-york-city-new-york-united-states",
-  CLT: "charlotte-north-carolina-united-states",
-  PHX: "phoenix-arizona-united-states",
-};
 
 const COPY = {
   en: {
@@ -58,6 +49,9 @@ const COPY = {
     alertsSubtitle: "Get weekly fare drops and destination ideas.",
     alertsCta: "Notify me",
     alertsPlaceholder: "you@email.com",
+    alertsSuccess: "You're on the list.",
+    alertsError: "Please enter a valid email.",
+    alertsSaving: "Saving...",
     trustTitle: "Trusted data partners",
     trustNote: "We surface deals from established travel platforms.",
     proofTitle: "What travelers are saying",
@@ -129,6 +123,8 @@ const COPY = {
     maxPrice: "Max price",
     maxResults: "Max results",
     flexibleDates: "Flexible dates",
+    flexGridTitle: "Flexible dates grid",
+    flexGridNote: "Tap a date pair to compare quickly.",
     duration: "Duration",
     totalDuration: "Total duration",
     stops: "Stops",
@@ -163,6 +159,27 @@ const COPY = {
     dealGood: "Good deal",
     dealFair: "Fair deal",
     dealPricey: "Pricey",
+    trendLow: "Price below avg",
+    trendMid: "Price near avg",
+    trendHigh: "Price above avg",
+    saveSearchTitle: "Save this search",
+    saveSearchCta: "Save search",
+    saveSearchPlaceholder: "you@email.com",
+    saveSearchSuccess: "Saved. You’ll get weekly updates.",
+    saveSearchError: "Enter a valid email to save.",
+    saveSearchSaving: "Saving...",
+    noResultsHelpTitle: "Try one of these:",
+    tryDisableNonstop: "Turn off nonstop",
+    tryEnableFlexible: "Enable flexible dates",
+    tryDifferentDates: "Try different dates",
+    tryNearbyOrigin: "Try a nearby origin",
+    tryNearbyDestination: "Try a nearby destination",
+    sortBestValue: "Best value",
+    sortCheapest: "Cheapest",
+    sortFastest: "Fastest",
+    shareDeal: "Share this deal",
+    alertPromptTitle: "Get weekly alerts for this route",
+    alertPromptNote: "We’ll send weekly price updates. Unsubscribe anytime.",
     searchFailed: "Search failed.",
     exploreFailed: "Explore failed.",
     returnDateError: "Return date must be on/after the departure date.",
@@ -186,6 +203,9 @@ const COPY = {
     alertsSubtitle: "Recibe caídas de precios y destinos cada semana.",
     alertsCta: "Avísame",
     alertsPlaceholder: "tu@email.com",
+    alertsSuccess: "Listo. Te avisaremos pronto.",
+    alertsError: "Ingresa un correo válido.",
+    alertsSaving: "Guardando...",
     trustTitle: "Socios de datos confiables",
     trustNote: "Mostramos ofertas de plataformas de viajes reconocidas.",
     proofTitle: "Lo que dicen los viajeros",
@@ -257,6 +277,8 @@ const COPY = {
     maxPrice: "Precio máximo",
     maxResults: "Máx. resultados",
     flexibleDates: "Fechas flexibles",
+    flexGridTitle: "Cuadrícula de fechas flexibles",
+    flexGridNote: "Toca una pareja de fechas para comparar.",
     duration: "Duración",
     totalDuration: "Duración total",
     stops: "Escalas",
@@ -291,6 +313,27 @@ const COPY = {
     dealGood: "Buena oferta",
     dealFair: "Oferta regular",
     dealPricey: "Caro",
+    trendLow: "Precio por debajo",
+    trendMid: "Precio cerca del promedio",
+    trendHigh: "Precio por encima",
+    saveSearchTitle: "Guardar esta búsqueda",
+    saveSearchCta: "Guardar",
+    saveSearchPlaceholder: "tu@email.com",
+    saveSearchSuccess: "Guardado. Recibirás actualizaciones semanales.",
+    saveSearchError: "Ingresa un correo válido para guardar.",
+    saveSearchSaving: "Guardando...",
+    noResultsHelpTitle: "Prueba con una de estas opciones:",
+    tryDisableNonstop: "Quitar escalas directas",
+    tryEnableFlexible: "Activar fechas flexibles",
+    tryDifferentDates: "Probar otras fechas",
+    tryNearbyOrigin: "Probar origen cercano",
+    tryNearbyDestination: "Probar destino cercano",
+    sortBestValue: "Mejor valor",
+    sortCheapest: "Más barato",
+    sortFastest: "Más rápido",
+    shareDeal: "Compartir esta oferta",
+    alertPromptTitle: "Recibe alertas semanales",
+    alertPromptNote: "Enviaremos actualizaciones semanales. Cancela cuando quieras.",
     searchFailed: "Búsqueda fallida.",
     exploreFailed: "Exploración fallida.",
     returnDateError: "La fecha de regreso debe ser igual o posterior a la de salida.",
@@ -498,14 +541,6 @@ function byNumericPrice(a: { priceTotal: string }, b: { priceTotal: string }) {
   return Number(a.priceTotal) - Number(b.priceTotal);
 }
 
-function parseIsoDurationToMinutes(raw: string) {
-  const match = /^PT(?:(\d+)H)?(?:(\d+)M)?$/.exec(raw);
-  if (!match) return 0;
-  const hours = match[1] ? Number(match[1]) : 0;
-  const minutes = match[2] ? Number(match[2]) : 0;
-  return hours * 60 + minutes;
-}
-
 function formatDurationMinutes(totalMinutes?: number) {
   if (typeof totalMinutes !== "number" || !Number.isFinite(totalMinutes)) return "—";
   const hours = Math.floor(totalMinutes / 60);
@@ -516,6 +551,25 @@ function formatDurationMinutes(totalMinutes?: number) {
 function formatIsoDuration(raw?: string) {
   if (!raw) return "—";
   return formatDurationMinutes(parseIsoDurationToMinutes(raw));
+}
+
+function shiftIsoDate(date: string, days: number) {
+  const parts = date.split("-").map(Number);
+  if (parts.length !== 3 || parts.some((n) => Number.isNaN(n))) return "";
+  const [year, month, day] = parts;
+  const base = new Date(Date.UTC(year, month - 1, day));
+  if (Number.isNaN(base.getTime())) return "";
+  base.setUTCDate(base.getUTCDate() + days);
+  return base.toISOString().slice(0, 10);
+}
+
+function formatShortDate(date: string) {
+  const parts = date.split("-").map(Number);
+  if (parts.length !== 3 || parts.some((n) => Number.isNaN(n))) return "—";
+  const [year, month, day] = parts;
+  const dt = new Date(Date.UTC(year, month - 1, day));
+  if (Number.isNaN(dt.getTime())) return "—";
+  return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(dt);
 }
 
 function formatDateTime(iso?: string) {
@@ -552,20 +606,6 @@ function tripLengthDays(start?: string, end?: string) {
   return diffDays >= 0 ? diffDays : null;
 }
 
-function clamp01(value: number) {
-  return Math.min(1, Math.max(0, value));
-}
-
-function median(values: number[]) {
-  if (values.length === 0) return 0;
-  const sorted = [...values].sort((a, b) => a - b);
-  const mid = Math.floor(sorted.length / 2);
-  if (sorted.length % 2 === 0) {
-    return (sorted[mid - 1] + sorted[mid]) / 2;
-  }
-  return sorted[mid];
-}
-
 function dealBadge(score: number | undefined, copy: Copy) {
   if (typeof score !== "number") return null;
   const pct = Math.round(score * 100);
@@ -593,17 +633,37 @@ function dealBadge(score: number | undefined, copy: Copy) {
   };
 }
 
+function priceTrend(
+  price: number,
+  avgPrice: number,
+  copy: Copy
+): { label: string; tone: string } | null {
+  if (!Number.isFinite(price) || !Number.isFinite(avgPrice) || avgPrice <= 0) return null;
+  const diffPct = (price - avgPrice) / avgPrice;
+  if (diffPct <= -0.08) {
+    return {
+      label: copy.trendLow,
+      tone: "bg-[#E6F3EE] text-[#006A52] ring-1 ring-[#CFE5DC]",
+    };
+  }
+  if (diffPct >= 0.08) {
+    return {
+      label: copy.trendHigh,
+      tone: "bg-[#FBE9DC] text-[#D57800] ring-1 ring-[#F5CFB3]",
+    };
+  }
+  return {
+    label: copy.trendMid,
+    tone: "bg-[#E8EFF7] text-[#1D4F91] ring-1 ring-[#C9D8EA]",
+  };
+}
+
 function warningBadge(reason: string | undefined, copy: Copy) {
   if (!reason) return null;
   return {
     label: `${copy.outlierPrefix}${reason}`,
     tone: "bg-[#FBE9DC] text-[#D57800] ring-1 ring-[#F5CFB3]",
   };
-}
-
-function formatDateParam(date: string | undefined) {
-  if (!date) return null;
-  return date.replaceAll("-", "");
 }
 
 function buildPurchaseUrl(args: {
@@ -620,25 +680,28 @@ function buildPurchaseUrl(args: {
   }
   const originUpper = args.origin.trim().toUpperCase();
   const destinationUpper = args.destination.trim().toUpperCase();
-  const origin = originUpper.toLowerCase();
-  const destination = destinationUpper.toLowerCase();
   const departIso = args.departureDate;
   const returnIso = args.returnDate ?? "";
-  const depart = formatDateParam(departIso);
-  if (!depart) return null;
-  const ret = formatDateParam(returnIso);
   const adults = Math.max(1, args.adults);
 
   switch (args.partner) {
     case "skyscanner": {
-      return ret
-        ? `https://www.skyscanner.com/transport/flights/${origin}/${destination}/${depart}/${ret}/?adults=${adults}`
-        : `https://www.skyscanner.com/transport/flights/${origin}/${destination}/${depart}/?adults=${adults}`;
+      return buildSkyscannerLink({
+        origin: originUpper,
+        destination: destinationUpper,
+        departureDate: departIso,
+        returnDate: returnIso || undefined,
+        adults,
+      });
     }
     case "kayak": {
-      return ret
-        ? `https://www.kayak.com/flights/${origin}-${destination}/${depart}/${ret}?adults=${adults}`
-        : `https://www.kayak.com/flights/${origin}-${destination}/${depart}?adults=${adults}`;
+      return buildKayakLink({
+        origin: originUpper,
+        destination: destinationUpper,
+        departureDate: departIso,
+        returnDate: returnIso || undefined,
+        adults,
+      });
     }
     case "kiwi": {
       return buildKiwiAffiliateUrl({
@@ -650,7 +713,7 @@ function buildPurchaseUrl(args: {
       });
     }
     case "google": {
-      const query = ret
+      const query = returnIso
         ? `Flights from ${args.origin} to ${args.destination} on ${args.departureDate} returning ${args.returnDate}`
         : `Flights from ${args.origin} to ${args.destination} on ${args.departureDate}`;
       return `https://www.google.com/travel/flights?q=${encodeURIComponent(query)}`;
@@ -677,60 +740,26 @@ const EXPLORE_PARTNERS_VISIBLE = KLOOK_SEARCH_URL_TEMPLATE.trim()
   ? EXPLORE_PURCHASE_PARTNERS
   : EXPLORE_PURCHASE_PARTNERS.filter((partner) => partner.value !== "klook");
 
-function buildKlookSearchUrl(query: string) {
-  if (!KLOOK_SEARCH_URL_TEMPLATE.trim()) return null;
-  const trimmed = KLOOK_SEARCH_URL_TEMPLATE.trim();
-  if (trimmed.includes("{query}")) {
-    return trimmed.replaceAll("{query}", encodeURIComponent(query));
-  }
-  const joiner = trimmed.includes("?") ? "&" : "?";
-  return `${trimmed}${joiner}query=${encodeURIComponent(query)}`;
-}
+const NEARBY_AIRPORTS: Record<string, string[]> = {
+  ATL: ["BHM"],
+  BOS: ["PVD"],
+  DFW: ["DAL"],
+  IAH: ["HOU"],
+  JFK: ["LGA", "EWR"],
+  LAX: ["BUR", "SNA", "LGB"],
+  MIA: ["FLL", "PBI"],
+  ORD: ["MDW"],
+  SFO: ["OAK", "SJC"],
+  SEA: ["BFI"],
+};
 
-function buildKiwiAffiliateUrl(args: {
-  origin: string;
-  destination: string;
-  depart: string;
-  returnDate?: string;
-  adults: number;
-}) {
-  const deepLink = buildKiwiDeepLink(args);
-  if (KIWI_DIRECT_LINKS) return deepLink;
-  if (!KIWI_DEEPLINK_TEMPLATE.trim()) return deepLink;
-  const trimmed = KIWI_DEEPLINK_TEMPLATE.trim();
-
-  if (trimmed.includes("{url}")) {
-    return trimmed.replaceAll("{url}", encodeURIComponent(deepLink));
-  }
-
-  const replaced = trimmed
-    .replaceAll("{origin}", args.origin)
-    .replaceAll("{destination}", args.destination)
-    .replaceAll("{depart}", args.depart)
-    .replaceAll("{return}", args.returnDate ?? "")
-    .replaceAll("{adults}", String(args.adults));
-
-  if (replaced !== trimmed) return replaced;
-
-  const joiner = trimmed.includes("?") ? "&" : "?";
-  return `${trimmed}${joiner}u=${encodeURIComponent(deepLink)}`;
-}
-
-function buildKiwiDeepLink(args: {
-  origin: string;
-  destination: string;
-  depart: string;
-  returnDate?: string;
-  adults: number;
-}) {
-  const originSlug = (KIWI_LOCATION_SLUGS[args.origin] ?? args.origin).toLowerCase();
-  const destinationSlug = (KIWI_LOCATION_SLUGS[args.destination] ?? args.destination).toLowerCase();
-  const returnSegment = args.returnDate ?? "no-return";
-  return `https://www.kiwi.com/en/search/results/${originSlug}/${destinationSlug}/${args.depart}/${returnSegment}?adults=${Math.max(1, args.adults)}`;
+function nearbyAirports(code: string) {
+  return NEARBY_AIRPORTS[code.trim().toUpperCase()] ?? [];
 }
 
 export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
   const copy = COPY[locale] ?? COPY.en;
+  const isDev = process.env.NODE_ENV === "development";
   const airportLabels = {
     selected: copy.selected,
     popular: copy.popular,
@@ -763,6 +792,80 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [searchResults, setSearchResults] = useState<FlightSearchResponse | null>(null);
+  const [showAlertPrompt, setShowAlertPrompt] = useState(false);
+  const [promptDismissed, setPromptDismissed] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem("ticketwiz:search-defaults");
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as {
+        origin?: string;
+        destination?: string;
+        departureDate?: string;
+        returnDate?: string;
+        adults?: number;
+        currency?: string;
+      };
+      if (parsed.origin && /^[A-Za-z]{3}$/.test(parsed.origin)) {
+        setOrigin(parsed.origin.toUpperCase());
+      }
+      if (parsed.destination && /^[A-Za-z]{3}$/.test(parsed.destination)) {
+        setDestination(parsed.destination.toUpperCase());
+      }
+      if (parsed.departureDate && /^\d{4}-\d{2}-\d{2}$/.test(parsed.departureDate)) {
+        setDepartureDate(parsed.departureDate);
+      }
+      if (parsed.returnDate && /^\d{4}-\d{2}-\d{2}$/.test(parsed.returnDate)) {
+        setReturnDate(parsed.returnDate);
+      }
+      if (typeof parsed.adults === "number" && parsed.adults >= 1 && parsed.adults <= 9) {
+        setAdults(parsed.adults);
+      }
+      if (parsed.currency && /^[A-Za-z]{3}$/.test(parsed.currency)) {
+        setCurrency(parsed.currency.toUpperCase());
+      }
+    } catch {
+      // Ignore malformed stored values.
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const payload = {
+      origin,
+      destination,
+      departureDate,
+      returnDate,
+      adults,
+      currency,
+    };
+    try {
+      window.localStorage.setItem("ticketwiz:search-defaults", JSON.stringify(payload));
+    } catch {
+      // Ignore storage failures (privacy mode, quota).
+    }
+  }, [origin, destination, departureDate, returnDate, adults, currency]);
+
+  useEffect(() => {
+    if (searchResults?.offers?.length) {
+      if (!promptDismissed) setShowAlertPrompt(true);
+    } else {
+      setShowAlertPrompt(false);
+    }
+  }, [searchResults, promptDismissed]);
+
+  const [alertsEmail, setAlertsEmail] = useState("");
+  const [alertsStatus, setAlertsStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
+  const [alertsMessage, setAlertsMessage] = useState<string | null>(null);
+  const [saveSearchEmail, setSaveSearchEmail] = useState("");
+  const [saveSearchStatus, setSaveSearchStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
+  const [saveSearchMessage, setSaveSearchMessage] = useState<string | null>(null);
 
   // Explore
   const [exploreOrigin, setExploreOrigin] = useState("MIA");
@@ -782,102 +885,52 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
   const [exploreError, setExploreError] = useState<string | null>(null);
   const [exploreResults, setExploreResults] = useState<ExploreResponse | null>(null);
 
+  const flexOffsets = [-3, 0, 3];
+  const flexDepartDates = flexOffsets.map((offset) => shiftIsoDate(departureDate, offset));
+  const flexReturnDates = returnDate.trim()
+    ? flexOffsets.map((offset) => shiftIsoDate(returnDate, offset))
+    : [];
+  const canShowFlexGrid =
+    flexibleDates &&
+    departureDate.trim().length === 10 &&
+    flexDepartDates.every(Boolean) &&
+    (returnDate.trim() === "" || flexReturnDates.every(Boolean));
+
   const offerView = useMemo(() => {
     const offers = searchResults?.offers ?? [];
-    if (offers.length === 0) {
-      return {
-        offers: [] as typeof offers,
-        scores: new Map<string, number>(),
-        durations: new Map<string, number>(),
-        stops: new Map<string, number>(),
-        maxStops: new Map<string, number>(),
-        outliers: new Map<string, string>(),
-      };
-    }
-
-    const prices: number[] = [];
-    const durations: number[] = [];
-    const stops: number[] = [];
-    const maxStops: number[] = [];
-
-    for (const offer of offers) {
-      const price = Number(offer.priceTotal);
-      prices.push(Number.isFinite(price) ? price : 0);
-
-      const durationMinutes = offer.itineraries.reduce((sum, it) => {
-        return sum + parseIsoDurationToMinutes(it.duration);
-      }, 0);
-      durations.push(durationMinutes);
-
-      const itineraryStops = offer.itineraries.map((it) => Math.max(0, it.segments.length - 1));
-      const totalStops = itineraryStops.reduce((sum, count) => sum + count, 0);
-      stops.push(totalStops);
-      maxStops.push(itineraryStops.length ? Math.max(...itineraryStops) : 0);
-    }
-
-    const minPrice = Math.min(...prices);
-    const maxPrice = Math.max(...prices);
-    const minDuration = Math.min(...durations);
-    const maxDuration = Math.max(...durations);
-    const minStops = Math.min(...stops);
-    const maxStopsCount = Math.max(...stops);
-    const medianDuration = median(durations);
-
-    const scores = new Map<string, number>();
-    const durationById = new Map<string, number>();
-    const stopsById = new Map<string, number>();
-    const maxStopsById = new Map<string, number>();
-    const outliersById = new Map<string, string>();
-
-    offers.forEach((offer, index) => {
-      const price = prices[index];
-      const duration = durations[index];
-      const stopCount = stops[index];
-      const maxStopCount = maxStops[index];
-
-      durationById.set(offer.id, duration);
-      stopsById.set(offer.id, stopCount);
-      maxStopsById.set(offer.id, maxStopCount);
-
-      const priceNorm = maxPrice === minPrice ? 0.5 : (price - minPrice) / (maxPrice - minPrice);
-      const durationNorm =
-        maxDuration === minDuration ? 0.5 : (duration - minDuration) / (maxDuration - minDuration);
-      const stopsNorm =
-        maxStopsCount === minStops ? 0.5 : (stopCount - minStops) / (maxStopsCount - minStops);
-
-      // Price-first: prioritize savings, but still respect time and stops.
-      let score = 0.7 * (1 - priceNorm) + 0.2 * (1 - durationNorm) + 0.1 * (1 - stopsNorm);
-      const outlierReasons: string[] = [];
-      if (maxStopCount >= OUTLIER_MAX_STOPS) outlierReasons.push("2+ stops");
-      if (medianDuration > 0 && duration > medianDuration * OUTLIER_DURATION_MULTIPLIER) {
-        outlierReasons.push("very long duration");
-      }
-      if (outlierReasons.length > 0) score -= 0.12;
-      score = clamp01(score);
-      scores.set(offer.id, score);
-      if (outlierReasons.length > 0) {
-        outliersById.set(offer.id, outlierReasons.join(" · "));
-      }
-    });
+    const scored = scoreOffers(offers);
+    const prices = offers
+      .map((offer) => Number(offer.priceTotal))
+      .filter((value) => Number.isFinite(value));
+    const durations = offers
+      .map((offer) => scored.durations.get(offer.id))
+      .filter((value): value is number => typeof value === "number" && Number.isFinite(value));
+    const stops = offers
+      .map((offer) => scored.stops.get(offer.id))
+      .filter((value): value is number => typeof value === "number" && Number.isFinite(value));
+    const avgPrice = prices.length ? prices.reduce((sum, value) => sum + value, 0) / prices.length : 0;
+    const avgDuration = durations.length
+      ? durations.reduce((sum, value) => sum + value, 0) / durations.length
+      : 0;
+    const avgStops = stops.length ? stops.reduce((sum, value) => sum + value, 0) / stops.length : 0;
 
     const sorted = [...offers].sort((a, b) => {
       if (searchSort === "cheapest") return byNumericPrice(a, b);
       if (searchSort === "fastest") {
-        return (durationById.get(a.id) ?? 0) - (durationById.get(b.id) ?? 0);
+        return (scored.durations.get(a.id) ?? 0) - (scored.durations.get(b.id) ?? 0);
       }
       if (searchSort === "fewest-stops") {
-        return (stopsById.get(a.id) ?? 0) - (stopsById.get(b.id) ?? 0);
+        return (scored.stops.get(a.id) ?? 0) - (scored.stops.get(b.id) ?? 0);
       }
-      return (scores.get(b.id) ?? 0) - (scores.get(a.id) ?? 0);
+      return (scored.scores.get(b.id) ?? 0) - (scored.scores.get(a.id) ?? 0);
     });
 
     return {
       offers: sorted,
-      scores,
-      durations: durationById,
-      stops: stopsById,
-      maxStops: maxStopsById,
-      outliers: outliersById,
+      ...scored,
+      avgPrice,
+      avgDuration,
+      avgStops,
     };
   }, [searchResults, searchSort]);
 
@@ -930,26 +983,104 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
     return { deals: sorted, outliers };
   }, [exploreResults]);
 
-  async function runSearch() {
+  async function submitAlertSignup() {
+    const trimmed = alertsEmail.trim();
+    if (!trimmed) {
+      setAlertsStatus("error");
+      setAlertsMessage(copy.alertsError);
+      return;
+    }
+    setAlertsStatus("loading");
+    setAlertsMessage(null);
+    try {
+      const response = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: trimmed }),
+      });
+      if (!response.ok) {
+        setAlertsStatus("error");
+        setAlertsMessage(copy.alertsError);
+        return;
+      }
+      setAlertsStatus("success");
+      setAlertsMessage(copy.alertsSuccess);
+      setAlertsEmail("");
+    } catch {
+      setAlertsStatus("error");
+      setAlertsMessage(copy.alertsError);
+    }
+  }
+
+  async function submitSaveSearch() {
+    const trimmed = saveSearchEmail.trim();
+    if (!trimmed) {
+      setSaveSearchStatus("error");
+      setSaveSearchMessage(copy.saveSearchError);
+      return;
+    }
+    setSaveSearchStatus("loading");
+    setSaveSearchMessage(null);
+    try {
+      const response = await fetch("/api/searches", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: trimmed,
+          origin,
+          destination,
+          departureDate,
+          returnDate: returnDate || undefined,
+          adults,
+          currency,
+          nonStop,
+        }),
+      });
+      if (!response.ok) {
+        setSaveSearchStatus("error");
+        setSaveSearchMessage(copy.saveSearchError);
+        return;
+      }
+      setSaveSearchStatus("success");
+      setSaveSearchMessage(copy.saveSearchSuccess);
+      setSaveSearchEmail("");
+    } catch {
+      setSaveSearchStatus("error");
+      setSaveSearchMessage(copy.saveSearchError);
+    }
+  }
+
+  async function runSearch(options?: {
+    depart?: string;
+    returnDate?: string;
+    ignoreFlex?: boolean;
+    origin?: string;
+    destination?: string;
+  }) {
     setSearchLoading(true);
     setSearchError(null);
     setSearchResults(null);
     try {
-      const flexDepart = flexibleDates
-        ? new Date(new Date(departureDate).getTime() - 3 * 24 * 60 * 60 * 1000)
+      const baseOrigin = options?.origin ?? origin;
+      const baseDestination = options?.destination ?? destination;
+      const baseDepart = options?.depart ?? departureDate;
+      const baseReturn = options?.returnDate ?? returnDate;
+      const useFlex = flexibleDates && !options?.ignoreFlex;
+      const flexDepart = useFlex
+        ? new Date(new Date(baseDepart).getTime() - 3 * 24 * 60 * 60 * 1000)
             .toISOString()
             .slice(0, 10)
-        : departureDate;
-      const flexReturn = flexibleDates
-        ? returnDate.trim()
-          ? new Date(new Date(returnDate).getTime() + 3 * 24 * 60 * 60 * 1000)
+        : baseDepart;
+      const flexReturn = useFlex
+        ? baseReturn.trim()
+          ? new Date(new Date(baseReturn).getTime() + 3 * 24 * 60 * 60 * 1000)
               .toISOString()
               .slice(0, 10)
           : ""
-        : returnDate.trim();
+        : baseReturn.trim();
       const params = new URLSearchParams({
-        origin,
-        destination,
+        origin: baseOrigin,
+        destination: baseDestination,
         departureDate: flexDepart,
         adults: String(adults),
         currency,
@@ -966,6 +1097,24 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
       setSearchError(e instanceof Error ? e.message : copy.searchFailed);
     } finally {
       setSearchLoading(false);
+    }
+  }
+
+  async function shareDealLink(url: string | null) {
+    if (!url) return;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "Ticket Wiz deal", url });
+        return;
+      }
+    } catch {
+      // Fallback to clipboard.
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setSearchError("Link copied to clipboard.");
+    } catch {
+      setSearchError("Could not copy link.");
     }
   }
 
@@ -1031,7 +1180,14 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
               </a>
             </nav>
             <div className="flex items-center gap-2 text-sm font-semibold text-[var(--brand-ink)]">
-              <img src="/ticket-wiz-logo.png" alt="Ticket Wiz" className="h-7 w-7" />
+              <Image
+                src="/ticket-wiz-logo.png"
+                alt="Ticket Wiz"
+                width={28}
+                height={28}
+                unoptimized={isDev}
+                className="h-7 w-auto object-contain"
+              />
               Ticket Wiz
             </div>
             <div className="flex flex-wrap items-center gap-3 text-xs text-[#363535]">
@@ -1056,9 +1212,13 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
           <div className="flex flex-col items-start gap-6 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
             <div className="w-full">
               <div className="inline-flex h-[160px] w-[160px] items-center justify-center overflow-hidden rounded-full bg-white/80 ring-1 ring-[#D9E2EA]">
-                <img
+                <Image
                   src="/ticket-wiz-logo.png"
                   alt="Ticket Wiz logo"
+                  width={160}
+                  height={160}
+                  priority
+                  unoptimized={isDev}
                   className="h-full w-full object-contain scale-105"
                 />
               </div>
@@ -1073,12 +1233,6 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                 <br />
                 {copy.heroSubtitleNote}
               </p>
-              <div className="mt-2 text-xs font-semibold text-white/80 scroll-mt-20" id="contact">
-                {copy.contactLabel}:{" "}
-                <a className="underline" href="mailto:info@ticket-wiz.com">
-                  info@ticket-wiz.com
-                </a>
-              </div>
               <div className="mt-6 grid gap-4 sm:grid-cols-3">
                 <div className="grid gap-3 rounded-2xl bg-white/85 p-4 text-xs text-[#000034] shadow-md ring-1 ring-[#D9E2EA]">
                   <div className="text-sm font-semibold text-[#0F386E]">{copy.whyTitle}</div>
@@ -1099,15 +1253,35 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                       type="email"
                       placeholder={copy.alertsPlaceholder}
                       aria-label={copy.alertsTitle}
+                      value={alertsEmail}
+                      onChange={(event) => {
+                        setAlertsEmail(event.target.value);
+                        if (alertsStatus !== "idle") {
+                          setAlertsStatus("idle");
+                          setAlertsMessage(null);
+                        }
+                      }}
                       className="h-9 flex-1 rounded-xl border border-[#C2D1DF] bg-white px-3 text-xs text-[#363535] outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
                     />
                     <button
                       type="button"
-                      className="h-9 rounded-xl bg-[#0F386E] px-4 text-xs font-semibold text-white shadow-md hover:bg-[#1D4F91]"
+                      onClick={submitAlertSignup}
+                      disabled={alertsStatus === "loading"}
+                      className="h-9 rounded-xl bg-[#0F386E] px-4 text-xs font-semibold text-white shadow-md hover:bg-[#1D4F91] disabled:cursor-not-allowed disabled:opacity-70"
                     >
-                      {copy.alertsCta}
+                      {alertsStatus === "loading" ? copy.alertsSaving : copy.alertsCta}
                     </button>
                   </div>
+                  {alertsMessage ? (
+                    <div
+                      className={`text-[11px] ${
+                        alertsStatus === "success" ? "text-[#006A52]" : "text-[#B42318]"
+                      }`}
+                      role="status"
+                    >
+                      {alertsMessage}
+                    </div>
+                  ) : null}
                   <div className="text-[10px] text-[#69707a]">
                     We only send a few emails a month. Unsubscribe anytime.
                   </div>
@@ -1163,12 +1337,15 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
               ].map((card) => (
                 <div
                   key={card.src}
-                  className="group relative h-28 overflow-hidden rounded-2xl border border-white/20 shadow-lg"
+                  className="group relative h-56 overflow-hidden rounded-2xl border border-white/20 shadow-lg"
                 >
-                  <img
+                  <Image
                     src={card.src}
                     alt={card.label}
-                    className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                    fill
+                    sizes="(min-width: 640px) 33vw, 100vw"
+                    unoptimized={isDev}
+                    className="object-cover transition duration-300 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#000034]/70 via-transparent to-transparent" />
                   <div className="absolute bottom-2 left-2 text-xs font-semibold text-white">
@@ -1350,13 +1527,186 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                     {searchError}
                   </div>
                 ) : null}
+              {showAlertPrompt ? (
+                <div className="mt-2 grid gap-2 rounded-xl border border-[#D9E2EA] bg-[#F7FAFE] p-3 text-xs text-[#363535]">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="text-xs font-semibold text-[#0F386E]">
+                      {copy.alertPromptTitle}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowAlertPrompt(false);
+                        setPromptDismissed(true);
+                      }}
+                      className="rounded-full border border-[#D9E2EA] px-2 py-0.5 text-[10px] font-semibold text-[#1D4F91] hover:border-[#1D4F91]"
+                    >
+                      Close
+                    </button>
+                  </div>
+                  <div className="text-[11px]">{copy.alertPromptNote}</div>
+                  <div className="flex flex-wrap gap-2">
+                    <input
+                      type="email"
+                      placeholder={copy.saveSearchPlaceholder}
+                      aria-label={copy.alertPromptTitle}
+                      value={saveSearchEmail}
+                      onChange={(event) => {
+                        setSaveSearchEmail(event.target.value);
+                        if (saveSearchStatus !== "idle") {
+                          setSaveSearchStatus("idle");
+                          setSaveSearchMessage(null);
+                        }
+                      }}
+                      className="h-9 flex-1 rounded-xl border border-[#C2D1DF] bg-white px-3 text-xs text-[#363535] outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
+                    />
+                    <button
+                      type="button"
+                      onClick={submitSaveSearch}
+                      disabled={saveSearchStatus === "loading"}
+                      className="h-9 rounded-xl bg-[#0F386E] px-4 text-xs font-semibold text-white shadow-md hover:bg-[#1D4F91] disabled:cursor-not-allowed disabled:opacity-70"
+                    >
+                      {saveSearchStatus === "loading" ? copy.saveSearchSaving : copy.saveSearchCta}
+                    </button>
+                  </div>
+                  {saveSearchMessage ? (
+                    <div
+                      className={`text-[11px] ${
+                        saveSearchStatus === "success" ? "text-[#006A52]" : "text-[#B42318]"
+                      }`}
+                      role="status"
+                    >
+                      {saveSearchMessage}
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+                <div className="mt-2 grid gap-2 rounded-xl border border-[#D9E2EA] bg-[#F7FAFE] p-3 text-xs text-[#363535]">
+                  <div className="text-xs font-semibold text-[#0F386E]">{copy.saveSearchTitle}</div>
+                  <div className="flex flex-wrap gap-2">
+                    <input
+                      type="email"
+                      placeholder={copy.saveSearchPlaceholder}
+                      aria-label={copy.saveSearchTitle}
+                      value={saveSearchEmail}
+                      onChange={(event) => {
+                        setSaveSearchEmail(event.target.value);
+                        if (saveSearchStatus !== "idle") {
+                          setSaveSearchStatus("idle");
+                          setSaveSearchMessage(null);
+                        }
+                      }}
+                      className="h-9 flex-1 rounded-xl border border-[#C2D1DF] bg-white px-3 text-xs text-[#363535] outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
+                    />
+                    <button
+                      type="button"
+                      onClick={submitSaveSearch}
+                      disabled={saveSearchStatus === "loading"}
+                      className="h-9 rounded-xl bg-[#0F386E] px-4 text-xs font-semibold text-white shadow-md hover:bg-[#1D4F91] disabled:cursor-not-allowed disabled:opacity-70"
+                    >
+                      {saveSearchStatus === "loading" ? copy.saveSearchSaving : copy.saveSearchCta}
+                    </button>
+                  </div>
+                  {saveSearchMessage ? (
+                    <div
+                      className={`text-[11px] ${
+                        saveSearchStatus === "success" ? "text-[#006A52]" : "text-[#B42318]"
+                      }`}
+                      role="status"
+                    >
+                      {saveSearchMessage}
+                    </div>
+                  ) : null}
+                </div>
+                {canShowFlexGrid ? (
+                  <div className="mt-2 grid gap-2 rounded-xl border border-[#D9E2EA] bg-[#F7FAFE] p-3 text-xs text-[#363535]">
+                    <div className="text-xs font-semibold text-[#0F386E]">{copy.flexGridTitle}</div>
+                    <div className="text-[11px]">{copy.flexGridNote}</div>
+                    {returnDate.trim() ? (
+                      <div className="mt-1 grid gap-2">
+                        {flexReturnDates.map((retDate) => (
+                          <div key={retDate} className="grid grid-cols-3 gap-2">
+                            {flexDepartDates.map((depDate) => {
+                              const isActive = depDate === departureDate && retDate === returnDate;
+                              return (
+                                <button
+                                  key={`${depDate}-${retDate}`}
+                                  type="button"
+                                  onClick={() => {
+                                    setDepartureDate(depDate);
+                                    setReturnDate(retDate);
+                                    void runSearch({
+                                      depart: depDate,
+                                      returnDate: retDate,
+                                      ignoreFlex: true,
+                                    });
+                                  }}
+                                  className={`rounded-lg border px-2 py-1 text-[11px] font-semibold transition ${
+                                    isActive
+                                      ? "border-[#1D4F91] bg-white text-[#1D4F91]"
+                                      : "border-[#D9E2EA] bg-white text-[#363535] hover:border-[#1D4F91]"
+                                  }`}
+                                >
+                                  {formatShortDate(depDate)} → {formatShortDate(retDate)}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="mt-1 grid grid-cols-3 gap-2">
+                        {flexDepartDates.map((depDate) => {
+                          const isActive = depDate === departureDate;
+                          return (
+                            <button
+                              key={depDate}
+                              type="button"
+                              onClick={() => {
+                                setDepartureDate(depDate);
+                                void runSearch({ depart: depDate, returnDate: "", ignoreFlex: true });
+                              }}
+                              className={`rounded-lg border px-2 py-1 text-[11px] font-semibold transition ${
+                                isActive
+                                  ? "border-[#1D4F91] bg-white text-[#1D4F91]"
+                                  : "border-[#D9E2EA] bg-white text-[#363535] hover:border-[#1D4F91]"
+                              }`}
+                            >
+                              {formatShortDate(depDate)}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                ) : null}
               </form>
             </div>
 
             <div className="rounded-2xl border border-[#B6C6D6] bg-white p-5 shadow-lg ring-2 ring-[#B6C6D6]">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className="text-sm font-semibold">{copy.results}</h2>
-                <div className="flex items-center gap-3 text-xs text-[#0F386E]">
+                <div className="flex flex-wrap items-center gap-3 text-xs text-[#0F386E]">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {[
+                      { value: "best" as OfferSort, label: copy.sortBestValue },
+                      { value: "cheapest" as OfferSort, label: copy.sortCheapest },
+                      { value: "fastest" as OfferSort, label: copy.sortFastest },
+                    ].map((preset) => (
+                      <button
+                        key={preset.value}
+                        type="button"
+                        onClick={() => setSearchSort(preset.value)}
+                        className={`rounded-full border px-3 py-1 text-[11px] font-semibold transition ${
+                          searchSort === preset.value
+                            ? "border-[#1D4F91] bg-[#E8EFF7] text-[#1D4F91]"
+                            : "border-[#C9D8EA] bg-white text-[#0F386E] hover:border-[#1D4F91]"
+                        }`}
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
                   <div>
                     {searchResults ? `${searchResults.offers.length} ${copy.offers}` : "—"}
                   </div>
@@ -1429,10 +1779,119 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                 {!searchLoading && offerView.offers.length === 0 ? (
                   <div className="rounded-xl border border-dashed border-[#D9E2EA] p-6 text-sm text-[#363535]">
                     {searchResults ? (
-                      <div className="grid gap-2">
+                      <div className="grid gap-3">
                         <span>{copy.noResults}</span>
-                        {nonStop ? (
-                          <span className="text-xs text-[#1D4F91]">{copy.tryNonstopOff}</span>
+                        <div className="text-xs font-semibold text-[#1D4F91]">
+                          {copy.noResultsHelpTitle}
+                        </div>
+                        <div className="flex flex-wrap gap-2 text-xs">
+                          {nonStop ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setNonStop(false);
+                                void runSearch({ ignoreFlex: true });
+                              }}
+                              className="rounded-full border border-[#C9D8EA] bg-white px-3 py-1 font-semibold text-[#1D4F91] hover:border-[#1D4F91]"
+                            >
+                              {copy.tryDisableNonstop}
+                            </button>
+                          ) : null}
+                          {!flexibleDates ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFlexibleDates(true);
+                                void runSearch();
+                              }}
+                              className="rounded-full border border-[#C9D8EA] bg-white px-3 py-1 font-semibold text-[#1D4F91] hover:border-[#1D4F91]"
+                            >
+                              {copy.tryEnableFlexible}
+                            </button>
+                          ) : null}
+                        </div>
+                        {departureDate ? (
+                          <div className="grid gap-2 text-xs">
+                            <div className="font-semibold text-[#0F386E]">
+                              {copy.tryDifferentDates}
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {(() => {
+                                const earlierDepart = shiftIsoDate(departureDate, -3);
+                                const laterDepart = shiftIsoDate(departureDate, 3);
+                                const earlierReturn = returnDate
+                                  ? shiftIsoDate(returnDate, -3)
+                                  : "";
+                                const laterReturn = returnDate ? shiftIsoDate(returnDate, 3) : "";
+                                return [
+                                  { depart: earlierDepart, ret: earlierReturn },
+                                  { depart: laterDepart, ret: laterReturn },
+                                ].map((pair) => (
+                                  <button
+                                    key={`${pair.depart}-${pair.ret}`}
+                                    type="button"
+                                    onClick={() => {
+                                      setDepartureDate(pair.depart);
+                                      setReturnDate(pair.ret);
+                                      void runSearch({
+                                        depart: pair.depart,
+                                        returnDate: pair.ret,
+                                        ignoreFlex: true,
+                                      });
+                                    }}
+                                    className="rounded-full border border-[#C9D8EA] bg-white px-3 py-1 font-semibold text-[#1D4F91] hover:border-[#1D4F91]"
+                                  >
+                                    {formatShortDate(pair.depart)}
+                                    {pair.ret ? ` → ${formatShortDate(pair.ret)}` : ""}
+                                  </button>
+                                ));
+                              })()}
+                            </div>
+                          </div>
+                        ) : null}
+                        {nearbyAirports(origin).length > 0 ? (
+                          <div className="grid gap-2 text-xs">
+                            <div className="font-semibold text-[#0F386E]">
+                              {copy.tryNearbyOrigin}
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {nearbyAirports(origin).map((alt) => (
+                                <button
+                                  key={alt}
+                                  type="button"
+                                  onClick={() => {
+                                    setOrigin(alt);
+                                    void runSearch({ origin: alt, ignoreFlex: true });
+                                  }}
+                                  className="rounded-full border border-[#C9D8EA] bg-white px-3 py-1 font-semibold text-[#1D4F91] hover:border-[#1D4F91]"
+                                >
+                                  {alt}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        ) : null}
+                        {nearbyAirports(destination).length > 0 ? (
+                          <div className="grid gap-2 text-xs">
+                            <div className="font-semibold text-[#0F386E]">
+                              {copy.tryNearbyDestination}
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {nearbyAirports(destination).map((alt) => (
+                                <button
+                                  key={alt}
+                                  type="button"
+                                  onClick={() => {
+                                    setDestination(alt);
+                                    void runSearch({ destination: alt, ignoreFlex: true });
+                                  }}
+                                  className="rounded-full border border-[#C9D8EA] bg-white px-3 py-1 font-semibold text-[#1D4F91] hover:border-[#1D4F91]"
+                                >
+                                  {alt}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
                         ) : null}
                       </div>
                     ) : (
@@ -1447,6 +1906,15 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                   const warning = warningBadge(offerView.outliers.get(offer.id), copy);
                   const duration = offerView.durations.get(offer.id);
                   const stops = offerView.stops.get(offer.id);
+                  const priceValue = Number(offer.priceTotal);
+                  const trend = priceTrend(priceValue, offerView.avgPrice, copy);
+                  const isBest = badge?.label === copy.dealBest;
+                  const avgPrice = offerView.avgPrice;
+                  const avgDuration = offerView.avgDuration;
+                  const avgStops = offerView.avgStops;
+                  const avgStopsLabel = Number.isFinite(avgStops)
+                    ? String(Number(avgStops.toFixed(1)).toString())
+                    : "—";
                   const airlines = offer.validatingAirlineCodes;
                   const primaryAirline = airlines[0] ?? "";
                   const airlineLabel = primaryAirline
@@ -1480,8 +1948,43 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                             </span>
                           ) : null}
                           {badge ? (
-                            <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${badge.tone}`}>
-                              {badge.label}
+                            <span className={`relative inline-flex group`}>
+                              <span
+                                className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${badge.tone}`}
+                              >
+                                {badge.label}
+                              </span>
+                              {isBest && Number.isFinite(avgPrice) && avgPrice > 0 ? (
+                                <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-2 w-56 -translate-x-1/2 rounded-lg bg-[#000034] px-2 py-1 text-[11px] text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100">
+                                  <span className="block font-semibold text-white">
+                                    Why it&apos;s best
+                                  </span>
+                                  <span className="block text-white/80">
+                                    Price: {formatMoney(offer.currency, offer.priceTotal)} vs avg{" "}
+                                    {formatMoney(offer.currency, String(avgPrice))}
+                                  </span>
+                                  <span className="block text-white/80">
+                                    Duration: {formatDurationMinutes(duration)} vs avg{" "}
+                                    {formatDurationMinutes(avgDuration)}
+                                  </span>
+                                  <span className="block text-white/80">
+                                    Stops: {typeof stops === "number" ? stops : "—"} vs avg{" "}
+                                    {avgStopsLabel}
+                                  </span>
+                                </span>
+                              ) : null}
+                            </span>
+                          ) : null}
+                          {trend ? (
+                            <span
+                              title={
+                                locale === "es"
+                                  ? "Comparado con el precio promedio de esta búsqueda"
+                                  : "Compared to the average price in this search"
+                              }
+                              className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${trend.tone}`}
+                            >
+                              {trend.label}
                             </span>
                           ) : null}
                           {warning ? (
@@ -1592,7 +2095,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                         </div>
                       ))}
                     </div>
-                    <div className="mt-4 flex flex-wrap items-center gap-2">
+                    <div className="mt-4 flex flex-wrap items-center gap-2 rounded-lg bg-white/90 px-2 py-2 shadow-sm ring-1 ring-[#E4ECF3] backdrop-blur-sm sm:static sm:bg-transparent sm:px-0 sm:py-0 sm:shadow-none sm:ring-0 sticky bottom-3 z-10">
                       {purchaseUrl ? (
                         <a
                           href={purchaseUrl}
@@ -1607,6 +2110,18 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                           {copy.buyUnavailable}
                         </span>
                       )}
+                      {purchaseUrl ? (
+                        <button
+                          type="button"
+                          onClick={() => void shareDealLink(purchaseUrl)}
+                          className="inline-flex h-8 items-center rounded-lg border border-[#C9D8EA] bg-white px-3 text-xs font-semibold text-[#1D4F91] hover:border-[#1D4F91]"
+                        >
+                          {copy.shareDeal}
+                        </button>
+                      ) : null}
+                      <span className="text-[10px] font-semibold text-[#69707a]">
+                        Prices can change fast.
+                      </span>
                     </div>
                   </div>
                   );
@@ -1848,7 +2363,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                     <div className="mt-3 rounded-lg border border-[#C9D8EA] bg-[#E9F0F9] px-3 py-2 text-[11px] font-semibold text-[#1D4F91]">
                       {copy.bookOnPartnerSites}
                     </div>
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg bg-white/90 px-2 py-2 shadow-sm ring-1 ring-[#E4ECF3] backdrop-blur-sm sm:static sm:bg-transparent sm:px-0 sm:py-0 sm:shadow-none sm:ring-0 sticky bottom-3 z-10">
                       {purchaseUrl ? (
                         <a
                           href={purchaseUrl}
@@ -1863,6 +2378,18 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                           {copy.buyUnavailable}
                         </span>
                       )}
+                      {purchaseUrl ? (
+                        <button
+                          type="button"
+                          onClick={() => void shareDealLink(purchaseUrl)}
+                          className="inline-flex h-8 items-center rounded-lg border border-[#C9D8EA] bg-white px-3 text-xs font-semibold text-[#1D4F91] hover:border-[#1D4F91]"
+                        >
+                          {copy.shareDeal}
+                        </button>
+                      ) : null}
+                      <span className="text-[10px] font-semibold text-[#69707a]">
+                        Prices can change fast.
+                      </span>
                       {explorePurchasePartner === "klook" && klookUrl ? (
                         <a
                           href={klookUrl}
@@ -1896,6 +2423,61 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
             </div>
           </section>
         )}
+        <div
+          className="mt-10 text-center text-xs font-semibold text-white/80 scroll-mt-20"
+          id="contact"
+        >
+          {copy.contactLabel}:{" "}
+          <a className="underline" href="mailto:info@ticket-wiz.com">
+            info@ticket-wiz.com
+          </a>
+        </div>
+        <div className="mt-6 flex w-full justify-center">
+          <div className="grid w-full max-w-md gap-3 rounded-2xl bg-white/10 p-4 text-center text-xs text-white/90 ring-1 ring-white/20">
+            <div className="text-sm font-semibold text-white">FAQ</div>
+            <div>
+              <div className="font-semibold">How do you find deals?</div>
+              <div className="text-white/80">
+                We compare price, duration, and stops, then rank options by a deal score.
+              </div>
+            </div>
+            <div>
+              <div className="font-semibold">Do you sell tickets?</div>
+              <div className="text-white/80">
+                No. We send you to partner sites to complete booking.
+              </div>
+            </div>
+            <div>
+              <div className="font-semibold">Are prices final?</div>
+              <div className="text-white/80">
+                Prices can change fast. Always confirm the final fare on the booking site.
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="mt-4 text-center text-xs font-semibold text-white/80">
+          Powered by Amadeus
+        </div>
+        <div className="mt-3 flex flex-wrap items-center justify-center gap-2 text-[11px] font-semibold text-white/80">
+          {["Amadeus", "Kiwi", "Skyscanner", "Kayak"].map((name) => (
+            <span
+              key={name}
+              className="rounded-full border border-white/40 bg-white/10 px-3 py-1"
+            >
+              {name}
+            </span>
+          ))}
+        </div>
+        <LegalLinksModal
+          locale={locale}
+          className="mt-6 flex flex-wrap items-center justify-center gap-4 text-[11px] font-semibold text-white/80"
+        />
+        <div className="mt-4 text-center text-[11px] text-white/70">
+          Affiliate disclosure: We may earn a commission when you book through partner links.
+        </div>
+        <div className="mt-2 text-center text-[11px] text-white/70">
+          © {new Date().getFullYear()} Ticket Wiz. All rights reserved.
+        </div>
       </main>
     </div>
   );
