@@ -55,17 +55,21 @@ export default function SpanishHomePage() {
   };
 
   return (
-    <div
-      className="min-h-screen bg-zinc-50 text-zinc-950"
-      style={{
-        backgroundImage: "url(/Ticket-wiz.jpg)",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      }}
-    >
+    <div className="relative min-h-screen bg-transparent text-zinc-950">
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="/Ticket-wiz.jpg"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          unoptimized={isDev}
+          className="object-cover"
+          aria-hidden="true"
+        />
+      </div>
       <HtmlLangSetter lang="es" />
-      <div className="min-h-screen bg-white/80 backdrop-blur-sm">
+      <div className="relative z-10 min-h-screen bg-white/80 backdrop-blur-sm">
         <Script
           id="faq-schema-es"
           type="application/ld+json"
@@ -124,7 +128,9 @@ export default function SpanishHomePage() {
               Ir a la app
             </a>
             <a
-              href="mailto:info@ticket-wiz.com"
+              href="https://mail.zoho.com/zm/#mail/compose?to=info@ticket-wiz.com"
+              target="_blank"
+              rel="noreferrer"
               className="inline-flex h-11 items-center justify-center rounded-xl border border-[#D9E2EA] bg-white px-5 text-sm font-semibold text-[#1D4F91] shadow-sm transition hover:border-[#1D4F91]"
             >
               Contáctanos
@@ -132,7 +138,12 @@ export default function SpanishHomePage() {
           </div>
           <div className="text-xs text-[#0F386E]">
             Correo:{" "}
-            <a className="underline" href="mailto:info@ticket-wiz.com">
+            <a
+              className="underline"
+              href="https://mail.zoho.com/zm/#mail/compose?to=info@ticket-wiz.com"
+              target="_blank"
+              rel="noreferrer"
+            >
               info@ticket-wiz.com
             </a>
           </div>

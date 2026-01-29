@@ -78,7 +78,7 @@ export default function RootLayout({
           data-cfasync="false"
           data-wpfc-render="false"
           src="https://tp-em.com/NDkzMDQw.js?t=493040"
-          strategy="beforeInteractive"
+          strategy="afterInteractive"
         />
         {children}
       </body>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import type { ExploreResponse, FlightSearchResponse } from "@/lib/flights";
 import {
@@ -826,6 +826,8 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
   const [showAlertPrompt, setShowAlertPrompt] = useState(false);
   const [promptDismissed, setPromptDismissed] = useState(false);
   const [quoteIndex, setQuoteIndex] = useState(0);
+  const searchCacheRef = useRef(new Map<string, FlightSearchResponse>());
+  const exploreCacheRef = useRef(new Map<string, ExploreResponse>());
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -873,11 +875,14 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
       adults,
       currency,
     };
-    try {
-      window.localStorage.setItem("ticketwiz:search-defaults", JSON.stringify(payload));
-    } catch {
-      // Ignore storage failures (privacy mode, quota).
-    }
+    const timeout = window.setTimeout(() => {
+      try {
+        window.localStorage.setItem("ticketwiz:search-defaults", JSON.stringify(payload));
+      } catch {
+        // Ignore storage failures (privacy mode, quota).
+      }
+    }, 400);
+    return () => window.clearTimeout(timeout);
   }, [origin, destination, departureDate, returnDate, adults, currency]);
 
   useEffect(() => {
@@ -1090,6 +1095,13 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
     }
   }
 
+  function setCacheWithLimit<T>(map: Map<string, T>, key: string, value: T) {
+    map.set(key, value);
+    if (map.size <= 12) return;
+    const firstKey = map.keys().next().value;
+    if (typeof firstKey === "string") map.delete(firstKey);
+  }
+
   async function runSearch(options?: {
     depart?: string;
     returnDate?: string;
@@ -1128,11 +1140,20 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
         nonStop: String(nonStop),
       });
       if (flexReturn) params.set("returnDate", flexReturn);
+      const cacheKey = `search:${params.toString()}`;
+      const cached = searchCacheRef.current.get(cacheKey);
+      if (cached) {
+        setSearchResults(cached);
+        setSearchLoading(false);
+        return;
+      }
 
       const res = await fetch(`/api/flights/search?${params.toString()}`);
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error || copy.searchFailed);
-      setSearchResults(json as FlightSearchResponse);
+      const payload = json as FlightSearchResponse;
+      setSearchResults(payload);
+      setCacheWithLimit(searchCacheRef.current, cacheKey, payload);
     } catch (e) {
       setSearchError(e instanceof Error ? e.message : copy.searchFailed);
     } finally {
@@ -1179,11 +1200,20 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
       });
       if (Number.isFinite(exploreMaxPrice)) params.set("maxPrice", String(exploreMaxPrice));
       if (trimmedReturn) params.set("returnDate", trimmedReturn);
+      const cacheKey = `explore:${params.toString()}`;
+      const cached = exploreCacheRef.current.get(cacheKey);
+      if (cached) {
+        setExploreResults(cached);
+        setExploreLoading(false);
+        return;
+      }
 
       const res = await fetch(`/api/flights/explore?${params.toString()}`);
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error || copy.exploreFailed);
-      setExploreResults(json as ExploreResponse);
+      const payload = json as ExploreResponse;
+      setExploreResults(payload);
+      setCacheWithLimit(exploreCacheRef.current, cacheKey, payload);
     } catch (e) {
       setExploreError(e instanceof Error ? e.message : copy.exploreFailed);
     } finally {
@@ -1192,17 +1222,21 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
   }
 
   return (
-    <div
-      className="relative min-h-screen overflow-hidden bg-zinc-50 text-zinc-950"
-      style={{
-        backgroundImage: "url(/Ticket-wiz3.jpg)",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      }}
-    >
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#0F386E]/25 via-[#1D4F91]/10 to-transparent" />
-      <div className="relative bg-transparent">
+    <div className="relative min-h-screen bg-transparent text-zinc-950">
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="/Ticket-wiz3.jpg"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          unoptimized={isDev}
+          className="object-cover"
+          aria-hidden="true"
+        />
+      </div>
+      <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-b from-[#0F386E]/25 via-[#1D4F91]/10 to-transparent" />
+      <div className="relative z-20 bg-transparent">
         <header className="fixed top-0 z-20 w-full border-b border-[var(--brand-border)]/80 bg-white/80 backdrop-blur">
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-6 py-3">
             <nav
@@ -1444,9 +1478,8 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
             </button>
           </div>
         </div>
-      </div>
 
-      <main className="mx-auto max-w-6xl px-6 pb-16">
+        <main className="mx-auto max-w-6xl px-6 pb-16">
         {tab === "search" ? (
           <section
             id="search"
@@ -2477,7 +2510,12 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
           id="contact"
         >
           {copy.contactLabel}:{" "}
-          <a className="underline" href="mailto:info@ticket-wiz.com">
+          <a
+            className="underline"
+            href="https://mail.zoho.com/zm/#mail/compose?to=info@ticket-wiz.com"
+            target="_blank"
+            rel="noreferrer"
+          >
             info@ticket-wiz.com
           </a>
         </div>
@@ -2527,7 +2565,8 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
         <div className="mt-2 text-center text-[11px] text-white/70">
           © {new Date().getFullYear()} Ticket Wiz. All rights reserved.
         </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

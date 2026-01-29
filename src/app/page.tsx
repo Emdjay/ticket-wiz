@@ -59,16 +59,20 @@ export default function Home() {
   };
 
   return (
-    <div
-      className="min-h-screen bg-zinc-50 text-zinc-950"
-      style={{
-        backgroundImage: "url(/Ticket-wiz.jpg)",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      }}
-    >
-      <div className="min-h-screen bg-white/80 backdrop-blur-sm">
+    <div className="relative min-h-screen bg-transparent text-zinc-950">
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="/Ticket-wiz.jpg"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          unoptimized={isDev}
+          className="object-cover"
+          aria-hidden="true"
+        />
+      </div>
+      <div className="relative z-10 min-h-screen bg-white/80 backdrop-blur-sm">
         <Script
           id="faq-schema"
           type="application/ld+json"
@@ -128,7 +132,9 @@ export default function Home() {
               Launch the app
             </a>
             <a
-              href="mailto:info@ticket-wiz.com"
+              href="https://mail.zoho.com/zm/#mail/compose?to=info@ticket-wiz.com"
+              target="_blank"
+              rel="noreferrer"
               className="inline-flex h-11 items-center justify-center rounded-xl border border-[#D9E2EA] bg-white px-5 text-sm font-semibold text-[#1D4F91] shadow-sm transition hover:border-[#1D4F91]"
             >
               Contact us
@@ -136,7 +142,12 @@ export default function Home() {
           </div>
           <div className="text-xs text-[#0F386E]">
             For partnerships and affiliate opportunities, reach out any time:{" "}
-            <a className="underline" href="mailto:info@ticket-wiz.com">
+            <a
+              className="underline"
+              href="https://mail.zoho.com/zm/#mail/compose?to=info@ticket-wiz.com"
+              target="_blank"
+              rel="noreferrer"
+            >
               info@ticket-wiz.com
             </a>
           </div>

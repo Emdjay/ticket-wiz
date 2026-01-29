@@ -121,7 +121,12 @@ export function LegalLinksModal({ locale = "en", className }: LegalLinksModalPro
                   {line.includes("info@ticket-wiz.com") ? (
                     <>
                       {locale === "es" ? "Contacto: " : "Questions? "}
-                      <a className="text-[#1D4F91] underline" href="mailto:info@ticket-wiz.com">
+                      <a
+                        className="text-[#1D4F91] underline"
+                        href="https://mail.zoho.com/zm/#mail/compose?to=info@ticket-wiz.com"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
                         info@ticket-wiz.com
                       </a>
                     </>
