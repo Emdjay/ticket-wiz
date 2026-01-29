@@ -11,6 +11,7 @@ import {
   scoreOffers,
 } from "@/lib/dealScore";
 import {
+  buildAviasalesLink,
   buildKayakLink,
   buildKiwiAffiliateUrl,
   buildKlookSearchUrl,
@@ -25,9 +26,17 @@ type OfferSort = "best" | "cheapest" | "fastest" | "fewest-stops";
 type Locale = "en" | "es";
 type Copy = (typeof COPY)[keyof typeof COPY];
 
-type PurchasePartner = "skyscanner" | "kayak" | "kiwi" | "google" | "airline" | "klook";
+type PurchasePartner =
+  | "skyscanner"
+  | "kayak"
+  | "kiwi"
+  | "google"
+  | "airline"
+  | "klook"
+  | "aviasales";
 
 const KLOOK_SEARCH_URL_TEMPLATE = PARTNER_ENV.KLOOK_SEARCH_URL_TEMPLATE;
+const AVIASALES_DEEPLINK_TEMPLATE = PARTNER_ENV.AVIASALES_DEEPLINK_TEMPLATE;
 const SHOW_EXPLORE_LINKS =
   (process.env.NEXT_PUBLIC_SHOW_LINKS ?? "").trim().toLowerCase() === "true";
 
@@ -180,6 +189,7 @@ const COPY = {
     shareDeal: "Share this deal",
     alertPromptTitle: "Get weekly alerts for this route",
     alertPromptNote: "We’ll send weekly price updates. Unsubscribe anytime.",
+    alertPromptCta: "Subscribe",
     searchFailed: "Search failed.",
     exploreFailed: "Explore failed.",
     returnDateError: "Return date must be on/after the departure date.",
@@ -334,6 +344,7 @@ const COPY = {
     shareDeal: "Compartir esta oferta",
     alertPromptTitle: "Recibe alertas semanales",
     alertPromptNote: "Enviaremos actualizaciones semanales. Cancela cuando quieras.",
+    alertPromptCta: "Suscribirse",
     searchFailed: "Búsqueda fallida.",
     exploreFailed: "Exploración fallida.",
     returnDateError: "La fecha de regreso debe ser igual o posterior a la de salida.",
@@ -428,6 +439,11 @@ const AIRPORT_LOOKUP = new Map(
 function airportLabel(code: string) {
   const airport = AIRPORT_LOOKUP.get(code);
   return airport ? formatAirport(airport) : code;
+}
+
+function airportSearchQuery(code: string) {
+  const airport = AIRPORT_LOOKUP.get(code);
+  return airport ? airport.city : code;
 }
 
 function AirportPicker(props: {
@@ -676,7 +692,7 @@ function buildPurchaseUrl(args: {
   airlineCode?: string;
 }) {
   if (args.partner === "klook") {
-    return buildKlookSearchUrl(args.destination);
+    return buildKlookSearchUrl(airportSearchQuery(args.destination));
   }
   const originUpper = args.origin.trim().toUpperCase();
   const destinationUpper = args.destination.trim().toUpperCase();
@@ -712,6 +728,15 @@ function buildPurchaseUrl(args: {
         adults,
       });
     }
+    case "aviasales": {
+      return buildAviasalesLink({
+        origin: originUpper,
+        destination: destinationUpper,
+        departureDate: departIso,
+        returnDate: returnIso || undefined,
+        adults,
+      });
+    }
     case "google": {
       const query = returnIso
         ? `Flights from ${args.origin} to ${args.destination} on ${args.departureDate} returning ${args.returnDate}`
@@ -730,15 +755,21 @@ function buildPurchaseUrl(args: {
 
 const SEARCH_PURCHASE_PARTNERS: Array<{ value: PurchasePartner; label: string }> = [
   { value: "kiwi", label: "Kiwi" },
+  { value: "aviasales", label: "Aviasales" },
 ];
 
 const EXPLORE_PURCHASE_PARTNERS: Array<{ value: PurchasePartner; label: string }> = [
   { value: "kiwi", label: "Kiwi" },
+  { value: "aviasales", label: "Aviasales" },
+  { value: "klook", label: "Klook" },
 ];
 
-const EXPLORE_PARTNERS_VISIBLE = KLOOK_SEARCH_URL_TEMPLATE.trim()
-  ? EXPLORE_PURCHASE_PARTNERS
-  : EXPLORE_PURCHASE_PARTNERS.filter((partner) => partner.value !== "klook");
+const SEARCH_PARTNERS_VISIBLE = SEARCH_PURCHASE_PARTNERS;
+
+const EXPLORE_PARTNERS_VISIBLE = EXPLORE_PURCHASE_PARTNERS.filter((partner) => {
+  if (partner.value === "klook" && !KLOOK_SEARCH_URL_TEMPLATE.trim()) return false;
+  return true;
+});
 
 const NEARBY_AIRPORTS: Record<string, string[]> = {
   ATL: ["BHM"],
@@ -1179,17 +1210,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                 {copy.contactLabel}
               </a>
             </nav>
-            <div className="flex items-center gap-2 text-sm font-semibold text-[var(--brand-ink)]">
-              <Image
-                src="/ticket-wiz-logo.png"
-                alt="Ticket Wiz"
-                width={28}
-                height={28}
-                unoptimized={isDev}
-                className="h-7 w-auto object-contain"
-              />
-              Ticket Wiz
-            </div>
+            <div className="text-sm font-semibold text-[var(--brand-ink)]">Ticket Wiz</div>
             <div className="flex flex-wrap items-center gap-3 text-xs text-[#363535]">
               <div className="inline-flex items-center gap-2">
                 <a
@@ -1290,7 +1311,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                   <div className="text-sm font-semibold text-[#0F386E]">{copy.trustTitle}</div>
                   <div className="text-[12px] text-[#363535]">{copy.trustNote}</div>
                   <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold text-[#1D4F91]">
-                    {["Amadeus", "Kiwi", "Skyscanner", "Kayak"].map((name) => (
+                    {["Amadeus", "Kiwi", "Aviasales", "Skyscanner", "Kayak"].map((name) => (
                       <span
                         key={name}
                         className="rounded-full border border-[#D9E2EA] bg-white px-3 py-1"
@@ -1566,7 +1587,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                       disabled={saveSearchStatus === "loading"}
                       className="h-9 rounded-xl bg-[#0F386E] px-4 text-xs font-semibold text-white shadow-md hover:bg-[#1D4F91] disabled:cursor-not-allowed disabled:opacity-70"
                     >
-                      {saveSearchStatus === "loading" ? copy.saveSearchSaving : copy.saveSearchCta}
+                      {saveSearchStatus === "loading" ? copy.saveSearchSaving : copy.alertPromptCta}
                     </button>
                   </div>
                   {saveSearchMessage ? (
@@ -1717,7 +1738,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                       onChange={(e) => setPurchasePartner(e.target.value as PurchasePartner)}
                       className="h-8 rounded-lg border border-[#C2D1DF] bg-[#F7FAFE] px-2 text-xs text-[#363535] focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
                     >
-                      {SEARCH_PURCHASE_PARTNERS.map((partner) => (
+                    {SEARCH_PARTNERS_VISIBLE.map((partner) => (
                         <option key={partner.value} value={partner.value}>
                           {partner.label}
                         </option>
@@ -2283,7 +2304,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                         adults: exploreAdults,
                       })
                     : null;
-                  const klookUrl = buildKlookSearchUrl(deal.destination);
+                  const klookUrl = buildKlookSearchUrl(airportSearchQuery(deal.destination));
                   const tripDays = tripLengthDays(deal.departureDate, deal.returnDate);
                   return (
                   <div
@@ -2459,7 +2480,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
           Powered by Amadeus
         </div>
         <div className="mt-3 flex flex-wrap items-center justify-center gap-2 text-[11px] font-semibold text-white/80">
-          {["Amadeus", "Kiwi", "Skyscanner", "Kayak"].map((name) => (
+          {["Amadeus", "Kiwi", "Aviasales", "Skyscanner", "Kayak"].map((name) => (
             <span
               key={name}
               className="rounded-full border border-white/40 bg-white/10 px-3 py-1"

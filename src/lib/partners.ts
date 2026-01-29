@@ -1,5 +1,6 @@
 const KLOOK_SEARCH_URL_TEMPLATE = process.env.NEXT_PUBLIC_KLOOK_SEARCH_URL_TEMPLATE ?? "";
 const KIWI_DEEPLINK_TEMPLATE = process.env.NEXT_PUBLIC_KIWI_DEEPLINK_TEMPLATE ?? "";
+const AVIASALES_DEEPLINK_TEMPLATE = process.env.NEXT_PUBLIC_AVIASALES_DEEPLINK_TEMPLATE ?? "";
 const KIWI_DIRECT_LINKS = (process.env.NEXT_PUBLIC_KIWI_DIRECT_LINKS ?? "false") === "true";
 
 const KIWI_LOCATION_SLUGS: Record<string, string> = {
@@ -30,11 +31,39 @@ function formatDateParam(date: string | undefined) {
 export function buildKlookSearchUrl(query: string) {
   if (!KLOOK_SEARCH_URL_TEMPLATE.trim()) return null;
   const trimmed = KLOOK_SEARCH_URL_TEMPLATE.trim();
+  const encodedQuery = encodeURIComponent(query);
   if (trimmed.includes("{query}")) {
-    return trimmed.replaceAll("{query}", encodeURIComponent(query));
+    return trimmed.replaceAll("{query}", encodedQuery);
+  }
+  try {
+    const url = new URL(trimmed);
+    const uParam = url.searchParams.get("u");
+    if (uParam) {
+      let decodedU = uParam;
+      try {
+        decodedU = decodeURIComponent(uParam);
+      } catch {
+        // Use raw value if decoding fails.
+      }
+      try {
+        const uUrl = new URL(decodedU);
+        if (uUrl.hostname.includes("klook.com") && (uUrl.pathname === "/" || uUrl.pathname === "")) {
+          uUrl.pathname = "/search/";
+        }
+        if (!uUrl.searchParams.has("query")) {
+          uUrl.searchParams.set("query", query);
+        }
+        url.searchParams.set("u", uUrl.toString());
+        return url.toString();
+      } catch {
+        // Fall back to appending query to the template.
+      }
+    }
+  } catch {
+    // Fall back to appending query to the template.
   }
   const joiner = trimmed.includes("?") ? "&" : "?";
-  return `${trimmed}${joiner}query=${encodeURIComponent(query)}`;
+  return `${trimmed}${joiner}query=${encodedQuery}`;
 }
 
 export function buildKiwiAffiliateUrl(args: {
@@ -79,6 +108,32 @@ export function buildKiwiDeepLink(args: {
   return `https://www.kiwi.com/en/search/results/${originSlug}/${destinationSlug}/${args.depart}/${returnSegment}?adults=${Math.max(1, args.adults)}`;
 }
 
+export function buildAviasalesLink(args: {
+  origin: string;
+  destination: string;
+  departureDate: string;
+  returnDate?: string;
+  adults: number;
+}) {
+  if (!AVIASALES_DEEPLINK_TEMPLATE.trim()) return null;
+  const trimmed = AVIASALES_DEEPLINK_TEMPLATE.trim();
+  const hasPlaceholders = /\{origin\}|\{destination\}|\{depart\}|\{return\}|\{adults\}/.test(trimmed);
+  if (!hasPlaceholders) return trimmed;
+  const returnDate = args.returnDate ?? "";
+  const adults = Math.max(1, args.adults);
+  const replaced = trimmed
+    .replaceAll("{origin}", args.origin)
+    .replaceAll("{destination}", args.destination)
+    .replaceAll("{depart}", args.departureDate)
+    .replaceAll("{return}", returnDate)
+    .replaceAll("{adults}", String(adults));
+  if (replaced !== trimmed) return replaced;
+  const joiner = trimmed.includes("?") ? "&" : "?";
+  return `${trimmed}${joiner}origin=${encodeURIComponent(args.origin)}&destination=${encodeURIComponent(
+    args.destination
+  )}&depart=${encodeURIComponent(args.departureDate)}&return=${encodeURIComponent(returnDate)}&adults=${adults}`;
+}
+
 export function buildSkyscannerLink(args: {
   origin: string;
   destination: string;
@@ -118,5 +173,6 @@ export function buildKayakLink(args: {
 export const PARTNER_ENV = {
   KLOOK_SEARCH_URL_TEMPLATE,
   KIWI_DEEPLINK_TEMPLATE,
+  AVIASALES_DEEPLINK_TEMPLATE,
   KIWI_DIRECT_LINKS,
 };
