@@ -27,6 +27,9 @@ export const metadata: Metadata = {
     description: "Find airline deals fast: search + explore by budget.",
     images: ["/ticket-wiz-logo.png"],
   },
+  other: {
+    "impact-site-verification": "eeb2242a-4c18-445b-88bc-5cbe5b37e2b3",
+  },
 };
 
 export default function RootLayout({
