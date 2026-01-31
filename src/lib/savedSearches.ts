@@ -10,6 +10,9 @@ export type SavedSearch = {
   adults: number;
   currency: string;
   non_stop: boolean;
+  paused: boolean;
+  frequency: "weekly" | "biweekly";
+  last_sent_at: Date | null;
   created_at: Date;
 };
 
@@ -25,10 +28,16 @@ export async function ensureSavedSearchesTable() {
       adults INT NOT NULL,
       currency TEXT NOT NULL,
       non_stop BOOLEAN NOT NULL DEFAULT FALSE,
+      paused BOOLEAN NOT NULL DEFAULT FALSE,
+      frequency TEXT NOT NULL DEFAULT 'weekly',
+      last_sent_at TIMESTAMPTZ,
       created_at TIMESTAMPTZ DEFAULT NOW(),
       UNIQUE (email, origin, destination, departure_date, return_date, adults, currency, non_stop)
     )
   `;
+  await sql`ALTER TABLE saved_searches ADD COLUMN IF NOT EXISTS paused BOOLEAN NOT NULL DEFAULT FALSE`;
+  await sql`ALTER TABLE saved_searches ADD COLUMN IF NOT EXISTS frequency TEXT NOT NULL DEFAULT 'weekly'`;
+  await sql`ALTER TABLE saved_searches ADD COLUMN IF NOT EXISTS last_sent_at TIMESTAMPTZ`;
 }
 
 export async function addSavedSearch(args: {
@@ -51,7 +60,9 @@ export async function addSavedSearch(args: {
       return_date,
       adults,
       currency,
-      non_stop
+      non_stop,
+      paused,
+      frequency
     )
     VALUES (
       ${args.email},
@@ -61,7 +72,9 @@ export async function addSavedSearch(args: {
       ${args.returnDate ?? null},
       ${args.adults},
       ${args.currency},
-      ${args.nonStop}
+      ${args.nonStop},
+      false,
+      'weekly'
     )
     ON CONFLICT DO NOTHING
   `;
@@ -80,9 +93,69 @@ export async function getSavedSearches(): Promise<SavedSearch[]> {
       adults,
       currency,
       non_stop,
+      paused,
+      frequency,
+      last_sent_at,
       created_at
     FROM saved_searches
     ORDER BY created_at DESC
   `;
   return rows;
+}
+
+export async function getSavedSearchesByEmail(email: string): Promise<SavedSearch[]> {
+  await ensureSavedSearchesTable();
+  const { rows } = await sql<SavedSearch>`
+    SELECT
+      id,
+      email,
+      origin,
+      destination,
+      departure_date,
+      return_date,
+      adults,
+      currency,
+      non_stop,
+      paused,
+      frequency,
+      last_sent_at,
+      created_at
+    FROM saved_searches
+    WHERE email = ${email}
+    ORDER BY created_at DESC
+  `;
+  return rows;
+}
+
+export async function updateSavedSearch(args: {
+  id: number;
+  email: string;
+  paused?: boolean;
+  frequency?: "weekly" | "biweekly";
+}) {
+  await ensureSavedSearchesTable();
+  await sql`
+    UPDATE saved_searches
+    SET
+      paused = COALESCE(${args.paused}, paused),
+      frequency = COALESCE(${args.frequency}, frequency)
+    WHERE id = ${args.id} AND email = ${args.email}
+  `;
+}
+
+export async function deleteSavedSearch(args: { id: number; email: string }) {
+  await ensureSavedSearchesTable();
+  await sql`
+    DELETE FROM saved_searches
+    WHERE id = ${args.id} AND email = ${args.email}
+  `;
+}
+
+export async function markSavedSearchSent(id: number) {
+  await ensureSavedSearchesTable();
+  await sql`
+    UPDATE saved_searches
+    SET last_sent_at = NOW()
+    WHERE id = ${id}
+  `;
 }

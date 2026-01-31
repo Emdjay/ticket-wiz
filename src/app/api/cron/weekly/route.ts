@@ -6,7 +6,7 @@ import type { FlightOffer } from "@/lib/flights";
 import { parseIsoDurationToMinutes, scoreOffers } from "@/lib/dealScore";
 import { buildKiwiAffiliateUrl } from "@/lib/partners";
 import { getSubscribers } from "@/lib/subscribers";
-import { getSavedSearches } from "@/lib/savedSearches";
+import { getSavedSearches, markSavedSearchSent } from "@/lib/savedSearches";
 
 const DEFAULT_DESTINATIONS = [
   "ATL",
@@ -340,8 +340,20 @@ export async function GET(request: Request) {
     const savedSearches = await getSavedSearches();
     type SavedSearch = (typeof savedSearches)[number];
     type SavedResult = { search: SavedSearch; best: { offer: FlightOffer; score: number } };
+    const shouldSendSavedSearch = (search: SavedSearch) => {
+      if (search.paused) return false;
+      if (search.frequency === "biweekly") {
+        if (!search.last_sent_at) return true;
+        const lastSent = new Date(search.last_sent_at).getTime();
+        const now = Date.now();
+        const days = (now - lastSent) / (1000 * 60 * 60 * 24);
+        return days >= 13;
+      }
+      return true;
+    };
     if (savedSearches.length > 0) {
-      const savedResults = await mapWithConcurrency(savedSearches, 3, async (search) => {
+      const eligible = savedSearches.filter(shouldSendSavedSearch);
+      const savedResults = await mapWithConcurrency(eligible, 3, async (search) => {
         const best = await fetchBestOffer({
           token,
           baseUrl,
@@ -408,6 +420,7 @@ export async function GET(request: Request) {
             subject: subjectLine,
             html: htmlBody,
           });
+        await markSavedSearchSent(result.search.id);
         })
       );
     }

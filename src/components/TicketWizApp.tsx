@@ -29,6 +29,31 @@ type SavedAlert = {
   createdAt: string;
 };
 
+type WeeklyDeal = {
+  origin: string;
+  destination: string;
+  price: string;
+  currency: string;
+  score: number;
+  durationMinutes: number;
+  stops: number;
+};
+
+type ManagedAlert = {
+  id: number;
+  email: string;
+  origin: string;
+  destination: string;
+  departure_date: string;
+  return_date: string | null;
+  adults: number;
+  currency: string;
+  non_stop: boolean;
+  paused: boolean;
+  frequency: "weekly" | "biweekly";
+  last_sent_at: string | null;
+};
+
 type PurchasePartner =
   | "skyscanner"
   | "kayak"
@@ -47,6 +72,10 @@ const COPY = {
     heroTitle: "Find the best airline deals fast.",
     heroSubtitle: "Start with a direct search, or explore destinations by budget.",
     heroSubtitleNote: "(Prices vary by route, date, and availability.)",
+    weeklyBannerLabel: "Top deal this week",
+    weeklyBannerCta: "Load this route",
+    weeklyBannerFallback: "Curated weekly deal, updated hourly.",
+    trustRow: "Scored for value • Updated weekly • Powered by Amadeus",
     whyTitle: "Why Ticket Wiz?",
     whyItems: [
       "Compare near-real-time fares from Amadeus in seconds.",
@@ -106,6 +135,7 @@ const COPY = {
     locationSuccess: "Origin set to ",
     locationError: "Couldn’t access location.",
     datePlaceholder: "MM/DD/YYYY",
+    flexRangeLabel: "Flexible range (days)",
     sampleRoutesTitle: "Try a sample route",
     demoDealsTitle: "Demo results",
     demoDeals: [
@@ -141,6 +171,14 @@ const COPY = {
     ],
     exploreTitle: "Explore destinations",
     exploreNote: "Browse destination ideas by budget and nonstop preference.",
+    monthlyPicksTitle: "Curated picks by month",
+    monthlyPicks: [
+      { month: "Jan", routes: ["MIA → BOG", "LAX → SJD"] },
+      { month: "Feb", routes: ["JFK → MAD", "ORD → MEX"] },
+      { month: "Mar", routes: ["SEA → HNL", "ATL → PUJ"] },
+      { month: "Apr", routes: ["BOS → LIS", "DFW → CUN"] },
+    ],
+    topCheapestTitle: "Top 5 cheapest this week",
     exploreMonthTitle: "Deals by month",
     exploreMonthPresets: {
       any: "Anytime",
@@ -183,6 +221,11 @@ const COPY = {
     maxStopsNonstop: "Nonstop",
     maxStopsOne: "Up to 1",
     maxStopsTwo: "Up to 2",
+    priceCeiling: "Price ceiling",
+    durationCeiling: "Duration ceiling (hrs)",
+    airlineFilter: "Airline filter",
+    airlineAny: "Any airline",
+    avoidRedeye: "Avoid redeye",
     bestValueRightNow: "Best value right now",
     score: "Score",
     price: "Price",
@@ -238,10 +281,16 @@ const COPY = {
     saveSearchError: "Enter a valid email to save.",
     saveSearchSaving: "Saving...",
     alertsManageTitle: "Manage alerts",
-    alertsManageNote: "Local list of saved routes on this device.",
+    alertsManageNote: "Load alerts by email to edit, pause, or delete.",
     alertsManageEmpty: "No saved alerts yet.",
     alertsManageRemove: "Remove",
     alertsManagePartner: "Booking links open on",
+    alertsManageEmailPlaceholder: "you@email.com",
+    alertsManageLoad: "Load alerts",
+    alertsManagePause: "Pause",
+    alertsManageFrequency: "Frequency",
+    alertsManageWeekly: "Weekly",
+    alertsManageBiweekly: "Every 2 weeks",
     noResultsForFilters: "No offers match your filters yet.",
     noResultsHelpTitle: "Try one of these:",
     tryDisableNonstop: "Turn off nonstop",
@@ -285,6 +334,10 @@ const COPY = {
     heroTitle: "Encuentra las mejores ofertas de vuelos rápido.",
     heroSubtitle: "Empieza con una búsqueda directa o explora destinos por presupuesto.",
     heroSubtitleNote: "(Los precios varían según ruta, fecha y disponibilidad.)",
+    weeklyBannerLabel: "Mejor oferta de la semana",
+    weeklyBannerCta: "Cargar esta ruta",
+    weeklyBannerFallback: "Oferta curada semanalmente, actualizada cada hora.",
+    trustRow: "Puntaje por valor • Actualizado semanalmente • Powered by Amadeus",
     whyTitle: "¿Por qué Ticket Wiz?",
     whyItems: [
       "Compara tarifas casi en tiempo real de Amadeus en segundos.",
@@ -344,6 +397,7 @@ const COPY = {
     locationSuccess: "Origen establecido: ",
     locationError: "No pudimos acceder a tu ubicación.",
     datePlaceholder: "DD/MM/AAAA",
+    flexRangeLabel: "Rango flexible (días)",
     sampleRoutesTitle: "Prueba una ruta sugerida",
     demoDealsTitle: "Resultados demo",
     demoDeals: [
@@ -379,6 +433,14 @@ const COPY = {
     ],
     exploreTitle: "Explorar destinos",
     exploreNote: "Explora destinos por presupuesto y preferencias de escalas.",
+    monthlyPicksTitle: "Picks curados por mes",
+    monthlyPicks: [
+      { month: "Ene", routes: ["MIA → BOG", "LAX → SJD"] },
+      { month: "Feb", routes: ["JFK → MAD", "ORD → MEX"] },
+      { month: "Mar", routes: ["SEA → HNL", "ATL → PUJ"] },
+      { month: "Abr", routes: ["BOS → LIS", "DFW → CUN"] },
+    ],
+    topCheapestTitle: "Top 5 más baratos de la semana",
     exploreMonthTitle: "Ofertas por mes",
     exploreMonthPresets: {
       any: "Cualquier mes",
@@ -421,6 +483,11 @@ const COPY = {
     maxStopsNonstop: "Sin escalas",
     maxStopsOne: "Hasta 1",
     maxStopsTwo: "Hasta 2",
+    priceCeiling: "Tope de precio",
+    durationCeiling: "Tope de duración (hrs)",
+    airlineFilter: "Filtro de aerolínea",
+    airlineAny: "Cualquier aerolínea",
+    avoidRedeye: "Evitar vuelos nocturnos",
     bestValueRightNow: "Mejor valor ahora",
     score: "Puntaje",
     price: "Precio",
@@ -476,10 +543,16 @@ const COPY = {
     saveSearchError: "Ingresa un correo válido para guardar.",
     saveSearchSaving: "Guardando...",
     alertsManageTitle: "Administrar alertas",
-    alertsManageNote: "Lista local de rutas guardadas en este dispositivo.",
+    alertsManageNote: "Carga alertas por email para editar o pausar.",
     alertsManageEmpty: "Aún no hay alertas guardadas.",
     alertsManageRemove: "Eliminar",
     alertsManagePartner: "Los enlaces de compra abren en",
+    alertsManageEmailPlaceholder: "tu@email.com",
+    alertsManageLoad: "Cargar alertas",
+    alertsManagePause: "Pausar",
+    alertsManageFrequency: "Frecuencia",
+    alertsManageWeekly: "Semanal",
+    alertsManageBiweekly: "Cada 2 semanas",
     noResultsForFilters: "No hay ofertas que coincidan con tus filtros.",
     noResultsHelpTitle: "Prueba con una de estas opciones:",
     tryDisableNonstop: "Quitar escalas directas",
@@ -1043,8 +1116,13 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
   const [searchMaxResults, setSearchMaxResults] = useState(20);
   const [searchMaxStops, setSearchMaxStops] = useState<"any" | "0" | "1" | "2">("any");
   const [flexibleDates, setFlexibleDates] = useState(false);
+  const [flexRangeDays, setFlexRangeDays] = useState(3);
   const [searchSort, setSearchSort] = useState<OfferSort>("best");
   const [purchasePartner, setPurchasePartner] = useState<PurchasePartner>("kiwi");
+  const [priceCeiling, setPriceCeiling] = useState<number | "">("");
+  const [durationCeilingHours, setDurationCeilingHours] = useState<number | "">("");
+  const [airlineFilter, setAirlineFilter] = useState<string>("any");
+  const [avoidRedeye, setAvoidRedeye] = useState(false);
   const purchasePartnerLabel =
     SEARCH_PARTNERS_VISIBLE.find((partner) => partner.value === purchasePartner)?.label ??
     "Kiwi";
@@ -1061,6 +1139,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
   const [quoteIndex, setQuoteIndex] = useState(0);
   const searchCacheRef = useRef(new Map<string, FlightSearchResponse>());
   const exploreCacheRef = useRef(new Map<string, ExploreResponse>());
+  const homeOriginResolvedRef = useRef(false);
 
   const [alertsEmail, setAlertsEmail] = useState("");
   const [alertsStatus, setAlertsStatus] = useState<
@@ -1073,6 +1152,16 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
   >("idle");
   const [saveSearchMessage, setSaveSearchMessage] = useState<string | null>(null);
   const [savedAlerts, setSavedAlerts] = useState<SavedAlert[]>([]);
+  const [weeklyDeal, setWeeklyDeal] = useState<WeeklyDeal | null>(null);
+  const [weeklyDealStatus, setWeeklyDealStatus] = useState<"idle" | "loading" | "error">(
+    "idle"
+  );
+  const [alertsManageEmail, setAlertsManageEmail] = useState("");
+  const [alertsManageStatus, setAlertsManageStatus] = useState<
+    "idle" | "loading" | "error"
+  >("idle");
+  const [alertsManageMessage, setAlertsManageMessage] = useState<string | null>(null);
+  const [alertsManageList, setAlertsManageList] = useState<ManagedAlert[]>([]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -1086,9 +1175,21 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
         returnDate?: string;
         adults?: number;
         currency?: string;
+        nonStop?: boolean;
+        flexibleDates?: boolean;
+        searchMaxResults?: number;
+        searchMaxStops?: "any" | "0" | "1" | "2";
+        searchSort?: OfferSort;
+        purchasePartner?: PurchasePartner;
+        flexRangeDays?: number;
+        priceCeiling?: number;
+        durationCeilingHours?: number;
+        airlineFilter?: string;
+        avoidRedeye?: boolean;
       };
       if (parsed.origin && /^[A-Za-z]{3}$/.test(parsed.origin)) {
         setOrigin(parsed.origin.toUpperCase());
+        homeOriginResolvedRef.current = true;
       }
       if (parsed.destination && /^[A-Za-z]{3}$/.test(parsed.destination)) {
         setDestination(parsed.destination.toUpperCase());
@@ -1105,6 +1206,39 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
       if (parsed.currency && /^[A-Za-z]{3}$/.test(parsed.currency)) {
         setCurrency(parsed.currency.toUpperCase());
       }
+      if (typeof parsed.nonStop === "boolean") {
+        setNonStop(parsed.nonStop);
+      }
+      if (typeof parsed.flexibleDates === "boolean") {
+        setFlexibleDates(parsed.flexibleDates);
+      }
+      if (typeof parsed.searchMaxResults === "number") {
+        setSearchMaxResults(parsed.searchMaxResults);
+      }
+      if (parsed.searchMaxStops) {
+        setSearchMaxStops(parsed.searchMaxStops);
+      }
+      if (parsed.searchSort) {
+        setSearchSort(parsed.searchSort);
+      }
+      if (parsed.purchasePartner) {
+        setPurchasePartner(parsed.purchasePartner);
+      }
+      if (typeof parsed.flexRangeDays === "number") {
+        setFlexRangeDays(parsed.flexRangeDays);
+      }
+      if (typeof parsed.priceCeiling === "number") {
+        setPriceCeiling(parsed.priceCeiling);
+      }
+      if (typeof parsed.durationCeilingHours === "number") {
+        setDurationCeilingHours(parsed.durationCeilingHours);
+      }
+      if (parsed.airlineFilter) {
+        setAirlineFilter(parsed.airlineFilter);
+      }
+      if (typeof parsed.avoidRedeye === "boolean") {
+        setAvoidRedeye(parsed.avoidRedeye);
+      }
     } catch {
       // Ignore malformed stored values.
     }
@@ -1119,6 +1253,18 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
       returnDate,
       adults,
       currency,
+      nonStop,
+      flexibleDates,
+      searchMaxResults,
+      searchMaxStops,
+      searchSort,
+      purchasePartner,
+      flexRangeDays,
+      priceCeiling: typeof priceCeiling === "number" ? priceCeiling : undefined,
+      durationCeilingHours:
+        typeof durationCeilingHours === "number" ? durationCeilingHours : undefined,
+      airlineFilter,
+      avoidRedeye,
     };
     const timeout = window.setTimeout(() => {
       try {
@@ -1128,7 +1274,25 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
       }
     }, 400);
     return () => window.clearTimeout(timeout);
-  }, [origin, destination, departureDate, returnDate, adults, currency]);
+  }, [
+    origin,
+    destination,
+    departureDate,
+    returnDate,
+    adults,
+    currency,
+    nonStop,
+    flexibleDates,
+    searchMaxResults,
+    searchMaxStops,
+    searchSort,
+    purchasePartner,
+    flexRangeDays,
+    priceCeiling,
+    durationCeilingHours,
+    airlineFilter,
+    avoidRedeye,
+  ]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -1161,6 +1325,120 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
       // Ignore storage failures.
     }
   }, [savedAlerts]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const originParam = params.get("origin");
+    const destinationParam = params.get("destination");
+    const departParam = params.get("depart");
+    const returnParam = params.get("return");
+    const adultsParam = params.get("adults");
+    const currencyParam = params.get("currency");
+    const nonStopParam = params.get("nonStop");
+    const autoParam = params.get("auto");
+    let shouldRun = false;
+
+    if (originParam && /^[A-Za-z]{3}$/.test(originParam)) {
+      setOrigin(originParam.toUpperCase());
+      shouldRun = true;
+    }
+    if (destinationParam && /^[A-Za-z]{3}$/.test(destinationParam)) {
+      setDestination(destinationParam.toUpperCase());
+      shouldRun = true;
+    }
+    if (departParam && /^\d{4}-\d{2}-\d{2}$/.test(departParam)) {
+      setDepartureDate(departParam);
+      shouldRun = true;
+    }
+    if (returnParam && /^\d{4}-\d{2}-\d{2}$/.test(returnParam)) {
+      setReturnDate(returnParam);
+    }
+    if (adultsParam && Number(adultsParam) > 0) {
+      setAdults(Number(adultsParam));
+    }
+    if (currencyParam && /^[A-Za-z]{3}$/.test(currencyParam)) {
+      setCurrency(currencyParam.toUpperCase());
+    }
+    if (nonStopParam === "1") {
+      setNonStop(true);
+    }
+    if (autoParam === "1" && shouldRun) {
+      setTimeout(() => {
+        void runSearch({ ignoreFlex: true });
+      }, 0);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (homeOriginResolvedRef.current) return;
+    const savedOrigins = savedAlerts
+      .map((alert) => alert.origin)
+      .filter((code) => /^[A-Za-z]{3}$/.test(code));
+    if (savedOrigins.length > 0) {
+      const counts = new Map<string, number>();
+      savedOrigins.forEach((code) => {
+        const key = code.toUpperCase();
+        counts.set(key, (counts.get(key) ?? 0) + 1);
+      });
+      const top = [...counts.entries()].sort((a, b) => b[1] - a[1])[0];
+      if (top) {
+        setOrigin(top[0]);
+        setExploreOrigin(top[0]);
+        homeOriginResolvedRef.current = true;
+        return;
+      }
+    }
+    if (typeof navigator === "undefined") return;
+    const permissions = (navigator as Navigator & { permissions?: Permissions }).permissions;
+    permissions
+      ?.query?.({ name: "geolocation" as PermissionName })
+      .then((status) => {
+        if (status.state !== "granted" || homeOriginResolvedRef.current) return;
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const nearest = nearestAirportCode(
+              position.coords.latitude,
+              position.coords.longitude
+            );
+            if (!nearest || homeOriginResolvedRef.current) return;
+            setOrigin(nearest);
+            setExploreOrigin(nearest);
+            homeOriginResolvedRef.current = true;
+          },
+          () => {
+            // Ignore geo failures.
+          },
+          { enableHighAccuracy: false, timeout: 8000 }
+        );
+      })
+      .catch(() => {
+        // Ignore permission errors.
+      });
+  }, [savedAlerts]);
+
+  useEffect(() => {
+    let active = true;
+    setWeeklyDealStatus("loading");
+    fetch("/api/deals/weekly")
+      .then((res) => res.json())
+      .then((json) => {
+        if (!active) return;
+        if (json?.deal) {
+          setWeeklyDeal(json.deal as WeeklyDeal);
+          setWeeklyDealStatus("idle");
+        } else {
+          setWeeklyDealStatus("error");
+        }
+      })
+      .catch(() => {
+        if (!active) return;
+        setWeeklyDealStatus("error");
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (searchResults?.offers?.length) {
@@ -1218,7 +1496,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
     setExploreReturnDate("");
   };
 
-  const flexOffsets = [-3, 0, 3];
+  const flexOffsets = Array.from({ length: flexRangeDays * 2 + 1 }, (_, i) => i - flexRangeDays);
   const flexDepartDates = flexOffsets.map((offset) => shiftIsoDate(departureDate, offset));
   const flexReturnDates = returnDate.trim()
     ? flexOffsets.map((offset) => shiftIsoDate(returnDate, offset))
@@ -1267,6 +1545,27 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
     };
   }, [searchResults, searchSort]);
 
+  const availableAirlines = useMemo(() => {
+    const codes = new Set<string>(Object.keys(AIRLINE_NAMES));
+    offerView.offers.forEach((offer) => {
+      offer.validatingAirlineCodes.forEach((code) => codes.add(code));
+    });
+    return Array.from(codes).sort();
+  }, [offerView.offers]);
+
+  const isRedeyeOffer = (offer: (typeof offerView.offers)[number]) => {
+    for (const itinerary of offer.itineraries) {
+      for (const segment of itinerary.segments) {
+        const at = segment.departure?.at ?? "";
+        const match = /T(\d{2}):/.exec(at);
+        if (!match) continue;
+        const hour = Number(match[1]);
+        if (hour >= 22 || hour < 6) return true;
+      }
+    }
+    return false;
+  };
+
   const filteredOffers = useMemo(() => {
     if (searchMaxStops === "any") return offerView.offers;
     const maxStops = Number(searchMaxStops);
@@ -1276,14 +1575,40 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
     });
   }, [offerView, searchMaxStops]);
 
+  const searchFilteredOffers = useMemo(() => {
+    return filteredOffers.filter((offer) => {
+      if (typeof priceCeiling === "number") {
+        const price = Number(offer.priceTotal);
+        if (Number.isFinite(price) && price > priceCeiling) return false;
+      }
+      if (typeof durationCeilingHours === "number") {
+        const durationMinutes = offerView.durations.get(offer.id) ?? 0;
+        if (durationMinutes > durationCeilingHours * 60) return false;
+      }
+      if (airlineFilter !== "any") {
+        const codes = offer.validatingAirlineCodes;
+        if (!codes.includes(airlineFilter)) return false;
+      }
+      if (avoidRedeye && isRedeyeOffer(offer)) return false;
+      return true;
+    });
+  }, [
+    filteredOffers,
+    priceCeiling,
+    durationCeilingHours,
+    airlineFilter,
+    avoidRedeye,
+    offerView.durations,
+  ]);
+
   const bestOffer = useMemo(() => {
-    if (filteredOffers.length === 0) return null;
-    return filteredOffers.reduce((best, offer) => {
+    if (searchFilteredOffers.length === 0) return null;
+    return searchFilteredOffers.reduce((best, offer) => {
       const bestScore = offerView.scores.get(best.id) ?? 0;
       const offerScore = offerView.scores.get(offer.id) ?? 0;
       return offerScore > bestScore ? offer : best;
-    }, filteredOffers[0]);
-  }, [filteredOffers, offerView]);
+    }, searchFilteredOffers[0]);
+  }, [searchFilteredOffers, offerView]);
 
   const exploreView = useMemo(() => {
     const deals = exploreResults?.deals ?? [];
@@ -1324,6 +1649,13 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
 
     return { deals: sorted, outliers };
   }, [exploreResults]);
+
+  const topCheapestDeals = useMemo(() => {
+    return [...exploreView.deals]
+      .filter((deal) => deal.priceTotal)
+      .sort((a, b) => Number(a.priceTotal) - Number(b.priceTotal))
+      .slice(0, 5);
+  }, [exploreView.deals]);
 
   async function submitAlertSignup() {
     const trimmed = alertsEmail.trim();
@@ -1401,6 +1733,68 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
     } catch {
       setSaveSearchStatus("error");
       setSaveSearchMessage(copy.saveSearchError);
+    }
+  }
+
+  async function loadManagedAlerts() {
+    const email = alertsManageEmail.trim();
+    if (!email) {
+      setAlertsManageStatus("error");
+      setAlertsManageMessage(copy.saveSearchError);
+      return;
+    }
+    setAlertsManageStatus("loading");
+    setAlertsManageMessage(null);
+    try {
+      const response = await fetch(`/api/searches?email=${encodeURIComponent(email)}`);
+      if (!response.ok) {
+        setAlertsManageStatus("error");
+        setAlertsManageMessage(copy.alertsManageEmpty);
+        return;
+      }
+      const data = await response.json();
+      setAlertsManageList(data.searches ?? []);
+      setAlertsManageStatus("idle");
+    } catch {
+      setAlertsManageStatus("error");
+      setAlertsManageMessage(copy.alertsManageEmpty);
+    }
+  }
+
+  async function updateManagedAlert(
+    alertId: number,
+    updates: { paused?: boolean; frequency?: "weekly" | "biweekly" }
+  ) {
+    const email = alertsManageEmail.trim();
+    if (!email) return;
+    try {
+      await fetch("/api/searches", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, id: alertId, ...updates }),
+      });
+      setAlertsManageList((prev) =>
+        prev.map((alert) =>
+          alert.id === alertId ? { ...alert, ...updates } : alert
+        )
+      );
+    } catch {
+      // Ignore update errors.
+    }
+  }
+
+  async function deleteManagedAlert(alertId: number) {
+    const email = alertsManageEmail.trim();
+    if (!email) return;
+    try {
+      await fetch("/api/searches", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, id: alertId }),
+      });
+      setAlertsManageList((prev) => prev.filter((alert) => alert.id !== alertId));
+    } catch {
+      // Ignore delete errors.
     }
   }
 
@@ -1641,6 +2035,49 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                 <br />
                 {copy.heroSubtitleNote}
               </p>
+              <div className="mt-4 flex flex-wrap items-center gap-3 rounded-2xl border border-white/40 bg-white/90 px-4 py-2 text-xs text-[var(--brand-ink)] shadow-sm">
+                <span className="rounded-full bg-[var(--brand-primary)] px-2 py-0.5 text-[10px] font-semibold text-white">
+                  {copy.weeklyBannerLabel}
+                </span>
+                {weeklyDeal ? (
+                  <>
+                    <span className="font-semibold text-[var(--brand-ink)]">
+                      {weeklyDeal.origin} → {weeklyDeal.destination}
+                    </span>
+                    <span className="text-[var(--brand-muted)]">
+                      {formatMoney(weeklyDeal.currency, weeklyDeal.price)}
+                    </span>
+                    <span className="text-[var(--brand-muted)]">
+                      {formatDurationMinutes(weeklyDeal.durationMinutes)} · {copy.stops}:{" "}
+                      {weeklyDeal.stops}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOrigin(weeklyDeal.origin);
+                        setDestination(weeklyDeal.destination);
+                        void runSearch({
+                          origin: weeklyDeal.origin,
+                          destination: weeklyDeal.destination,
+                          ignoreFlex: true,
+                        });
+                      }}
+                      className="rounded-full border border-[var(--brand-border)] bg-white px-3 py-1 text-[11px] font-semibold text-[var(--brand-primary)] hover:border-[var(--brand-primary)]"
+                    >
+                      {copy.weeklyBannerCta}
+                    </button>
+                  </>
+                ) : (
+                  <span className="text-[var(--brand-muted)]" role="status" aria-live="polite">
+                    {weeklyDealStatus === "loading"
+                      ? copy.fetchingFares
+                      : copy.weeklyBannerFallback}
+                  </span>
+                )}
+              </div>
+              <div className="mt-2 text-[11px] font-semibold text-white/80">
+                {copy.trustRow}
+              </div>
               <div className="mt-6 grid gap-4 sm:grid-cols-3">
                 <div className="grid gap-3 rounded-2xl bg-white/85 p-4 text-xs text-[var(--brand-ink)] shadow-md ring-1 ring-[var(--brand-border)]">
                   <div className="flex min-h-[32px] items-center text-sm font-semibold text-[var(--brand-primary)]">
@@ -1979,6 +2416,70 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                     />
                     <span className="text-sm text-[var(--brand-ink)]">{copy.flexibleDates}</span>
                   </label>
+                  {flexibleDates ? (
+                    <label className="grid gap-1 text-xs font-medium text-[var(--brand-ink)] sm:col-span-2">
+                      {copy.flexRangeLabel}: ±{flexRangeDays}
+                      <input
+                        type="range"
+                        min={1}
+                        max={3}
+                        step={1}
+                        value={flexRangeDays}
+                        onChange={(e) => setFlexRangeDays(Number(e.target.value))}
+                        className="h-2 w-full accent-[var(--brand-primary)]"
+                      />
+                    </label>
+                  ) : null}
+                  <label className="grid gap-1 text-xs font-medium text-[var(--brand-ink)]">
+                    {copy.priceCeiling}
+                    <input
+                      type="number"
+                      min={0}
+                      value={priceCeiling}
+                      onChange={(e) =>
+                        setPriceCeiling(e.target.value ? Number(e.target.value) : "")
+                      }
+                      placeholder="USD"
+                      className="h-10 rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 text-sm outline-none focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[color:rgba(0,123,255,0.2)]"
+                    />
+                  </label>
+                  <label className="grid gap-1 text-xs font-medium text-[var(--brand-ink)]">
+                    {copy.durationCeiling}
+                    <input
+                      type="number"
+                      min={1}
+                      value={durationCeilingHours}
+                      onChange={(e) =>
+                        setDurationCeilingHours(e.target.value ? Number(e.target.value) : "")
+                      }
+                      placeholder="hrs"
+                      className="h-10 rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 text-sm outline-none focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[color:rgba(0,123,255,0.2)]"
+                    />
+                  </label>
+                  <label className="grid gap-1 text-xs font-medium text-[var(--brand-ink)] sm:col-span-2">
+                    {copy.airlineFilter}
+                    <select
+                      value={airlineFilter}
+                      onChange={(e) => setAirlineFilter(e.target.value)}
+                      className="h-10 rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 text-sm text-[var(--brand-ink)] outline-none focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[color:rgba(0,123,255,0.2)]"
+                    >
+                      <option value="any">{copy.airlineAny}</option>
+                      {availableAirlines.map((code) => (
+                        <option key={code} value={code}>
+                          {airlineName(code)} ({code})
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="flex h-10 items-center gap-2 rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2 text-sm sm:col-span-2">
+                    <input
+                      type="checkbox"
+                      checked={avoidRedeye}
+                      onChange={(e) => setAvoidRedeye(e.target.checked)}
+                      className="h-4 w-4 accent-[var(--brand-success)]"
+                    />
+                    <span className="text-sm text-[var(--brand-ink)]">{copy.avoidRedeye}</span>
+                  </label>
                 </div>
 
                 <button
@@ -2061,30 +2562,91 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                   <div className="text-[11px] text-[var(--brand-muted)]">
                     {copy.alertsManageNote}
                   </div>
-                  {savedAlerts.length === 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    <input
+                      type="email"
+                      placeholder={copy.alertsManageEmailPlaceholder}
+                      aria-label={copy.alertsManageTitle}
+                      value={alertsManageEmail}
+                      onChange={(event) => {
+                        setAlertsManageEmail(event.target.value);
+                        if (alertsManageStatus !== "idle") {
+                          setAlertsManageStatus("idle");
+                          setAlertsManageMessage(null);
+                        }
+                      }}
+                      className="h-9 flex-1 rounded-xl border border-[var(--brand-border)] bg-white px-3 text-xs text-[var(--brand-ink)] outline-none focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[color:rgba(0,123,255,0.2)]"
+                    />
+                    <button
+                      type="button"
+                      onClick={loadManagedAlerts}
+                      disabled={alertsManageStatus === "loading"}
+                      className="h-9 rounded-xl border border-[var(--brand-border)] bg-white px-3 text-[11px] font-semibold text-[var(--brand-primary)] hover:border-[var(--brand-primary)] disabled:cursor-not-allowed disabled:opacity-70"
+                    >
+                      {alertsManageStatus === "loading"
+                        ? copy.searching
+                        : copy.alertsManageLoad}
+                    </button>
+                  </div>
+                  {alertsManageMessage ? (
+                    <div className="text-[11px] text-[var(--brand-danger)]" role="status">
+                      {alertsManageMessage}
+                    </div>
+                  ) : null}
+                  {alertsManageList.length === 0 ? (
                     <div className="text-[11px] text-[var(--brand-muted)]">
                       {copy.alertsManageEmpty}
                     </div>
                   ) : (
                     <div className="grid gap-2">
-                      {savedAlerts.map((alert) => (
+                      {alertsManageList.map((alert) => (
                         <div
                           key={alert.id}
-                          className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[var(--brand-border)] bg-white px-3 py-2"
+                          className="grid gap-2 rounded-lg border border-[var(--brand-border)] bg-white px-3 py-2"
                         >
-                          <div className="text-[11px] font-semibold text-[var(--brand-primary)]">
-                            {alert.origin} → {alert.destination}
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="text-[11px] font-semibold text-[var(--brand-primary)]">
+                              {alert.origin} → {alert.destination}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => deleteManagedAlert(alert.id)}
+                              className="rounded-full border border-[var(--brand-border)] px-2 py-0.5 text-[10px] font-semibold text-[var(--brand-primary)] hover:border-[var(--brand-primary)]"
+                            >
+                              {copy.alertsManageRemove}
+                            </button>
                           </div>
-                          <div className="text-[10px] text-[var(--brand-muted)]">
-                            {alert.email}
+                          <div className="flex flex-wrap items-center gap-3 text-[10px] text-[var(--brand-muted)]">
+                            <label className="inline-flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                checked={alert.paused}
+                                onChange={(event) =>
+                                  updateManagedAlert(alert.id, {
+                                    paused: event.target.checked,
+                                  })
+                                }
+                                className="h-3.5 w-3.5 accent-[var(--brand-success)]"
+                              />
+                              <span>{copy.alertsManagePause}</span>
+                            </label>
+                            <label className="inline-flex items-center gap-2">
+                              <span>{copy.alertsManageFrequency}</span>
+                              <select
+                                value={alert.frequency}
+                                onChange={(event) =>
+                                  updateManagedAlert(alert.id, {
+                                    frequency: event.target
+                                      .value as ManagedAlert["frequency"],
+                                  })
+                                }
+                                className="h-6 rounded-md border border-[var(--brand-border)] bg-white px-2 text-[10px] text-[var(--brand-ink)]"
+                              >
+                                <option value="weekly">{copy.alertsManageWeekly}</option>
+                                <option value="biweekly">{copy.alertsManageBiweekly}</option>
+                              </select>
+                            </label>
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => removeSavedAlert(alert.id)}
-                            className="rounded-full border border-[var(--brand-border)] px-2 py-0.5 text-[10px] font-semibold text-[var(--brand-primary)] hover:border-[var(--brand-primary)]"
-                          >
-                            {copy.alertsManageRemove}
-                          </button>
                         </div>
                       ))}
                     </div>
@@ -2243,7 +2805,9 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                       </button>
                     ))}
                   </div>
-                  <div>{searchResults ? `${filteredOffers.length} ${copy.offers}` : "—"}</div>
+                  <div>
+                    {searchResults ? `${searchFilteredOffers.length} ${copy.offers}` : "—"}
+                  </div>
                   <label className="flex items-center gap-2">
                     {copy.buyVia}
                     <select
@@ -2524,13 +3088,13 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                 ) : null}
                 {!searchLoading &&
                 offerView.offers.length > 0 &&
-                filteredOffers.length === 0 ? (
+                searchFilteredOffers.length === 0 ? (
                   <div className="rounded-xl border border-dashed border-[var(--brand-border)] p-4 text-sm text-[var(--brand-muted)]">
                     {copy.noResultsForFilters}
                   </div>
                 ) : null}
 
-                {filteredOffers.map((offer) => {
+                {searchFilteredOffers.map((offer) => {
                   const score = offerView.scores.get(offer.id);
                   const badge = dealBadge(score, copy);
                   const warning = warningBadge(offerView.outliers.get(offer.id), copy);
@@ -2913,6 +3477,53 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                 <div className="text-xs text-[var(--brand-primary)]">
                   {exploreResults ? `${exploreResults.deals.length} ${copy.destinationsLabel}` : "—"}
                 </div>
+              </div>
+              <div className="mt-3 grid gap-3 rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] p-3 text-xs text-[var(--brand-ink)]">
+                <div className="text-[11px] font-semibold text-[var(--brand-primary)]">
+                  {copy.monthlyPicksTitle}
+                </div>
+                <div className="flex gap-3 overflow-x-auto pb-2">
+                  {copy.monthlyPicks.map((pick) => (
+                    <div
+                      key={pick.month}
+                      className="min-w-[140px] rounded-lg border border-[var(--brand-border)] bg-white p-2 text-[11px]"
+                    >
+                      <div className="font-semibold text-[var(--brand-primary)]">{pick.month}</div>
+                      <div className="mt-1 grid gap-1 text-[10px] text-[var(--brand-muted)]">
+                        {pick.routes.map((route) => (
+                          <span key={route}>{route}</span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="mt-3 grid gap-2 rounded-xl border border-[var(--brand-border)] bg-white p-3 text-xs text-[var(--brand-ink)]">
+                <div className="text-[11px] font-semibold text-[var(--brand-primary)]">
+                  {copy.topCheapestTitle}
+                </div>
+                {topCheapestDeals.length === 0 ? (
+                  <div className="text-[11px] text-[var(--brand-muted)]">{copy.runExploreToSee}</div>
+                ) : (
+                  <div className="flex gap-3 overflow-x-auto pb-2">
+                    {topCheapestDeals.map((deal) => (
+                      <div
+                        key={`${deal.destination}-${deal.priceTotal}-${deal.departureDate ?? ""}-top`}
+                        className="min-w-[160px] rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] p-2"
+                      >
+                        <div className="text-[11px] font-semibold text-[var(--brand-primary)]">
+                          {airportLabel(deal.destination)}
+                        </div>
+                        <div className="mt-1 text-[12px] font-semibold text-[var(--brand-ink)]">
+                          {formatMoney(deal.currency, deal.priceTotal)}
+                        </div>
+                        <div className="mt-1 text-[10px] text-[var(--brand-muted)]">
+                          {deal.departureDate ?? copy.depart}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-[var(--brand-primary)]">
                 <label className="flex items-center gap-2">
