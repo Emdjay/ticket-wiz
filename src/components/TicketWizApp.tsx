@@ -1643,10 +1643,10 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
               </p>
               <div className="mt-6 grid gap-4 sm:grid-cols-3">
                 <div className="grid gap-3 rounded-2xl bg-white/85 p-4 text-xs text-[var(--brand-ink)] shadow-md ring-1 ring-[var(--brand-border)]">
-                  <div className="text-sm font-semibold text-[var(--brand-primary)]">
+                  <div className="flex min-h-[32px] items-center text-sm font-semibold text-[var(--brand-primary)]">
                     {copy.whyTitle}
                   </div>
-                  <ul className="grid gap-1 text-[12px] text-[var(--brand-ink)]">
+                  <ul className="grid gap-2 text-[12px] leading-5 text-[var(--brand-ink)]">
                     {copy.whyItems.map((item) => (
                       <li key={item} className="flex items-start gap-2">
                         <span className="mt-1 inline-flex h-1.5 w-1.5 rounded-full bg-[var(--brand-primary)]" />
@@ -1656,7 +1656,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                   </ul>
                 </div>
                 <div className="grid gap-3 rounded-2xl bg-white/85 p-4 text-xs text-[var(--brand-ink)] shadow-md ring-1 ring-[var(--brand-border)]">
-                  <div className="text-sm font-semibold text-[var(--brand-primary)]">
+                  <div className="flex min-h-[32px] items-center text-sm font-semibold text-[var(--brand-primary)]">
                     {copy.alertsTitle}
                   </div>
                   <div className="text-[12px] text-[var(--brand-ink)]">
@@ -1703,7 +1703,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                   </div>
                 </div>
                 <div className="grid gap-2 rounded-2xl bg-white/85 p-4 text-xs text-[var(--brand-ink)] shadow-md ring-1 ring-[var(--brand-border)]">
-                  <div className="flex items-center gap-2 text-sm font-semibold text-[var(--brand-primary)]">
+                  <div className="flex min-h-[32px] items-center gap-2 text-sm font-semibold text-[var(--brand-primary)]">
                     <Image
                       src="/badge.png"
                       alt="Partner badge"
