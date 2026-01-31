@@ -1493,24 +1493,68 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
 
   useEffect(() => {
     let active = true;
+    const cacheKey = "ticketwiz:weekly-deal";
+    const now = Date.now();
+    let hasCached = false;
+    try {
+      const cachedRaw = window.localStorage.getItem(cacheKey);
+      if (cachedRaw) {
+        const cached = JSON.parse(cachedRaw) as {
+          deal: WeeklyDeal;
+          cachedAt: number;
+        };
+        if (cached?.deal) {
+          hasCached = true;
+          setWeeklyDeal(cached.deal);
+        }
+      }
+    } catch {
+      // Ignore cache read errors.
+    }
+
     setWeeklyDealStatus("loading");
-    fetch("/api/deals/weekly")
-      .then((res) => res.json())
-      .then((json) => {
+    const controller = new AbortController();
+    const timeoutMs = hasCached ? 6000 : isDev ? 30000 : 12000;
+    const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
+
+    fetch("/api/deals/weekly", { signal: controller.signal })
+      .then(async (res) => {
+        const text = await res.text();
+        if (!text) return { ok: res.ok, json: null };
+        try {
+          return { ok: res.ok, json: JSON.parse(text) as unknown };
+        } catch {
+          return { ok: false, json: null };
+        }
+      })
+      .then(({ json }) => {
         if (!active) return;
-        if (json?.deal) {
-          setWeeklyDeal(json.deal as WeeklyDeal);
+        if (json && typeof json === "object" && "deal" in json && (json as { deal?: WeeklyDeal }).deal) {
+          const payload = (json as { deal: WeeklyDeal }).deal;
+          setWeeklyDeal(payload);
           setWeeklyDealStatus("idle");
+          try {
+            window.localStorage.setItem(
+              cacheKey,
+              JSON.stringify({ deal: payload, cachedAt: Date.now() })
+            );
+          } catch {
+            // Ignore cache write errors.
+          }
         } else {
-          setWeeklyDealStatus("error");
+          if (!hasCached) setWeeklyDealStatus("error");
         }
       })
       .catch(() => {
         if (!active) return;
-        setWeeklyDealStatus("error");
-      });
+        if (!hasCached) setWeeklyDealStatus("error");
+      })
+      .finally(() => window.clearTimeout(timeout));
+
     return () => {
       active = false;
+      controller.abort();
+      window.clearTimeout(timeout);
     };
   }, []);
 

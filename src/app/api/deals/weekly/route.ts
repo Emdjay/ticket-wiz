@@ -23,6 +23,11 @@ const DEFAULT_DESTINATIONS = [
   "PHX",
 ];
 
+const WEEKLY_DEAL_CACHE_TTL_MS = 30 * 60 * 1000;
+let weeklyDealCache:
+  | { cachedAt: number; payload: { ok: true; deal: { origin: string; destination: string; price: string; currency: string; score: number; durationMinutes: number; stops: number } } }
+  | null = null;
+
 const EnvList = z
   .string()
   .transform((value) =>
@@ -119,6 +124,13 @@ async function mapWithConcurrency<T, R>(
 }
 
 export async function GET() {
+  if (weeklyDealCache && Date.now() - weeklyDealCache.cachedAt < WEEKLY_DEAL_CACHE_TTL_MS) {
+    return NextResponse.json(weeklyDealCache.payload, {
+      status: 200,
+      headers: { "Cache-Control": "s-maxage=3600, stale-while-revalidate=600" },
+    });
+  }
+
   const origin = (process.env.WEEKLY_DEAL_ORIGIN ?? "MIA").trim().toUpperCase();
   const currency = (process.env.WEEKLY_DEAL_CURRENCY ?? "USD").trim().toUpperCase();
   const maxPriceRaw = process.env.WEEKLY_DEAL_MAX_PRICE;
@@ -134,13 +146,15 @@ export async function GET() {
     process.env.WEEKLY_DEAL_DESTINATIONS && process.env.WEEKLY_DEAL_DESTINATIONS.trim()
       ? EnvList.parse(process.env.WEEKLY_DEAL_DESTINATIONS)
       : DEFAULT_DESTINATIONS;
+  const isDev = process.env.NODE_ENV === "development";
+  const scopedDestinations = isDev ? destinations.slice(0, 4) : destinations;
 
   try {
     const token = await getAmadeusAccessToken();
     const baseUrl = getAmadeusBaseUrl();
 
     const offersWithRoute = await mapWithConcurrency(
-      destinations.filter((d) => d !== origin),
+      scopedDestinations.filter((d) => d !== origin),
       4,
       async (destination) => {
         const params = new URLSearchParams({
@@ -212,24 +226,23 @@ export async function GET() {
       return Math.max(maxValue, Math.max(0, segments - 1));
     }, 0);
 
-    return NextResponse.json(
-      {
-        ok: true,
-        deal: {
-          origin,
-          destination: top.destination,
-          price: top.offer.priceTotal,
-          currency: top.offer.currency || currency,
-          score: top.score,
-          durationMinutes: totalDuration,
-          stops: maxStops,
-        },
+    const payload = {
+      ok: true as const,
+      deal: {
+        origin,
+        destination: top.destination,
+        price: top.offer.priceTotal,
+        currency: top.offer.currency || currency,
+        score: top.score,
+        durationMinutes: totalDuration,
+        stops: maxStops,
       },
-      {
-        status: 200,
-        headers: { "Cache-Control": "s-maxage=3600, stale-while-revalidate=600" },
-      }
-    );
+    };
+    weeklyDealCache = { cachedAt: Date.now(), payload };
+    return NextResponse.json(payload, {
+      status: 200,
+      headers: { "Cache-Control": "s-maxage=3600, stale-while-revalidate=600" },
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Weekly deal failed.";
     return NextResponse.json({ error: message }, { status: 500 });
