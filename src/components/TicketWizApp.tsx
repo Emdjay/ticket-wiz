@@ -897,8 +897,9 @@ function byNumericPrice(a: { priceTotal: string }, b: { priceTotal: string }) {
 
 function formatDurationMinutes(totalMinutes?: number) {
   if (typeof totalMinutes !== "number" || !Number.isFinite(totalMinutes)) return "—";
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = Math.max(0, totalMinutes % 60);
+  const rounded = Math.round(totalMinutes);
+  const hours = Math.floor(rounded / 60);
+  const minutes = Math.max(0, rounded % 60);
   return `${hours}h ${minutes}m`;
 }
 
