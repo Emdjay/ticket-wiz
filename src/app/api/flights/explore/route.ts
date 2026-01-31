@@ -158,11 +158,11 @@ async function fallbackExploreViaOffers(args: {
         const offer = asRecord(o);
         const price = asRecord(offer.price);
         const itineraries = asArray(offer.itineraries);
-        const durationMinutes = itineraries.reduce((sum, it) => {
+        const durationMinutes = itineraries.reduce((sum: number, it) => {
           const itRec = asRecord(it);
           return sum + parseIsoDurationToMinutes(asString(itRec.duration));
         }, 0);
-        const maxStops = itineraries.reduce((maxValue, it) => {
+        const maxStops = itineraries.reduce((maxValue: number, it) => {
           const itRec = asRecord(it);
           const segments = asArray(itRec.segments);
           return Math.max(maxValue, Math.max(0, segments.length - 1));
