@@ -68,7 +68,7 @@ type CandidateDeal = {
   destination: string;
   priceTotal: string;
   currency: string;
-  departureDate?: string;
+  departureDate: string;
   returnDate?: string;
   durationMinutes?: number;
   maxStops?: number;
