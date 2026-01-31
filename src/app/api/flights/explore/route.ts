@@ -69,9 +69,9 @@ type CandidateDeal = {
   priceTotal: string;
   currency: string;
   departureDate: string;
-  returnDate?: string;
-  durationMinutes?: number;
-  maxStops?: number;
+  returnDate: string | undefined;
+  durationMinutes: number | undefined;
+  maxStops: number | undefined;
 };
 
 function parseIsoDurationToMinutes(raw: string): number {
@@ -177,7 +177,10 @@ async function fallbackExploreViaOffers(args: {
           maxStops: maxStops || undefined,
         };
       })
-      .filter((d): d is CandidateDeal => d.priceTotal && !Number.isNaN(Number(d.priceTotal)))
+      .filter(
+        (d): d is CandidateDeal =>
+          Boolean(d.priceTotal) && !Number.isNaN(Number(d.priceTotal))
+      )
       .sort((a, b) => Number(a.priceTotal) - Number(b.priceTotal))[0];
 
     return cheapest ?? null;
