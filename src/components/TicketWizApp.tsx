@@ -29,6 +29,13 @@ type SavedAlert = {
   createdAt: string;
 };
 
+type RecentSearch = {
+  origin: string;
+  destination: string;
+  depart: string;
+  returnDate?: string;
+};
+
 type WeeklyDeal = {
   origin: string;
   destination: string;
@@ -50,7 +57,7 @@ type ManagedAlert = {
   currency: string;
   non_stop: boolean;
   paused: boolean;
-  frequency: "weekly" | "biweekly";
+  frequency: "daily" | "weekly" | "biweekly";
   last_sent_at: string | null;
 };
 
@@ -206,6 +213,20 @@ const COPY = {
     findDeals: "Discover cheap flights",
     results: "Results",
     offers: "offers",
+    priceSourceDisclaimer: "Prices shown from {partner}; final total set on partner site.",
+    priceChangeBanner: "Price may change on partner site.",
+    lastUpdatedLabel: "Last updated",
+    estTotalLabel: "Est. total + fees",
+    whyBestValue: "Why this is best value",
+    whyThisOffer: "Why this offer",
+    recentSearches: "Recent searches",
+    swapRoute: "Swap origin/destination",
+    clearAllFilters: "Clear all",
+    bestMonthsLabel: "Best months",
+    seasonalityValue: "Value month",
+    seasonalityShoulder: "Shoulder season",
+    seasonalityPeak: "Peak season",
+    monthsShort: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
     destinationsLabel: "destinations",
     sort: "Sort",
     bestDeal: "Best deal",
@@ -288,7 +309,9 @@ const COPY = {
     alertsManageEmailPlaceholder: "you@email.com",
     alertsManageLoad: "Load alerts",
     alertsManagePause: "Pause",
+    alertsManagePauseAll: "Pause all",
     alertsManageFrequency: "Frequency",
+    alertsManageDaily: "Daily",
     alertsManageWeekly: "Weekly",
     alertsManageBiweekly: "Every 2 weeks",
     noResultsForFilters: "No offers match your filters yet.",
@@ -468,6 +491,21 @@ const COPY = {
     findDeals: "Encontrar vuelos baratos",
     results: "Resultados",
     offers: "ofertas",
+    priceSourceDisclaimer:
+      "Precios mostrados desde {partner}; el total final se confirma en el sitio del socio.",
+    priceChangeBanner: "El precio puede cambiar en el sitio del socio.",
+    lastUpdatedLabel: "Última actualización",
+    estTotalLabel: "Total estimado + tarifas",
+    whyBestValue: "Por qué es la mejor opción",
+    whyThisOffer: "Por qué esta oferta",
+    recentSearches: "Búsquedas recientes",
+    swapRoute: "Cambiar origen/destino",
+    clearAllFilters: "Limpiar todo",
+    bestMonthsLabel: "Mejores meses",
+    seasonalityValue: "Mes con mejor precio",
+    seasonalityShoulder: "Temporada media",
+    seasonalityPeak: "Temporada alta",
+    monthsShort: ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"],
     destinationsLabel: "destinos",
     sort: "Ordenar",
     bestDeal: "Mejor oferta",
@@ -550,7 +588,9 @@ const COPY = {
     alertsManageEmailPlaceholder: "tu@email.com",
     alertsManageLoad: "Cargar alertas",
     alertsManagePause: "Pausar",
+    alertsManagePauseAll: "Pausar todas",
     alertsManageFrequency: "Frecuencia",
+    alertsManageDaily: "Diario",
     alertsManageWeekly: "Semanal",
     alertsManageBiweekly: "Cada 2 semanas",
     noResultsForFilters: "No hay ofertas que coincidan con tus filtros.",
@@ -1086,6 +1126,8 @@ function nearbyAirports(code: string) {
   return NEARBY_AIRPORTS[code.trim().toUpperCase()] ?? [];
 }
 
+const ESTIMATED_FEE_RATE = 0.08;
+
 export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
   const copy = COPY[locale] ?? COPY.en;
   const isDev = process.env.NODE_ENV === "development";
@@ -1134,6 +1176,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [searchResults, setSearchResults] = useState<FlightSearchResponse | null>(null);
+  const [searchUpdatedAt, setSearchUpdatedAt] = useState<number | null>(null);
   const [showAlertPrompt, setShowAlertPrompt] = useState(false);
   const [promptDismissed, setPromptDismissed] = useState(false);
   const [quoteIndex, setQuoteIndex] = useState(0);
@@ -1162,6 +1205,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
   >("idle");
   const [alertsManageMessage, setAlertsManageMessage] = useState<string | null>(null);
   const [alertsManageList, setAlertsManageList] = useState<ManagedAlert[]>([]);
+  const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -1293,6 +1337,32 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
     airlineFilter,
     avoidRedeye,
   ]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem("ticketwiz:recent-searches");
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as RecentSearch[];
+      if (Array.isArray(parsed)) {
+        setRecentSearches(parsed.slice(0, 6));
+      }
+    } catch {
+      // Ignore malformed recent searches.
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(
+        "ticketwiz:recent-searches",
+        JSON.stringify(recentSearches.slice(0, 6))
+      );
+    } catch {
+      // Ignore storage errors.
+    }
+  }, [recentSearches]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -1657,6 +1727,91 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
       .slice(0, 5);
   }, [exploreView.deals]);
 
+  const destinationInsights = useMemo(() => {
+    const byDestination = new Map<
+      string,
+      {
+        prices: number[];
+        monthMin: number[];
+      }
+    >();
+    exploreView.deals.forEach((deal) => {
+      if (!deal.departureDate) return;
+      const price = Number(deal.priceTotal);
+      if (!Number.isFinite(price)) return;
+      const monthIndex = new Date(deal.departureDate).getMonth();
+      if (!Number.isFinite(monthIndex)) return;
+      const entry =
+        byDestination.get(deal.destination) ?? {
+          prices: [] as number[],
+          monthMin: Array.from({ length: 12 }, () => Number.POSITIVE_INFINITY) as number[],
+        };
+      entry.prices.push(price);
+      entry.monthMin[monthIndex] = Math.min(entry.monthMin[monthIndex], price);
+      byDestination.set(deal.destination, entry);
+    });
+
+    const insights = new Map<
+      string,
+      {
+        median: number;
+        monthMin: number[];
+        sparklinePoints: string;
+        bestMonths: string;
+      }
+    >();
+    byDestination.forEach((entry, destination) => {
+      const sorted = [...entry.prices].sort((a, b) => a - b);
+      const median =
+        sorted.length === 0
+          ? Number.NaN
+          : sorted.length % 2 === 0
+            ? (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2
+            : sorted[Math.floor(sorted.length / 2)];
+      const usableMonths = entry.monthMin.map((value) =>
+        Number.isFinite(value) ? value : Number.NaN
+      );
+      const finiteValues = usableMonths.filter((value) => Number.isFinite(value)) as number[];
+      const min = finiteValues.length ? Math.min(...finiteValues) : 0;
+      const max = finiteValues.length ? Math.max(...finiteValues) : 0;
+      const range = max - min || 1;
+      const points = usableMonths
+        .map((value, idx) => {
+          if (!Number.isFinite(value)) return null;
+          const x = (idx / 11) * 72;
+          const y = 18 - ((value - min) / range) * 18;
+          return `${x.toFixed(1)},${y.toFixed(1)}`;
+        })
+        .filter(Boolean)
+        .join(" ");
+      const bestMonths = usableMonths
+        .map((value, idx) => ({ idx, value }))
+        .filter((item) => Number.isFinite(item.value))
+        .sort((a, b) => (a.value as number) - (b.value as number))
+        .slice(0, 2)
+        .map((item) => copy.monthsShort[item.idx])
+        .join(", ");
+
+      insights.set(destination, {
+        median,
+        monthMin: usableMonths,
+        sparklinePoints: points,
+        bestMonths,
+      });
+    });
+
+    return insights;
+  }, [exploreView.deals, copy.monthsShort]);
+
+  const getSeasonalityLabel = (destination: string, price: number) => {
+    const insight = destinationInsights.get(destination);
+    if (!insight || !Number.isFinite(insight.median)) return null;
+    const ratio = price / insight.median;
+    if (ratio <= 0.9) return copy.seasonalityValue;
+    if (ratio >= 1.1) return copy.seasonalityPeak;
+    return copy.seasonalityShoulder;
+  };
+
   async function submitAlertSignup() {
     const trimmed = alertsEmail.trim();
     if (!trimmed) {
@@ -1763,7 +1918,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
 
   async function updateManagedAlert(
     alertId: number,
-    updates: { paused?: boolean; frequency?: "weekly" | "biweekly" }
+    updates: { paused?: boolean; frequency?: "daily" | "weekly" | "biweekly" }
   ) {
     const email = alertsManageEmail.trim();
     if (!email) return;
@@ -1798,6 +1953,28 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
     }
   }
 
+  async function pauseAllManagedAlerts() {
+    if (alertsManageList.length === 0) return;
+    const email = alertsManageEmail.trim();
+    if (!email) return;
+    const ids = alertsManageList.filter((alert) => !alert.paused).map((alert) => alert.id);
+    if (ids.length === 0) return;
+    try {
+      await Promise.all(
+        ids.map((id) =>
+          fetch("/api/searches", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, id, paused: true }),
+          })
+        )
+      );
+      setAlertsManageList((prev) => prev.map((alert) => ({ ...alert, paused: true })));
+    } catch {
+      // Ignore pause-all errors.
+    }
+  }
+
   function setCacheWithLimit<T>(map: Map<string, T>, key: string, value: T) {
     map.set(key, value);
     if (map.size <= 12) return;
@@ -1815,11 +1992,18 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
     setSearchLoading(true);
     setSearchError(null);
     setSearchResults(null);
+    setSearchUpdatedAt(null);
     try {
       const baseOrigin = options?.origin ?? origin;
       const baseDestination = options?.destination ?? destination;
       const baseDepart = options?.depart ?? departureDate;
       const baseReturn = options?.returnDate ?? returnDate;
+      const recent: RecentSearch = {
+        origin: baseOrigin,
+        destination: baseDestination,
+        depart: baseDepart,
+        returnDate: baseReturn || undefined,
+      };
       const useFlex = flexibleDates && !options?.ignoreFlex;
       const flexDepart = useFlex
         ? new Date(new Date(baseDepart).getTime() - 3 * 24 * 60 * 60 * 1000)
@@ -1847,6 +2031,8 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
       const cached = searchCacheRef.current.get(cacheKey);
       if (cached) {
         setSearchResults(cached);
+        setSearchUpdatedAt(Date.now());
+        addRecentSearch(recent);
         setSearchLoading(false);
         return;
       }
@@ -1856,6 +2042,8 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
       if (!res.ok) throw new Error(json?.error || copy.searchFailed);
       const payload = json as FlightSearchResponse;
       setSearchResults(payload);
+      setSearchUpdatedAt(Date.now());
+      addRecentSearch(recent);
       setCacheWithLimit(searchCacheRef.current, cacheKey, payload);
     } catch (e) {
       setSearchError(e instanceof Error ? e.message : copy.searchFailed);
@@ -1884,6 +2072,57 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
 
   const removeSavedAlert = (id: string) => {
     setSavedAlerts((prev) => prev.filter((alert) => alert.id !== id));
+  };
+
+  const formatUpdatedAt = (timestamp: number) =>
+    new Date(timestamp).toLocaleString(locale === "es" ? "es-ES" : "en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+
+  const addCacheBuster = (url: string | null) => {
+    if (!url) return null;
+    const separator = url.includes("?") ? "&" : "?";
+    return `${url}${separator}twts=${Date.now()}`;
+  };
+
+  const addRecentSearch = (next: RecentSearch) => {
+    const normalized: RecentSearch = {
+      origin: next.origin.toUpperCase(),
+      destination: next.destination.toUpperCase(),
+      depart: next.depart,
+      returnDate: next.returnDate,
+    };
+    const key = `${normalized.origin}-${normalized.destination}-${normalized.depart}-${
+      normalized.returnDate ?? ""
+    }`;
+    setRecentSearches((prev) => {
+      const filtered = prev.filter(
+        (item) =>
+          `${item.origin}-${item.destination}-${item.depart}-${item.returnDate ?? ""}` !== key
+      );
+      return [normalized, ...filtered].slice(0, 6);
+    });
+  };
+
+  const clearSearchFilters = () => {
+    setNonStop(false);
+    setFlexibleDates(false);
+    setFlexRangeDays(3);
+    setSearchMaxResults(20);
+    setSearchMaxStops("any");
+    setSearchSort("best");
+    setPriceCeiling("");
+    setDurationCeilingHours("");
+    setAirlineFilter("any");
+    setAvoidRedeye(false);
+  };
+
+  const swapRoute = () => {
+    setOrigin(destination);
+    setDestination(origin);
   };
 
   function requestLocation() {
@@ -2312,6 +2551,37 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                   <span className="text-[var(--brand-muted)]">{locationMessage}</span>
                 ) : null}
               </div>
+              {recentSearches.length > 0 ? (
+                <div className="mt-3 grid gap-2 text-[11px]">
+                  <div className="font-semibold text-[var(--brand-primary)]">
+                    {copy.recentSearches}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {recentSearches.map((search) => (
+                      <button
+                        key={`${search.origin}-${search.destination}-${search.depart}-${search.returnDate ?? ""}`}
+                        type="button"
+                        onClick={() => {
+                          setOrigin(search.origin);
+                          setDestination(search.destination);
+                          setDepartureDate(search.depart);
+                          setReturnDate(search.returnDate ?? "");
+                          void runSearch({
+                            origin: search.origin,
+                            destination: search.destination,
+                            depart: search.depart,
+                            returnDate: search.returnDate ?? "",
+                            ignoreFlex: true,
+                          });
+                        }}
+                        className="rounded-full border border-[var(--brand-border)] bg-white px-3 py-1 font-semibold text-[var(--brand-primary)] hover:border-[var(--brand-primary)]"
+                      >
+                        {search.origin} → {search.destination} · {formatShortDate(search.depart)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
 
               <form
                 className="mt-4 grid gap-3"
@@ -2320,6 +2590,15 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                   void runSearch();
                 }}
               >
+                <div className="flex items-center justify-end text-[11px]">
+                  <button
+                    type="button"
+                    onClick={swapRoute}
+                    className="rounded-full border border-[var(--brand-border)] bg-white px-3 py-1 font-semibold text-[var(--brand-primary)] hover:border-[var(--brand-primary)]"
+                  >
+                    {copy.swapRoute}
+                  </button>
+                </div>
                 <fieldset className="grid gap-4 rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] p-4 lg:grid-cols-2">
                   <legend className="px-2 text-[11px] font-semibold text-[var(--brand-primary)]">
                     From / To
@@ -2587,6 +2866,14 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                         ? copy.searching
                         : copy.alertsManageLoad}
                     </button>
+                    <button
+                      type="button"
+                      onClick={pauseAllManagedAlerts}
+                      disabled={alertsManageList.length === 0}
+                      className="h-9 rounded-xl border border-[var(--brand-border)] bg-white px-3 text-[11px] font-semibold text-[var(--brand-primary)] hover:border-[var(--brand-primary)] disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {copy.alertsManagePauseAll}
+                    </button>
                   </div>
                   {alertsManageMessage ? (
                     <div className="text-[11px] text-[var(--brand-danger)]" role="status">
@@ -2642,6 +2929,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                                 }
                                 className="h-6 rounded-md border border-[var(--brand-border)] bg-white px-2 text-[10px] text-[var(--brand-ink)]"
                               >
+                                <option value="daily">{copy.alertsManageDaily}</option>
                                 <option value="weekly">{copy.alertsManageWeekly}</option>
                                 <option value="biweekly">{copy.alertsManageBiweekly}</option>
                               </select>
@@ -2769,7 +3057,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
             </div>
 
             <div className="rounded-2xl border border-[var(--brand-border)] bg-white p-5 shadow-lg ring-2 ring-[var(--brand-border)]">
-              <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="sticky top-3 z-10 -mx-2 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white/95 px-2 py-2 backdrop-blur-sm">
                 <h2 className="text-sm font-semibold">{copy.results}</h2>
                 <div className="flex flex-wrap items-center gap-3 text-xs text-[var(--brand-primary)]">
                   <div className="flex flex-wrap items-center gap-2">
@@ -2851,7 +3139,27 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                       <option value="2">{copy.maxStopsTwo}</option>
                     </select>
                   </label>
+                  <button
+                    type="button"
+                    onClick={clearSearchFilters}
+                    className="rounded-full border border-[var(--brand-border)] bg-white px-3 py-1 text-[11px] font-semibold text-[var(--brand-primary)] hover:border-[var(--brand-primary)]"
+                  >
+                    {copy.clearAllFilters}
+                  </button>
                 </div>
+              </div>
+              <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[11px] text-[var(--brand-muted)]">
+                <span>
+                  {copy.priceSourceDisclaimer.replace("{partner}", purchasePartnerLabel)}
+                </span>
+                {searchUpdatedAt ? (
+                  <span className="font-semibold text-[var(--brand-primary)]">
+                    {copy.lastUpdatedLabel}: {formatUpdatedAt(searchUpdatedAt)}
+                  </span>
+                ) : null}
+              </div>
+              <div className="mt-2 rounded-lg border border-[var(--brand-border)] bg-[color:rgba(0,123,255,0.08)] px-3 py-2 text-[11px] font-semibold text-[var(--brand-primary)]">
+                {copy.priceChangeBanner}
               </div>
 
               <div className="mt-4 grid gap-3">
@@ -3109,6 +3417,9 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                   const avgStopsLabel = Number.isFinite(avgStops)
                     ? String(Number(avgStops.toFixed(1)).toString())
                     : "—";
+                  const estTotal = Number.isFinite(priceValue)
+                    ? Math.round(priceValue * (1 + ESTIMATED_FEE_RATE)).toString()
+                    : null;
                   const airlines = offer.validatingAirlineCodes;
                   const primaryAirline = airlines[0] ?? "";
                   const airlineLabel = primaryAirline
@@ -3116,7 +3427,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                       ? `${airlineName(primaryAirline)} +${airlines.length - 1}`
                       : airlineName(primaryAirline)
                     : "—";
-                  const purchaseUrl = buildPurchaseUrl({
+                  const purchaseUrlRaw = buildPurchaseUrl({
                     partner: purchasePartner,
                     origin,
                     destination,
@@ -3125,6 +3436,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                     adults,
                     airlineCode: offer.validatingAirlineCodes[0],
                   });
+                  const purchaseUrl = addCacheBuster(purchaseUrlRaw);
                   return (
                   <div
                     key={offer.id}
@@ -3135,6 +3447,11 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                         <div className="text-lg font-semibold text-[var(--brand-ink)]">
                           {formatMoney(offer.currency, offer.priceTotal)}
                         </div>
+                        {estTotal ? (
+                          <div className="mt-1 text-[11px] text-[var(--brand-muted)]">
+                            {copy.estTotalLabel}: {formatMoney(offer.currency, estTotal)}
+                          </div>
+                        ) : null}
                         <div className="mt-1 inline-flex flex-wrap items-center gap-2 text-xs text-[var(--brand-primary)]">
                           {searchSort === "best" && typeof score === "number" ? (
                             <span title={copy.dealScoreTooltip}>
@@ -3225,6 +3542,26 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                         </div>
                       </div>
                     </div>
+                    {Number.isFinite(avgPrice) && avgPrice > 0 ? (
+                      <div className="mt-2 rounded-lg border border-[var(--brand-border)] bg-white px-3 py-2 text-[10px] text-[var(--brand-muted)]">
+                        <div className="font-semibold text-[var(--brand-primary)]">
+                          {isBest ? copy.whyBestValue : copy.whyThisOffer}
+                        </div>
+                        <div className="mt-1 flex flex-wrap gap-3">
+                          <span>
+                            Price: {formatMoney(offer.currency, offer.priceTotal)} vs avg{" "}
+                            {formatMoney(offer.currency, String(avgPrice))}
+                          </span>
+                          <span>
+                            Duration: {formatDurationMinutes(duration)} vs avg{" "}
+                            {Number.isFinite(avgDuration) ? formatDurationMinutes(avgDuration) : "—"}
+                          </span>
+                          <span>
+                            Stops: {typeof stops === "number" ? stops : "—"} vs avg {avgStopsLabel}
+                          </span>
+                        </div>
+                      </div>
+                    ) : null}
                     <div className="mt-3 rounded-lg border border-[var(--brand-border)] bg-[color:rgba(0,123,255,0.08)] px-3 py-2 text-[11px] font-semibold text-[var(--brand-primary)]">
                       {copy.bookOnPartnerSites}
                     </div>
@@ -3307,10 +3644,10 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                           {copy.buyUnavailable}
                         </span>
                       )}
-                      {purchaseUrl ? (
+                      {purchaseUrlRaw ? (
                         <button
                           type="button"
-                          onClick={() => void shareDealLink(purchaseUrl)}
+                          onClick={() => void shareDealLink(purchaseUrlRaw)}
                           className="inline-flex h-8 items-center rounded-lg border border-[var(--brand-border)] bg-white px-3 text-xs font-semibold text-[var(--brand-primary)] hover:border-[var(--brand-primary)]"
                         >
                           {copy.shareDeal}
@@ -3557,6 +3894,12 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                 {exploreView.deals.map((deal, idx) => {
                   const key = `${deal.destination}-${deal.priceTotal}-${deal.departureDate ?? ""}`;
                   const warning = warningBadge(exploreView.outliers.get(key), copy);
+                  const dealPrice = Number(deal.priceTotal);
+                  const insight = destinationInsights.get(deal.destination);
+                  const seasonalityLabel =
+                    Number.isFinite(dealPrice) && insight
+                      ? getSeasonalityLabel(deal.destination, dealPrice)
+                      : null;
                   const purchaseUrl = deal.departureDate
                     ? buildPurchaseUrl({
                         partner: explorePurchasePartner,
@@ -3582,6 +3925,27 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                         {formatMoney(deal.currency, deal.priceTotal)}
                       </div>
                     </div>
+                    {insight?.sparklinePoints ? (
+                      <div className="mt-2 flex items-center gap-2 text-[10px] text-[var(--brand-muted)]">
+                        <svg
+                          width="72"
+                          height="18"
+                          viewBox="0 0 72 18"
+                          role="img"
+                          aria-label={`${copy.bestMonthsLabel}: ${insight.bestMonths || "—"}`}
+                        >
+                          <polyline
+                            fill="none"
+                            stroke="var(--brand-primary)"
+                            strokeWidth="1.5"
+                            points={insight.sparklinePoints}
+                          />
+                        </svg>
+                        <span>
+                          {copy.bestMonthsLabel}: {insight.bestMonths || "—"}
+                        </span>
+                      </div>
+                    ) : null}
                     <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] font-semibold">
                       {Number.isFinite(exploreMaxPrice) ? (
                         <span className="rounded-full bg-[color:rgba(253,126,20,0.18)] px-2 py-0.5 text-[var(--brand-ink)] ring-1 ring-[color:rgba(253,126,20,0.4)]">
@@ -3591,6 +3955,11 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                       {exploreNonStop ? (
                         <span className="rounded-full bg-[color:rgba(40,167,69,0.12)] px-2 py-0.5 text-[var(--brand-success)] ring-1 ring-[color:rgba(40,167,69,0.3)]">
                           {copy.nonstopOnly}
+                        </span>
+                      ) : null}
+                      {seasonalityLabel ? (
+                        <span className="rounded-full bg-[color:rgba(0,123,255,0.12)] px-2 py-0.5 text-[var(--brand-primary)] ring-1 ring-[var(--brand-border)]">
+                          {seasonalityLabel}
                         </span>
                       ) : null}
                     </div>

@@ -44,7 +44,7 @@ const UpdateSchema = z.object({
   email: z.string().trim().email(),
   id: z.coerce.number().int().positive(),
   paused: z.boolean().optional(),
-  frequency: z.enum(["weekly", "biweekly"]).optional(),
+  frequency: z.enum(["daily", "weekly", "biweekly"]).optional(),
 });
 
 const DeleteSchema = z.object({

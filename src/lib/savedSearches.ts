@@ -11,8 +11,9 @@ export type SavedSearch = {
   currency: string;
   non_stop: boolean;
   paused: boolean;
-  frequency: "weekly" | "biweekly";
+  frequency: "daily" | "weekly" | "biweekly";
   last_sent_at: Date | null;
+  last_sent_price: number | null;
   created_at: Date;
 };
 
@@ -31,6 +32,7 @@ export async function ensureSavedSearchesTable() {
       paused BOOLEAN NOT NULL DEFAULT FALSE,
       frequency TEXT NOT NULL DEFAULT 'weekly',
       last_sent_at TIMESTAMPTZ,
+      last_sent_price NUMERIC,
       created_at TIMESTAMPTZ DEFAULT NOW(),
       UNIQUE (email, origin, destination, departure_date, return_date, adults, currency, non_stop)
     )
@@ -38,6 +40,7 @@ export async function ensureSavedSearchesTable() {
   await sql`ALTER TABLE saved_searches ADD COLUMN IF NOT EXISTS paused BOOLEAN NOT NULL DEFAULT FALSE`;
   await sql`ALTER TABLE saved_searches ADD COLUMN IF NOT EXISTS frequency TEXT NOT NULL DEFAULT 'weekly'`;
   await sql`ALTER TABLE saved_searches ADD COLUMN IF NOT EXISTS last_sent_at TIMESTAMPTZ`;
+  await sql`ALTER TABLE saved_searches ADD COLUMN IF NOT EXISTS last_sent_price NUMERIC`;
 }
 
 export async function addSavedSearch(args: {
@@ -62,7 +65,8 @@ export async function addSavedSearch(args: {
       currency,
       non_stop,
       paused,
-      frequency
+      frequency,
+      last_sent_price
     )
     VALUES (
       ${args.email},
@@ -74,7 +78,8 @@ export async function addSavedSearch(args: {
       ${args.currency},
       ${args.nonStop},
       false,
-      'weekly'
+      'weekly',
+      NULL
     )
     ON CONFLICT DO NOTHING
   `;
@@ -96,6 +101,7 @@ export async function getSavedSearches(): Promise<SavedSearch[]> {
       paused,
       frequency,
       last_sent_at,
+      last_sent_price,
       created_at
     FROM saved_searches
     ORDER BY created_at DESC
@@ -119,6 +125,7 @@ export async function getSavedSearchesByEmail(email: string): Promise<SavedSearc
       paused,
       frequency,
       last_sent_at,
+      last_sent_price,
       created_at
     FROM saved_searches
     WHERE email = ${email}
@@ -131,7 +138,7 @@ export async function updateSavedSearch(args: {
   id: number;
   email: string;
   paused?: boolean;
-  frequency?: "weekly" | "biweekly";
+  frequency?: "daily" | "weekly" | "biweekly";
 }) {
   await ensureSavedSearchesTable();
   await sql`
@@ -151,11 +158,13 @@ export async function deleteSavedSearch(args: { id: number; email: string }) {
   `;
 }
 
-export async function markSavedSearchSent(id: number) {
+export async function markSavedSearchSent(id: number, price?: number | null) {
   await ensureSavedSearchesTable();
+  const priceValue = typeof price === "number" && Number.isFinite(price) ? price : null;
   await sql`
     UPDATE saved_searches
-    SET last_sent_at = NOW()
+    SET last_sent_at = NOW(),
+        last_sent_price = COALESCE(${priceValue}, last_sent_price)
     WHERE id = ${id}
   `;
 }

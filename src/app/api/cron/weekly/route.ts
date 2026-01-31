@@ -342,14 +342,13 @@ export async function GET(request: Request) {
     type SavedResult = { search: SavedSearch; best: { offer: FlightOffer; score: number } };
     const shouldSendSavedSearch = (search: SavedSearch) => {
       if (search.paused) return false;
-      if (search.frequency === "biweekly") {
-        if (!search.last_sent_at) return true;
-        const lastSent = new Date(search.last_sent_at).getTime();
-        const now = Date.now();
-        const days = (now - lastSent) / (1000 * 60 * 60 * 24);
-        return days >= 13;
-      }
-      return true;
+      if (!search.last_sent_at) return true;
+      const lastSent = new Date(search.last_sent_at).getTime();
+      const now = Date.now();
+      const days = (now - lastSent) / (1000 * 60 * 60 * 24);
+      if (search.frequency === "daily") return days >= 0.9;
+      if (search.frequency === "biweekly") return days >= 13;
+      return days >= 6.5;
     };
     if (savedSearches.length > 0) {
       const eligible = savedSearches.filter(shouldSendSavedSearch);
@@ -385,6 +384,16 @@ export async function GET(request: Request) {
           const durationLabel = formatDurationMinutes(totalDuration);
           const stopsLabel = `${maxStops} stop${maxStops === 1 ? "" : "s"}`;
           const airlineCode = bestOffer.validatingAirlineCodes[0] ?? "Multiple carriers";
+          const priceValue = Number(bestOffer.priceTotal);
+          const lastSentPrice = result.search.last_sent_price ?? null;
+          const lastSentAt = result.search.last_sent_at
+            ? new Date(result.search.last_sent_at).getTime()
+            : null;
+          const daysSinceLast = lastSentAt ? (Date.now() - lastSentAt) / (1000 * 60 * 60 * 24) : null;
+          const priceDrop =
+            Number.isFinite(priceValue) && typeof lastSentPrice === "number"
+              ? lastSentPrice - priceValue
+              : null;
           const purchaseUrl = buildKiwiAffiliateUrl({
             origin: result.search.origin,
             destination: result.search.destination,
@@ -393,10 +402,16 @@ export async function GET(request: Request) {
             adults: result.search.adults,
           });
 
-          const subjectLine = `Weekly price update: ${result.search.origin} → ${result.search.destination} from ${priceLabel}`;
+          const cadenceLabel =
+            result.search.frequency === "daily"
+              ? "Daily"
+              : result.search.frequency === "biweekly"
+                ? "Biweekly"
+                : "Weekly";
+          const subjectLine = `${cadenceLabel} price update: ${result.search.origin} → ${result.search.destination} from ${priceLabel}`;
           const htmlBody = `
               <div style="font-family:Arial,sans-serif;line-height:1.5;">
-                <h2 style="margin:0 0 8px;">Weekly Price Update</h2>
+                <h2 style="margin:0 0 8px;">${cadenceLabel} Price Update</h2>
                 <p style="margin:0 0 12px;">${result.search.origin} → ${result.search.destination} · ${priceLabel}</p>
                 <ul style="padding-left:18px;margin:0 0 12px;">
                   <li>Score: ${scorePct}/100</li>
@@ -406,6 +421,14 @@ export async function GET(request: Request) {
                   <li>Duration: ${durationLabel}</li>
                   <li>Stops: ${stopsLabel}</li>
                   <li>Airline: ${airlineCode}</li>
+                  ${
+                    typeof priceDrop === "number" && priceDrop > 0 && daysSinceLast && daysSinceLast >= 6
+                      ? `<li>Price drop since last week: ${formatMoney(
+                          bestOffer.currency,
+                          String(priceDrop)
+                        )}</li>`
+                      : ""
+                  }
                 </ul>
                 <p style="margin:0 0 8px;">
                   <a href="${purchaseUrl}" target="_blank" rel="noopener noreferrer">Book this deal</a>
@@ -420,7 +443,7 @@ export async function GET(request: Request) {
             subject: subjectLine,
             html: htmlBody,
           });
-        await markSavedSearchSent(result.search.id);
+        await markSavedSearchSent(result.search.id, Number.isFinite(priceValue) ? priceValue : null);
         })
       );
     }
