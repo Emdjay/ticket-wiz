@@ -50,6 +50,29 @@ const asNumber = (value: unknown): number => {
   return Number.isFinite(n) ? n : 0;
 };
 
+type CacheEntry = {
+  payload: FlightSearchResponse;
+  expiresAtMs: number;
+};
+
+const POPULAR_ROUTES = new Set([
+  "MIA-JFK",
+  "JFK-MIA",
+  "LAX-JFK",
+  "JFK-LAX",
+  "SFO-JFK",
+  "JFK-SFO",
+  "ATL-JFK",
+  "JFK-ATL",
+  "LAX-LAS",
+  "LAS-LAX",
+  "DFW-LAX",
+  "LAX-DFW",
+]);
+
+const POPULAR_CACHE_TTL_MS = 5 * 60 * 1000;
+const POPULAR_ROUTE_CACHE = new Map<string, CacheEntry>();
+
 function pickOffer(raw: unknown): FlightOffer {
   const offer = asRecord(raw);
   const price = asRecord(offer.price);
@@ -112,6 +135,22 @@ export async function GET(request: Request) {
     );
   }
 
+  const routeKey = `${parsed.data.origin}-${parsed.data.destination}`;
+  const isPopularRoute = POPULAR_ROUTES.has(routeKey);
+  const cacheKey = `${routeKey}:${parsed.data.departureDate}:${parsed.data.returnDate ?? ""}:${
+    parsed.data.adults
+  }:${parsed.data.currency}:${parsed.data.nonStop ?? false}:${parsed.data.max}`;
+  if (isPopularRoute) {
+    const cached = POPULAR_ROUTE_CACHE.get(cacheKey);
+    if (cached && cached.expiresAtMs > Date.now()) {
+      return NextResponse.json(cached.payload, {
+        headers: {
+          "Cache-Control": "s-maxage=300, stale-while-revalidate=300",
+        },
+      });
+    }
+  }
+
   try {
     const token = await getAmadeusAccessToken();
 
@@ -150,7 +189,18 @@ export async function GET(request: Request) {
     const data = jsonRecord.data;
     const offers = Array.isArray(data) ? data.map(pickOffer) : [];
     const payload: FlightSearchResponse = { provider: "amadeus", offers };
-    return NextResponse.json(payload);
+    if (isPopularRoute) {
+      POPULAR_ROUTE_CACHE.set(cacheKey, {
+        payload,
+        expiresAtMs: Date.now() + POPULAR_CACHE_TTL_MS,
+      });
+      return NextResponse.json(payload, {
+        headers: {
+          "Cache-Control": "s-maxage=300, stale-while-revalidate=300",
+        },
+      });
+    }
+    return NextResponse.json(payload, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Flight search failed.";
     return NextResponse.json({ error: message }, { status: 500 });

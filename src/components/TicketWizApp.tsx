@@ -1206,6 +1206,10 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
   const [alertsManageMessage, setAlertsManageMessage] = useState<string | null>(null);
   const [alertsManageList, setAlertsManageList] = useState<ManagedAlert[]>([]);
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
+  const [visibleOfferCount, setVisibleOfferCount] = useState(6);
+  const [visibleExploreCount, setVisibleExploreCount] = useState(6);
+  const offerSentinelRef = useRef<HTMLDivElement | null>(null);
+  const exploreSentinelRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -1671,6 +1675,27 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
     offerView.durations,
   ]);
 
+  useEffect(() => {
+    const total = searchFilteredOffers.length;
+    setVisibleOfferCount(total > 0 ? Math.min(6, total) : 6);
+  }, [searchResults, searchFilteredOffers.length]);
+
+  useEffect(() => {
+    if (!offerSentinelRef.current) return;
+    if (visibleOfferCount >= searchFilteredOffers.length) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries[0]?.isIntersecting) return;
+        setVisibleOfferCount((prev) =>
+          Math.min(prev + 6, searchFilteredOffers.length)
+        );
+      },
+      { rootMargin: "200px" }
+    );
+    observer.observe(offerSentinelRef.current);
+    return () => observer.disconnect();
+  }, [visibleOfferCount, searchFilteredOffers.length]);
+
   const bestOffer = useMemo(() => {
     if (searchFilteredOffers.length === 0) return null;
     return searchFilteredOffers.reduce((best, offer) => {
@@ -1719,6 +1744,27 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
 
     return { deals: sorted, outliers };
   }, [exploreResults]);
+
+  useEffect(() => {
+    const total = exploreView.deals.length;
+    setVisibleExploreCount(total > 0 ? Math.min(6, total) : 6);
+  }, [exploreResults, exploreView.deals.length]);
+
+  useEffect(() => {
+    if (!exploreSentinelRef.current) return;
+    if (visibleExploreCount >= exploreView.deals.length) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries[0]?.isIntersecting) return;
+        setVisibleExploreCount((prev) =>
+          Math.min(prev + 6, exploreView.deals.length)
+        );
+      },
+      { rootMargin: "200px" }
+    );
+    observer.observe(exploreSentinelRef.current);
+    return () => observer.disconnect();
+  }, [visibleExploreCount, exploreView.deals.length]);
 
   const topCheapestDeals = useMemo(() => {
     return [...exploreView.deals]
@@ -2088,6 +2134,13 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
     return `${url}${separator}twts=${Date.now()}`;
   };
 
+  const ensureSearchDates = () => {
+    if (departureDate && /^\d{4}-\d{2}-\d{2}$/.test(departureDate)) return;
+    const d = new Date();
+    d.setDate(d.getDate() + 21);
+    setDepartureDate(d.toISOString().slice(0, 10));
+  };
+
   const addRecentSearch = (next: RecentSearch) => {
     const normalized: RecentSearch = {
       origin: next.origin.toUpperCase(),
@@ -2293,8 +2346,17 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                     <button
                       type="button"
                       onClick={() => {
+                        setTab("search");
                         setOrigin(weeklyDeal.origin);
                         setDestination(weeklyDeal.destination);
+                        ensureSearchDates();
+                        if (typeof window !== "undefined") {
+                          window.requestAnimationFrame(() => {
+                            document.getElementById("search")?.scrollIntoView({
+                              behavior: "smooth",
+                            });
+                          });
+                        }
                         void runSearch({
                           origin: weeklyDeal.origin,
                           destination: weeklyDeal.destination,
@@ -3402,7 +3464,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                   </div>
                 ) : null}
 
-                {searchFilteredOffers.map((offer) => {
+                {searchFilteredOffers.slice(0, visibleOfferCount).map((offer) => {
                   const score = offerView.scores.get(offer.id);
                   const badge = dealBadge(score, copy);
                   const warning = warningBadge(offerView.outliers.get(offer.id), copy);
@@ -3660,6 +3722,9 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                   </div>
                   );
                 })}
+                {searchFilteredOffers.length > visibleOfferCount ? (
+                  <div ref={offerSentinelRef} className="h-6" />
+                ) : null}
               </div>
             </div>
           </section>
@@ -3891,7 +3956,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                   </div>
                 ) : null}
 
-                {exploreView.deals.map((deal, idx) => {
+                {exploreView.deals.slice(0, visibleExploreCount).map((deal, idx) => {
                   const key = `${deal.destination}-${deal.priceTotal}-${deal.departureDate ?? ""}`;
                   const warning = warningBadge(exploreView.outliers.get(key), copy);
                   const dealPrice = Number(deal.priceTotal);
@@ -4072,6 +4137,9 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                   </div>
                 );
                 })}
+                {exploreView.deals.length > visibleExploreCount ? (
+                  <div ref={exploreSentinelRef} className="h-6" />
+                ) : null}
               </div>
             </div>
           </section>
