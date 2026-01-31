@@ -64,13 +64,12 @@ export default function Home() {
       <div className="absolute inset-0 z-0">
         <Image
           src="/Ticket-wiz.jpg"
-          alt=""
+          alt="Ticket Wiz background"
           fill
           priority
           sizes="100vw"
           unoptimized={isDev}
-          className="object-cover"
-          aria-hidden="true"
+          className="object-cover tw-fade-in"
         />
       </div>
       <div className="relative z-10 min-h-screen bg-white/80 backdrop-blur-sm">
@@ -104,7 +103,7 @@ export default function Home() {
               height={140}
               priority
               unoptimized={isDev}
-              className="h-full w-full object-contain scale-110"
+              className="h-full w-full object-contain scale-110 tw-fade-in"
             />
           </div>
           <div>

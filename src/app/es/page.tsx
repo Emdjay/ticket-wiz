@@ -60,13 +60,12 @@ export default function SpanishHomePage() {
       <div className="absolute inset-0 z-0">
         <Image
           src="/Ticket-wiz.jpg"
-          alt=""
+          alt="Fondo de Ticket Wiz"
           fill
           priority
           sizes="100vw"
           unoptimized={isDev}
-          className="object-cover"
-          aria-hidden="true"
+          className="object-cover tw-fade-in"
         />
       </div>
       <HtmlLangSetter lang="es" />
@@ -96,12 +95,12 @@ export default function SpanishHomePage() {
           <div className="inline-flex h-[140px] w-[140px] items-center justify-center overflow-hidden rounded-full bg-white ring-1 ring-[var(--brand-border)]">
             <Image
               src="/ticket-wiz-logo.png"
-              alt="Ticket Wiz"
+              alt="Logo de Ticket Wiz"
               width={140}
               height={140}
               priority
               unoptimized={isDev}
-              className="h-full w-full object-contain scale-110"
+              className="h-full w-full object-contain scale-110 tw-fade-in"
             />
           </div>
           <div>
