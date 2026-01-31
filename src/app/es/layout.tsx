@@ -11,6 +11,8 @@ export default function EsLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const isProd = process.env.NODE_ENV === "production";
+
   return (
     <>
       <Script
@@ -39,14 +41,16 @@ export default function EsLayout({
           ]),
         }}
       />
-      <Script
-        id="tp-em-es"
-        data-noptimize="1"
-        data-cfasync="false"
-        data-wpfc-render="false"
-        src="https://tp-em.com/NDkzMDQw.js?t=493040"
-        strategy="beforeInteractive"
-      />
+      {isProd ? (
+        <Script
+          id="tp-em-es"
+          data-noptimize="1"
+          data-cfasync="false"
+          data-wpfc-render="false"
+          src="https://tp-em.com/NDkzMDQw.js?t=493040"
+          strategy="beforeInteractive"
+        />
+      ) : null}
       {children}
     </>
   );

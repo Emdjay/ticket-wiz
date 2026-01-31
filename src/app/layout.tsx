@@ -37,6 +37,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const isProd = process.env.NODE_ENV === "production";
+
   return (
     <html lang="en">
       <head>
@@ -75,14 +77,16 @@ export default function RootLayout({
             ]),
           }}
         />
-        <Script
-          id="tp-em"
-          data-noptimize="1"
-          data-cfasync="false"
-          data-wpfc-render="false"
-          src="https://tp-em.com/NDkzMDQw.js?t=493040"
-          strategy="afterInteractive"
-        />
+        {isProd ? (
+          <Script
+            id="tp-em"
+            data-noptimize="1"
+            data-cfasync="false"
+            data-wpfc-render="false"
+            src="https://tp-em.com/NDkzMDQw.js?t=493040"
+            strategy="afterInteractive"
+          />
+        ) : null}
         {children}
       </body>
     </html>

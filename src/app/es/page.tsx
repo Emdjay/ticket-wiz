@@ -79,12 +79,12 @@ export default function SpanishHomePage() {
           <div className="flex w-full justify-end">
             <a
               href="/"
-              className="inline-flex items-center rounded-full border border-[#D9E2EA] bg-white px-3 py-1 text-[11px] font-semibold text-[#1D4F91] shadow-sm transition hover:border-[#1D4F91]"
+              className="inline-flex items-center rounded-full border border-[var(--brand-border)] bg-white px-3 py-1 text-[11px] font-semibold text-[var(--brand-primary)] shadow-sm transition hover:border-[var(--brand-primary)]"
             >
               EN
             </a>
           </div>
-          <div className="inline-flex h-[140px] w-[140px] items-center justify-center overflow-hidden rounded-full bg-white ring-1 ring-[#D9E2EA]">
+          <div className="inline-flex h-[140px] w-[140px] items-center justify-center overflow-hidden rounded-full bg-white ring-1 ring-[var(--brand-border)]">
             <Image
               src="/ticket-wiz-logo.png"
               alt="Ticket Wiz"
@@ -96,34 +96,34 @@ export default function SpanishHomePage() {
             />
           </div>
           <div>
-            <div className="text-xs font-semibold uppercase tracking-[0.24em] text-[#1D4F91]">
+            <div className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--brand-primary)]">
               Ofertas de vuelos simplificadas
             </div>
-            <h1 className="mt-4 text-balance text-4xl font-semibold text-[#000034] sm:text-5xl">
+            <h1 className="mt-4 text-balance text-4xl font-semibold text-[var(--brand-ink)] sm:text-5xl">
               Encuentra ofertas de vuelos rápido.
             </h1>
-            <p className="mt-4 text-pretty text-base text-[#363535] sm:text-lg">
+            <p className="mt-4 text-pretty text-base text-[var(--brand-muted)] sm:text-lg">
               Compara precios, duración y escalas para elegir la mejor opción con confianza.
             </p>
           </div>
-          <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-[#0F386E]">
-            <span className="rounded-full border border-[#D9E2EA] bg-white px-3 py-1">
+          <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-[var(--brand-primary)]">
+            <span className="rounded-full border border-[var(--brand-border)] bg-white px-3 py-1">
               Puntaje de mejor oferta
             </span>
-            <span className="rounded-full border border-[#D9E2EA] bg-white px-3 py-1">
+            <span className="rounded-full border border-[var(--brand-border)] bg-white px-3 py-1">
               Alertas de outliers
             </span>
-            <span className="rounded-full border border-[#D9E2EA] bg-white px-3 py-1">
+            <span className="rounded-full border border-[var(--brand-border)] bg-white px-3 py-1">
               Selector de aeropuertos rápido
             </span>
-            <span className="rounded-full border border-[#D9E2EA] bg-white px-3 py-1">
+            <span className="rounded-full border border-[var(--brand-border)] bg-white px-3 py-1">
               Enlaces de compra listos
             </span>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <a
               href="/es/app"
-              className="inline-flex h-11 items-center justify-center rounded-xl bg-[#006A52] px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0F386E]"
+              className="inline-flex h-11 items-center justify-center rounded-xl bg-[var(--brand-primary)] px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0069D9]"
             >
               Ir a la app
             </a>
@@ -131,12 +131,12 @@ export default function SpanishHomePage() {
               href="https://mail.zoho.com/zm/#mail/compose?to=info@ticket-wiz.com"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex h-11 items-center justify-center rounded-xl border border-[#D9E2EA] bg-white px-5 text-sm font-semibold text-[#1D4F91] shadow-sm transition hover:border-[#1D4F91]"
+              className="inline-flex h-11 items-center justify-center rounded-xl border border-[var(--brand-border)] bg-white px-5 text-sm font-semibold text-[var(--brand-primary)] shadow-sm transition hover:border-[var(--brand-primary)]"
             >
               Contáctanos
             </a>
           </div>
-          <div className="text-xs text-[#0F386E]">
+          <div className="text-xs text-[var(--brand-muted)]">
             Correo:{" "}
             <a
               className="underline"
@@ -148,42 +148,45 @@ export default function SpanishHomePage() {
             </a>
           </div>
           <div className="mt-6 flex w-full justify-center">
-            <div className="grid w-full max-w-3xl gap-3 rounded-2xl border border-[#D9E2EA] bg-white/80 p-4 text-center text-xs text-[#363535] shadow-sm">
-              <div className="text-sm font-semibold text-[#000034]">FAQ</div>
+            <div className="grid w-full max-w-3xl gap-3 rounded-2xl border border-[var(--brand-border)] bg-white/80 p-4 text-center text-xs text-[var(--brand-muted)] shadow-sm">
+              <div className="text-sm font-semibold text-[var(--brand-ink)]">FAQ</div>
               <div>
-                <div className="font-semibold text-[#000034]">¿Cómo encuentran ofertas?</div>
+                <div className="font-semibold text-[var(--brand-ink)]">¿Cómo encuentran ofertas?</div>
                 <div>
                   Comparamos precio, duración y escalas, y ordenamos por un puntaje de oferta.
                 </div>
               </div>
               <div>
-                <div className="font-semibold text-[#000034]">¿Venden boletos?</div>
+                <div className="font-semibold text-[var(--brand-ink)]">¿Venden boletos?</div>
                 <div>No. Te enviamos a sitios asociados para completar la reserva.</div>
               </div>
               <div>
-                <div className="font-semibold text-[#000034]">¿Los precios son finales?</div>
+                <div className="font-semibold text-[var(--brand-ink)]">¿Los precios son finales?</div>
                 <div>
                   Los precios pueden cambiar rápido. Confirma el precio final en el sitio de reserva.
                 </div>
               </div>
             </div>
           </div>
-          <div className="mt-4 text-xs font-semibold text-[#0F386E]">Powered by Amadeus</div>
-          <div className="mt-3 flex flex-wrap items-center justify-center gap-2 text-[11px] font-semibold text-[#1D4F91]">
+          <div className="mt-4 text-xs font-semibold text-[var(--brand-primary)]">Powered by Amadeus</div>
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-2 text-[11px] font-semibold text-[var(--brand-primary)]">
             {["Amadeus", "Kiwi", "Skyscanner", "Kayak"].map((name) => (
-              <span key={name} className="rounded-full border border-[#D9E2EA] bg-white px-3 py-1">
+              <span
+                key={name}
+                className="rounded-full border border-[var(--brand-border)] bg-white px-3 py-1"
+              >
                 {name}
               </span>
             ))}
           </div>
           <LegalLinksModal
-            className="mt-6 flex flex-wrap items-center justify-center gap-4 text-[11px] font-semibold text-[#0F386E]"
+            className="mt-6 flex flex-wrap items-center justify-center gap-4 text-[11px] font-semibold text-[var(--brand-primary)]"
             locale="es"
           />
-          <div className="mt-4 text-[11px] text-[#0F386E]">
+          <div className="mt-4 text-[11px] text-[var(--brand-muted)]">
             Aviso de afiliados: Podemos ganar una comisión cuando reservas con enlaces asociados.
           </div>
-          <div className="mt-2 text-[11px] text-[#0F386E]">
+          <div className="mt-2 text-[11px] text-[var(--brand-muted)]">
             © {new Date().getFullYear()} Ticket Wiz. Todos los derechos reservados.
           </div>
         </div>

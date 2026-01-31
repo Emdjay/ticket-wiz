@@ -47,7 +47,7 @@ const COPY = {
     heroSubtitleNote: "(Prices vary by route, date, and availability.)",
     whyTitle: "Why Ticket Wiz?",
     whyItems: [
-      "Compare live-ish fares from Amadeus in seconds.",
+      "Compare near-real-time fares from Amadeus in seconds.",
       "Explore destinations by budget when you need ideas.",
       "Sort by best value, price, duration, and stops.",
     ],
@@ -508,32 +508,32 @@ function AirportPicker(props: {
   const popularOptions = POPULAR_AIRPORTS.filter((a) => a.code !== exclude);
   const regionOptions = regionAirports.filter((a) => a.code !== exclude);
   return (
-    <div className="rounded-xl border border-[#B6C6D6] bg-[#EFF5FB] p-4 shadow-md">
+    <div className="rounded-xl border border-[var(--brand-border)] bg-[color:rgba(0,123,255,0.08)] p-4 shadow-md">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="grid gap-1.5">
-          <div className="text-xs font-semibold text-[#000034]">{label}</div>
-          <div className="text-[11px] font-semibold text-[#1D4F91]">
+          <div className="text-xs font-semibold text-[var(--brand-ink)]">{label}</div>
+          <div className="text-[11px] font-semibold text-[var(--brand-primary)]">
             {labels.selected}: {airportLabel(value)}
           </div>
         </div>
         <button
           type="button"
           onClick={() => setShowPopular((prev) => !prev)}
-          className="inline-flex h-8 items-center rounded-lg border border-[#C2D1DF] bg-white px-2 text-[11px] font-medium text-[#1D4F91] hover:border-[#1D4F91]"
+          className="inline-flex h-8 items-center rounded-lg border border-[var(--brand-border)] bg-white px-2 text-[11px] font-medium text-[var(--brand-primary)] hover:border-[var(--brand-primary)]"
         >
           {showPopular ? labels.hidePopular : labels.showPopular}
         </button>
       </div>
       <div className="mt-4 grid gap-3">
         {showPopular ? (
-          <label className="text-xs font-medium text-[#000034]">
+          <label className="text-xs font-medium text-[var(--brand-ink)]">
             {labels.popular}
             <select
               value={popularOptions.some((a) => a.code === value) ? value : ""}
               onChange={(e) => {
                 if (e.target.value) onChange(e.target.value);
               }}
-              className="mt-2 h-9 w-full rounded-lg border border-[#C2D1DF] bg-[#F7FAFE] px-2 text-xs text-[#363535] focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
+              className="mt-2 h-9 w-full rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-2 text-xs text-[var(--brand-ink)] focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[color:rgba(0,123,255,0.2)]"
             >
               <option value="">{labels.selectPopularAirport}</option>
               {popularOptions.map((airport) => (
@@ -545,12 +545,12 @@ function AirportPicker(props: {
           </label>
         ) : null}
         <div className="grid gap-3 items-start sm:grid-cols-2">
-          <label className="grid grid-rows-[28px_auto] gap-2 text-xs font-medium text-[#000034]">
+          <label className="grid grid-rows-[28px_auto] gap-2 text-xs font-medium text-[var(--brand-ink)]">
             <span className="block">{labels.region}</span>
             <select
               value={region}
               onChange={(e) => setRegion(e.target.value)}
-              className="h-9 w-full rounded-lg border border-[#C2D1DF] bg-white px-2 text-xs text-[#363535] focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
+              className="h-9 w-full rounded-lg border border-[var(--brand-border)] bg-white px-2 text-xs text-[var(--brand-ink)] focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[color:rgba(0,123,255,0.2)]"
             >
               {REGION_KEYS.map((key) => (
                 <option key={key} value={key}>
@@ -559,14 +559,14 @@ function AirportPicker(props: {
               ))}
             </select>
           </label>
-          <label className="grid grid-rows-[28px_auto] gap-2 text-xs font-medium text-[#000034]">
+          <label className="grid grid-rows-[28px_auto] gap-2 text-xs font-medium text-[var(--brand-ink)]">
             <span className="block">{labels.airportsInRegion}</span>
             <select
               value={regionOptions.some((a) => a.code === value) ? value : ""}
               onChange={(e) => {
                 if (e.target.value) onChange(e.target.value);
               }}
-              className="h-9 w-full rounded-lg border border-[#C2D1DF] bg-white px-2 text-xs text-[#363535] focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
+              className="h-9 w-full rounded-lg border border-[var(--brand-border)] bg-white px-2 text-xs text-[var(--brand-ink)] focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[color:rgba(0,123,255,0.2)]"
             >
               <option value="">{labels.selectAirport}</option>
               {regionOptions.map((airport) => (
@@ -667,24 +667,24 @@ function dealBadge(score: number | undefined, copy: Copy) {
   if (pct >= 85) {
     return {
       label: copy.dealBest,
-      tone: "bg-[#E6F3EE] text-[#006A52] ring-1 ring-[#CFE5DC]",
+      tone: "bg-[color:rgba(40,167,69,0.12)] text-[var(--brand-success)] ring-1 ring-[color:rgba(40,167,69,0.3)]",
     };
   }
   if (pct >= 70) {
     return {
       label: copy.dealGood,
-      tone: "bg-[#E8EFF7] text-[#1D4F91] ring-1 ring-[#C9D8EA]",
+      tone: "bg-[color:rgba(0,123,255,0.12)] text-[var(--brand-primary)] ring-1 ring-[color:rgba(0,123,255,0.3)]",
     };
   }
   if (pct >= 55) {
     return {
       label: copy.dealFair,
-      tone: "bg-[#FFF4C2] text-[#000034] ring-1 ring-[#FFE28A]",
+      tone: "bg-[color:rgba(253,126,20,0.18)] text-[var(--brand-ink)] ring-1 ring-[color:rgba(253,126,20,0.4)]",
     };
   }
   return {
     label: copy.dealPricey,
-    tone: "bg-[#FBE9DC] text-[#D57800] ring-1 ring-[#F5CFB3]",
+    tone: "bg-[color:rgba(220,53,69,0.12)] text-[var(--brand-danger)] ring-1 ring-[color:rgba(220,53,69,0.3)]",
   };
 }
 
@@ -698,18 +698,18 @@ function priceTrend(
   if (diffPct <= -0.08) {
     return {
       label: copy.trendLow,
-      tone: "bg-[#E6F3EE] text-[#006A52] ring-1 ring-[#CFE5DC]",
+      tone: "bg-[color:rgba(40,167,69,0.12)] text-[var(--brand-success)] ring-1 ring-[color:rgba(40,167,69,0.3)]",
     };
   }
   if (diffPct >= 0.08) {
     return {
       label: copy.trendHigh,
-      tone: "bg-[#FBE9DC] text-[#D57800] ring-1 ring-[#F5CFB3]",
+      tone: "bg-[color:rgba(220,53,69,0.12)] text-[var(--brand-danger)] ring-1 ring-[color:rgba(220,53,69,0.3)]",
     };
   }
   return {
     label: copy.trendMid,
-    tone: "bg-[#E8EFF7] text-[#1D4F91] ring-1 ring-[#C9D8EA]",
+    tone: "bg-[color:rgba(0,123,255,0.12)] text-[var(--brand-primary)] ring-1 ring-[color:rgba(0,123,255,0.3)]",
   };
 }
 
@@ -717,7 +717,7 @@ function warningBadge(reason: string | undefined, copy: Copy) {
   if (!reason) return null;
   return {
     label: `${copy.outlierPrefix}${reason}`,
-    tone: "bg-[#FBE9DC] text-[#D57800] ring-1 ring-[#F5CFB3]",
+    tone: "bg-[color:rgba(253,126,20,0.16)] text-[var(--brand-accent)] ring-1 ring-[color:rgba(253,126,20,0.3)]",
   };
 }
 
@@ -932,13 +932,15 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
     }
   }, [searchResults, promptDismissed]);
 
+  const showTestimonials = false;
+
   useEffect(() => {
-    if (copy.proofQuotes.length <= 1) return;
+    if (!showTestimonials || copy.proofQuotes.length <= 1) return;
     const interval = window.setInterval(() => {
       setQuoteIndex((prev) => (prev + 1) % copy.proofQuotes.length);
     }, 6000);
     return () => window.clearInterval(interval);
-  }, [copy.proofQuotes.length]);
+  }, [copy.proofQuotes.length, showTestimonials]);
 
   const [alertsEmail, setAlertsEmail] = useState("");
   const [alertsStatus, setAlertsStatus] = useState<
@@ -1274,7 +1276,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
           aria-hidden="true"
         />
       </div>
-      <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-b from-[#0F386E]/25 via-[#1D4F91]/10 to-transparent" />
+      <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-b from-[#001F3F]/25 via-[#007BFF]/10 to-transparent" />
       <div className="relative z-20 bg-transparent">
         <header className="fixed top-0 z-20 w-full border-b border-[var(--brand-border)]/80 bg-white/80 backdrop-blur">
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-6 py-3">
@@ -1293,17 +1295,17 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
               </a>
             </nav>
             <div className="text-sm font-semibold text-[var(--brand-ink)]">Ticket Wiz</div>
-            <div className="flex flex-wrap items-center gap-3 text-xs text-[#363535]">
+            <div className="flex flex-wrap items-center gap-3 text-xs text-[var(--brand-muted)]">
               <div className="inline-flex items-center gap-2">
                 <a
                   href="/"
-                  className="inline-flex items-center rounded-full border border-[#D9E2EA] bg-white px-3 py-1 text-[11px] font-semibold text-[#1D4F91] shadow-sm transition hover:border-[#1D4F91]"
+                  className="inline-flex items-center rounded-full border border-[var(--brand-border)] bg-white px-3 py-1 text-[11px] font-semibold text-[var(--brand-primary)] shadow-sm transition hover:border-[var(--brand-primary)]"
                 >
                   EN
                 </a>
                 <a
                   href="/es"
-                  className="inline-flex items-center rounded-full border border-[#D9E2EA] bg-white px-3 py-1 text-[11px] font-semibold text-[#1D4F91] shadow-sm transition hover:border-[#1D4F91]"
+                  className="inline-flex items-center rounded-full border border-[var(--brand-border)] bg-white px-3 py-1 text-[11px] font-semibold text-[var(--brand-primary)] shadow-sm transition hover:border-[var(--brand-primary)]"
                 >
                   ES
                 </a>
@@ -1314,7 +1316,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
         <div className="mx-auto max-w-6xl px-6 pt-24 pb-10">
           <div className="flex flex-col items-start gap-6 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
             <div className="w-full">
-              <div className="inline-flex h-[160px] w-[160px] items-center justify-center overflow-hidden rounded-full bg-white/80 ring-1 ring-[#D9E2EA]">
+              <div className="inline-flex h-[160px] w-[160px] items-center justify-center overflow-hidden rounded-full bg-white/80 ring-1 ring-[var(--brand-border)]">
                 <Image
                   src="/ticket-wiz-logo.png"
                   alt="Ticket Wiz logo"
@@ -1337,20 +1339,26 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                 {copy.heroSubtitleNote}
               </p>
               <div className="mt-6 grid gap-4 sm:grid-cols-3">
-                <div className="grid gap-3 rounded-2xl bg-white/85 p-4 text-xs text-[#000034] shadow-md ring-1 ring-[#D9E2EA]">
-                  <div className="text-sm font-semibold text-[#0F386E]">{copy.whyTitle}</div>
-                  <ul className="grid gap-1 text-[12px] text-[#363535]">
+                <div className="grid gap-3 rounded-2xl bg-white/85 p-4 text-xs text-[var(--brand-ink)] shadow-md ring-1 ring-[var(--brand-border)]">
+                  <div className="text-sm font-semibold text-[var(--brand-primary)]">
+                    {copy.whyTitle}
+                  </div>
+                  <ul className="grid gap-1 text-[12px] text-[var(--brand-ink)]">
                     {copy.whyItems.map((item) => (
                       <li key={item} className="flex items-start gap-2">
-                        <span className="mt-1 inline-flex h-1.5 w-1.5 rounded-full bg-[#0F386E]" />
+                        <span className="mt-1 inline-flex h-1.5 w-1.5 rounded-full bg-[var(--brand-primary)]" />
                         <span>{item}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
-                <div className="grid gap-3 rounded-2xl bg-white/85 p-4 text-xs text-[#000034] shadow-md ring-1 ring-[#D9E2EA]">
-                  <div className="text-sm font-semibold text-[#0F386E]">{copy.alertsTitle}</div>
-                  <div className="text-[12px] text-[#363535]">{copy.alertsSubtitle}</div>
+                <div className="grid gap-3 rounded-2xl bg-white/85 p-4 text-xs text-[var(--brand-ink)] shadow-md ring-1 ring-[var(--brand-border)]">
+                  <div className="text-sm font-semibold text-[var(--brand-primary)]">
+                    {copy.alertsTitle}
+                  </div>
+                  <div className="text-[12px] text-[var(--brand-ink)]">
+                    {copy.alertsSubtitle}
+                  </div>
                   <div className="flex flex-wrap gap-2">
                     <input
                       type="email"
@@ -1364,13 +1372,13 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                           setAlertsMessage(null);
                         }
                       }}
-                      className="h-9 flex-1 rounded-xl border border-[#C2D1DF] bg-white px-3 text-xs text-[#363535] outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
+                      className="h-9 flex-1 rounded-xl border border-[var(--brand-border)] bg-white px-3 text-xs text-[var(--brand-ink)] outline-none focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[color:rgba(0,123,255,0.2)]"
                     />
                     <button
                       type="button"
                       onClick={submitAlertSignup}
                       disabled={alertsStatus === "loading"}
-                      className="h-9 rounded-xl bg-[#0F386E] px-4 text-xs font-semibold text-white shadow-md hover:bg-[#1D4F91] disabled:cursor-not-allowed disabled:opacity-70"
+                      className="h-9 rounded-xl bg-[var(--brand-primary)] px-4 text-xs font-semibold text-white shadow-md hover:bg-[#0069D9] disabled:cursor-not-allowed disabled:opacity-70"
                     >
                       {alertsStatus === "loading" ? copy.alertsSaving : copy.alertsCta}
                     </button>
@@ -1378,19 +1386,21 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                   {alertsMessage ? (
                     <div
                       className={`text-[11px] ${
-                        alertsStatus === "success" ? "text-[#006A52]" : "text-[#B42318]"
+                        alertsStatus === "success"
+                          ? "text-[var(--brand-success)]"
+                          : "text-[var(--brand-danger)]"
                       }`}
                       role="status"
                     >
                       {alertsMessage}
                     </div>
                   ) : null}
-                  <div className="text-[10px] text-[#69707a]">
+                  <div className="text-[10px] text-[var(--brand-muted)]">
                     We only send a few emails a month. Unsubscribe anytime.
                   </div>
                 </div>
-                <div className="grid gap-2 rounded-2xl bg-white/85 p-4 text-xs text-[#000034] shadow-md ring-1 ring-[#D9E2EA]">
-                  <div className="flex items-center gap-2 text-sm font-semibold text-[#0F386E]">
+                <div className="grid gap-2 rounded-2xl bg-white/85 p-4 text-xs text-[var(--brand-ink)] shadow-md ring-1 ring-[var(--brand-border)]">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-[var(--brand-primary)]">
                     <Image
                       src="/badge.png"
                       alt="Partner badge"
@@ -1401,12 +1411,12 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                     />
                     {copy.trustTitle}
                   </div>
-                  <div className="text-[12px] text-[#363535]">{copy.trustNote}</div>
-                  <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold text-[#1D4F91]">
+                  <div className="text-[12px] text-[var(--brand-ink)]">{copy.trustNote}</div>
+                  <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold text-[var(--brand-primary)]">
                     {["Amadeus", "Kiwi", "Aviasales"].map((name) => (
                       <span
                         key={name}
-                        className="rounded-full border border-[#D9E2EA] bg-white px-3 py-1"
+                        className="rounded-full border border-[var(--brand-border)] bg-white px-3 py-1"
                       >
                         {name}
                       </span>
@@ -1414,38 +1424,52 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                   </div>
                 </div>
               </div>
-              <div className="mt-4 grid gap-3 rounded-2xl bg-white/85 p-4 text-xs text-[#000034] shadow-md ring-1 ring-[#D9E2EA]">
-                <div className="text-sm font-semibold text-[#0F386E]">{copy.proofTitle}</div>
-                <div className="grid gap-3 sm:grid-cols-3">
-                  {copy.proofStats.map((stat) => (
-                    <div key={stat.label} className="rounded-xl border border-[#D9E2EA] bg-white p-3">
-                      <div className="flex items-center gap-1 text-lg font-semibold text-[#000034]">
-                        {stat.value === "4.8/5" ? <span className="text-[#F4B400]">★</span> : null}
-                        {stat.value}
+              {showTestimonials ? (
+                <div className="mt-4 grid gap-3 rounded-2xl bg-white/85 p-4 text-xs text-[var(--brand-ink)] shadow-md ring-1 ring-[var(--brand-border)]">
+                  <div className="text-sm font-semibold text-[var(--brand-primary)]">
+                    {copy.proofTitle}
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    {copy.proofStats.map((stat) => (
+                      <div
+                        key={stat.label}
+                        className="rounded-xl border border-[var(--brand-border)] bg-white p-3"
+                      >
+                        <div className="flex items-center gap-1 text-lg font-semibold text-[var(--brand-ink)]">
+                          {stat.value === "4.8/5" ? (
+                            <span className="text-[var(--brand-accent)]">★</span>
+                          ) : null}
+                          {stat.value}
+                        </div>
+                        <div className="text-[11px] text-[var(--brand-muted)]">{stat.label}</div>
                       </div>
-                      <div className="text-[11px] text-[#69707a]">{stat.label}</div>
-                    </div>
-                  ))}
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {(copy.proofQuotes.length <= 1
-                    ? copy.proofQuotes
-                    : [
-                        copy.proofQuotes[quoteIndex % copy.proofQuotes.length],
-                        copy.proofQuotes[(quoteIndex + 1) % copy.proofQuotes.length],
-                      ]
-                  ).map((item) => (
-                    <div key={item.quote} className="rounded-xl border border-[#D9E2EA] bg-white p-3">
-                      <div className="text-[12px] text-[#363535]">“{item.quote}”</div>
-                      <div className="mt-2 text-[11px] font-semibold text-[#1D4F91]">
-                        {item.name}
+                    ))}
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {(copy.proofQuotes.length <= 1
+                      ? copy.proofQuotes
+                      : [
+                          copy.proofQuotes[quoteIndex % copy.proofQuotes.length],
+                          copy.proofQuotes[(quoteIndex + 1) % copy.proofQuotes.length],
+                        ]
+                    ).map((item) => (
+                      <div
+                        key={item.quote}
+                        className="rounded-xl border border-[var(--brand-border)] bg-white p-3"
+                      >
+                        <div className="text-[12px] text-[var(--brand-ink)]">
+                          “{item.quote}”
+                        </div>
+                        <div className="mt-2 text-[11px] font-semibold text-[var(--brand-primary)]">
+                          {item.name}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
+              ) : null}
             </div>
-            <div className="hidden sm:flex flex-col items-end gap-2 text-right text-xs text-[#363535] lg:mt-[200px]" />
+            <div className="hidden sm:flex flex-col items-end gap-2 text-right text-xs text-[var(--brand-muted)] lg:mt-[200px]" />
           </div>
 
           <div className="mt-8 grid gap-4">
@@ -1469,7 +1493,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                     unoptimized={isDev}
                     className="object-cover transition duration-300 group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#000034]/70 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#001F3F]/70 via-transparent to-transparent" />
                   <div className="absolute bottom-2 left-2 text-xs font-semibold text-white">
                     {card.label}
                   </div>
@@ -1478,27 +1502,32 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
             </div>
           </div>
 
-          <div className="mt-8 grid gap-4 rounded-2xl bg-white/85 p-5 text-xs text-[#000034] shadow-md ring-1 ring-[#D9E2EA]">
-            <div className="text-sm font-semibold text-[#0F386E]">{copy.howItWorksTitle}</div>
+          <div className="mt-8 grid gap-4 rounded-2xl bg-white/85 p-5 text-xs text-[var(--brand-ink)] shadow-md ring-1 ring-[var(--brand-border)]">
+            <div className="text-sm font-semibold text-[var(--brand-primary)]">
+              {copy.howItWorksTitle}
+            </div>
             <div className="grid gap-4 sm:grid-cols-3">
               {copy.howItWorksSteps.map((step) => (
-                <div key={step.title} className="rounded-xl border border-[#D9E2EA] bg-white p-3">
-                  <div className="text-sm font-semibold text-[#000034]">{step.title}</div>
-                  <div className="mt-1 text-[12px] text-[#363535]">{step.text}</div>
+                <div
+                  key={step.title}
+                  className="rounded-xl border border-[var(--brand-border)] bg-white p-3"
+                >
+                  <div className="text-sm font-semibold text-[var(--brand-ink)]">{step.title}</div>
+                  <div className="mt-1 text-[12px] text-[var(--brand-ink)]">{step.text}</div>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="mt-8 inline-flex w-full justify-between rounded-xl bg-[#F2F6FA] p-1 shadow-md ring-2 ring-[#B6C6D6] sm:w-auto">
+          <div className="mt-8 inline-flex w-full justify-between rounded-xl bg-[#E9F2FF] p-1 shadow-md ring-2 ring-[var(--brand-border)] sm:w-auto">
             <button
               type="button"
               onClick={() => setTab("search")}
               className={[
                 "flex-1 rounded-lg px-3 py-2 text-sm font-medium transition ring-1 ring-transparent sm:flex-none",
                 tab === "search"
-                  ? "bg-[#0F386E] text-white shadow ring-[#0F386E]"
-                  : "bg-white text-[#1D4F91] ring-[#C2D1DF] hover:bg-[#E9F0F9]",
+                  ? "bg-[var(--brand-primary)] text-white shadow ring-[var(--brand-primary)]"
+                  : "bg-white text-[var(--brand-primary)] ring-[var(--brand-border)] hover:bg-[#E7F0FF]",
               ].join(" ")}
             >
               {copy.tabSearch}
@@ -1509,8 +1538,8 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
               className={[
                 "flex-1 rounded-lg px-3 py-2 text-sm font-medium transition ring-1 ring-transparent sm:flex-none",
                 tab === "explore"
-                  ? "bg-[#0F386E] text-white shadow ring-[#0F386E]"
-                  : "bg-white text-[#1D4F91] ring-[#C2D1DF] hover:bg-[#E9F0F9]",
+                  ? "bg-[var(--brand-primary)] text-white shadow ring-[var(--brand-primary)]"
+                  : "bg-white text-[var(--brand-primary)] ring-[var(--brand-border)] hover:bg-[#E7F0FF]",
               ].join(" ")}
             >
               {copy.tabExplore}
@@ -1524,9 +1553,9 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
             id="search"
             className="-mt-6 grid items-start gap-6 scroll-mt-20 lg:grid-cols-[420px_1fr]"
           >
-            <div className="rounded-2xl border border-[#B6C6D6] bg-white p-5 shadow-lg ring-2 ring-[#B6C6D6]">
+            <div className="rounded-2xl border border-[var(--brand-border)] bg-white p-5 shadow-lg ring-2 ring-[var(--brand-border)]">
               <h2 className="text-sm font-semibold">{copy.searchFlightsTitle}</h2>
-              <p className="mt-1 text-xs text-[#363535]">{copy.searchFlightsNote}</p>
+              <p className="mt-1 text-xs text-[var(--brand-muted)]">{copy.searchFlightsNote}</p>
 
               <form
                 className="mt-4 grid gap-3"
@@ -1535,8 +1564,8 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                   void runSearch();
                 }}
               >
-                <fieldset className="grid gap-4 rounded-xl border border-[#D9E2EA] bg-[#F7FAFE] p-4 lg:grid-cols-2">
-                  <legend className="px-2 text-[11px] font-semibold text-[#1D4F91]">
+                <fieldset className="grid gap-4 rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] p-4 lg:grid-cols-2">
+                  <legend className="px-2 text-[11px] font-semibold text-[var(--brand-primary)]">
                     From / To
                   </legend>
                   <AirportPicker
@@ -1556,28 +1585,28 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                 </fieldset>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <label className="grid gap-1 text-xs font-medium text-[#000034]">
+                  <label className="grid gap-1 text-xs font-medium text-[var(--brand-ink)]">
                     {copy.depart}
                     <input
                       type="date"
                       value={departureDate}
                       onChange={(e) => setDepartureDate(e.target.value)}
-                      className="h-10 rounded-xl border border-[#C2D1DF] bg-[#F7FAFE] px-3 text-sm outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
+                      className="h-10 rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 text-sm outline-none focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[color:rgba(0,123,255,0.2)]"
                     />
                   </label>
-                  <label className="grid gap-1 text-xs font-medium text-[#000034]">
+                  <label className="grid gap-1 text-xs font-medium text-[var(--brand-ink)]">
                     {copy.returnOptional}
                     <input
                       type="date"
                       value={returnDate}
                       onChange={(e) => setReturnDate(e.target.value)}
-                      className="h-10 rounded-xl border border-[#C2D1DF] bg-[#F7FAFE] px-3 text-sm outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
+                      className="h-10 rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 text-sm outline-none focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[color:rgba(0,123,255,0.2)]"
                     />
                   </label>
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <label className="grid gap-1 text-xs font-medium text-[#000034]">
+                  <label className="grid gap-1 text-xs font-medium text-[var(--brand-ink)]">
                     {copy.adults}
                     <input
                       type="number"
@@ -1585,15 +1614,15 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                       max={9}
                       value={adults}
                       onChange={(e) => setAdults(Number(e.target.value))}
-                      className="h-10 rounded-xl border border-[#C2D1DF] bg-[#F7FAFE] px-3 text-sm outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
+                      className="h-10 rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 text-sm outline-none focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[color:rgba(0,123,255,0.2)]"
                     />
                   </label>
-                  <label className="grid gap-1 text-xs font-medium text-[#000034]">
+                  <label className="grid gap-1 text-xs font-medium text-[var(--brand-ink)]">
                     {copy.maxResults}
                     <select
                       value={searchMaxResults}
                       onChange={(e) => setSearchMaxResults(Number(e.target.value))}
-                      className="h-10 rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 text-sm text-[#363535] outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
+                      className="h-10 rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 text-sm text-[var(--brand-ink)] outline-none focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[color:rgba(0,123,255,0.2)]"
                     >
                       {[10, 20, 30, 40, 50].map((value) => (
                         <option key={value} value={value}>
@@ -1602,32 +1631,32 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                       ))}
                     </select>
                   </label>
-                  <label className="grid gap-1 text-xs font-medium text-[#000034]">
+                  <label className="grid gap-1 text-xs font-medium text-[var(--brand-ink)]">
                     {copy.currency}
                     <input
                       value={currency}
                       onChange={(e) => setCurrency(e.target.value.toUpperCase())}
-                      className="h-10 rounded-xl border border-[#C2D1DF] bg-[#F7FAFE] px-3 text-sm outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
+                      className="h-10 rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 text-sm outline-none focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[color:rgba(0,123,255,0.2)]"
                       placeholder="USD"
                     />
                   </label>
-                  <label className="flex h-10 items-center gap-2 rounded-xl border border-[#C2D1DF] bg-[#F7FAFE] px-3 py-2 text-sm sm:col-span-2">
+                  <label className="flex h-10 items-center gap-2 rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2 text-sm sm:col-span-2">
                     <input
                       type="checkbox"
                       checked={nonStop}
                       onChange={(e) => setNonStop(e.target.checked)}
-                      className="h-4 w-4 accent-[#006A52]"
+                      className="h-4 w-4 accent-[var(--brand-success)]"
                     />
-                    <span className="text-sm text-[#363535]">{copy.nonstop}</span>
+                    <span className="text-sm text-[var(--brand-ink)]">{copy.nonstop}</span>
                   </label>
-                  <label className="flex h-10 items-center gap-2 rounded-xl border border-[#C2D1DF] bg-[#F7FAFE] px-3 py-2 text-sm sm:col-span-2">
+                  <label className="flex h-10 items-center gap-2 rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2 text-sm sm:col-span-2">
                     <input
                       type="checkbox"
                       checked={flexibleDates}
                       onChange={(e) => setFlexibleDates(e.target.checked)}
-                      className="h-4 w-4 accent-[#006A52]"
+                      className="h-4 w-4 accent-[var(--brand-success)]"
                     />
-                    <span className="text-sm text-[#363535]">{copy.flexibleDates}</span>
+                    <span className="text-sm text-[var(--brand-ink)]">{copy.flexibleDates}</span>
                   </label>
                 </div>
 
@@ -1641,7 +1670,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
 
                 {searchError ? (
                   <div
-                    className="rounded-xl border border-[#F5CFB3] bg-[#FBE9DC] px-3 py-2 text-xs text-[#D57800]"
+                    className="rounded-xl border border-[color:rgba(253,126,20,0.35)] bg-[color:rgba(253,126,20,0.12)] px-3 py-2 text-xs text-[var(--brand-accent)]"
                     role="status"
                     aria-live="polite"
                   >
@@ -1649,9 +1678,9 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                   </div>
                 ) : null}
               {showAlertPrompt ? (
-                <div className="mt-2 grid gap-2 rounded-xl border border-[#D9E2EA] bg-[#F7FAFE] p-3 text-xs text-[#363535]">
+                <div className="mt-2 grid gap-2 rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] p-3 text-xs text-[var(--brand-ink)]">
                   <div className="flex items-center justify-between gap-2">
-                    <div className="text-xs font-semibold text-[#0F386E]">
+                    <div className="text-xs font-semibold text-[var(--brand-primary)]">
                       {copy.alertPromptTitle}
                     </div>
                     <button
@@ -1660,7 +1689,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                         setShowAlertPrompt(false);
                         setPromptDismissed(true);
                       }}
-                      className="rounded-full border border-[#D9E2EA] px-2 py-0.5 text-[10px] font-semibold text-[#1D4F91] hover:border-[#1D4F91]"
+                      className="rounded-full border border-[var(--brand-border)] px-2 py-0.5 text-[10px] font-semibold text-[var(--brand-primary)] hover:border-[var(--brand-primary)]"
                     >
                       Close
                     </button>
@@ -1679,13 +1708,13 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                           setSaveSearchMessage(null);
                         }
                       }}
-                      className="h-9 flex-1 rounded-xl border border-[#C2D1DF] bg-white px-3 text-xs text-[#363535] outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
+                      className="h-9 flex-1 rounded-xl border border-[var(--brand-border)] bg-white px-3 text-xs text-[var(--brand-ink)] outline-none focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[color:rgba(0,123,255,0.2)]"
                     />
                     <button
                       type="button"
                       onClick={submitSaveSearch}
                       disabled={saveSearchStatus === "loading"}
-                      className="h-9 rounded-xl bg-[#0F386E] px-4 text-xs font-semibold text-white shadow-md hover:bg-[#1D4F91] disabled:cursor-not-allowed disabled:opacity-70"
+                      className="h-9 rounded-xl bg-[var(--brand-primary)] px-4 text-xs font-semibold text-white shadow-md hover:bg-[#0069D9] disabled:cursor-not-allowed disabled:opacity-70"
                     >
                       {saveSearchStatus === "loading" ? copy.saveSearchSaving : copy.alertPromptCta}
                     </button>
@@ -1693,7 +1722,9 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                   {saveSearchMessage ? (
                     <div
                       className={`text-[11px] ${
-                        saveSearchStatus === "success" ? "text-[#006A52]" : "text-[#B42318]"
+                        saveSearchStatus === "success"
+                          ? "text-[var(--brand-success)]"
+                          : "text-[var(--brand-danger)]"
                       }`}
                       role="status"
                     >
@@ -1702,8 +1733,10 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                   ) : null}
                 </div>
               ) : null}
-                <div className="mt-2 grid gap-2 rounded-xl border border-[#D9E2EA] bg-[#F7FAFE] p-3 text-xs text-[#363535]">
-                  <div className="text-xs font-semibold text-[#0F386E]">{copy.saveSearchTitle}</div>
+                <div className="mt-2 grid gap-2 rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] p-3 text-xs text-[var(--brand-ink)]">
+                  <div className="text-xs font-semibold text-[var(--brand-primary)]">
+                    {copy.saveSearchTitle}
+                  </div>
                   <div className="flex flex-wrap gap-2">
                     <input
                       type="email"
@@ -1717,13 +1750,13 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                           setSaveSearchMessage(null);
                         }
                       }}
-                      className="h-9 flex-1 rounded-xl border border-[#C2D1DF] bg-white px-3 text-xs text-[#363535] outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
+                      className="h-9 flex-1 rounded-xl border border-[var(--brand-border)] bg-white px-3 text-xs text-[var(--brand-ink)] outline-none focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[color:rgba(0,123,255,0.2)]"
                     />
                     <button
                       type="button"
                       onClick={submitSaveSearch}
                       disabled={saveSearchStatus === "loading"}
-                      className="h-9 rounded-xl bg-[#0F386E] px-4 text-xs font-semibold text-white shadow-md hover:bg-[#1D4F91] disabled:cursor-not-allowed disabled:opacity-70"
+                      className="h-9 rounded-xl bg-[var(--brand-primary)] px-4 text-xs font-semibold text-white shadow-md hover:bg-[#0069D9] disabled:cursor-not-allowed disabled:opacity-70"
                     >
                       {saveSearchStatus === "loading" ? copy.saveSearchSaving : copy.saveSearchCta}
                     </button>
@@ -1731,7 +1764,9 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                   {saveSearchMessage ? (
                     <div
                       className={`text-[11px] ${
-                        saveSearchStatus === "success" ? "text-[#006A52]" : "text-[#B42318]"
+                        saveSearchStatus === "success"
+                          ? "text-[var(--brand-success)]"
+                          : "text-[var(--brand-danger)]"
                       }`}
                       role="status"
                     >
@@ -1740,8 +1775,10 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                   ) : null}
                 </div>
                 {canShowFlexGrid ? (
-                  <div className="mt-2 grid gap-2 rounded-xl border border-[#D9E2EA] bg-[#F7FAFE] p-3 text-xs text-[#363535]">
-                    <div className="text-xs font-semibold text-[#0F386E]">{copy.flexGridTitle}</div>
+                  <div className="mt-2 grid gap-2 rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] p-3 text-xs text-[var(--brand-ink)]">
+                    <div className="text-xs font-semibold text-[var(--brand-primary)]">
+                      {copy.flexGridTitle}
+                    </div>
                     <div className="text-[11px]">{copy.flexGridNote}</div>
                     {returnDate.trim() ? (
                       <div className="mt-1 grid gap-2">
@@ -1764,8 +1801,8 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                                   }}
                                   className={`rounded-lg border px-2 py-1 text-[11px] font-semibold transition ${
                                     isActive
-                                      ? "border-[#1D4F91] bg-white text-[#1D4F91]"
-                                      : "border-[#D9E2EA] bg-white text-[#363535] hover:border-[#1D4F91]"
+                                      ? "border-[var(--brand-primary)] bg-white text-[var(--brand-primary)]"
+                                      : "border-[var(--brand-border)] bg-white text-[var(--brand-ink)] hover:border-[var(--brand-primary)]"
                                   }`}
                                 >
                                   {formatShortDate(depDate)} → {formatShortDate(retDate)}
@@ -1789,8 +1826,8 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                               }}
                               className={`rounded-lg border px-2 py-1 text-[11px] font-semibold transition ${
                                 isActive
-                                  ? "border-[#1D4F91] bg-white text-[#1D4F91]"
-                                  : "border-[#D9E2EA] bg-white text-[#363535] hover:border-[#1D4F91]"
+                                  ? "border-[var(--brand-primary)] bg-white text-[var(--brand-primary)]"
+                                  : "border-[var(--brand-border)] bg-white text-[var(--brand-ink)] hover:border-[var(--brand-primary)]"
                               }`}
                             >
                               {formatShortDate(depDate)}
@@ -1804,10 +1841,10 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
               </form>
             </div>
 
-            <div className="rounded-2xl border border-[#B6C6D6] bg-white p-5 shadow-lg ring-2 ring-[#B6C6D6]">
+            <div className="rounded-2xl border border-[var(--brand-border)] bg-white p-5 shadow-lg ring-2 ring-[var(--brand-border)]">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className="text-sm font-semibold">{copy.results}</h2>
-                <div className="flex flex-wrap items-center gap-3 text-xs text-[#0F386E]">
+                <div className="flex flex-wrap items-center gap-3 text-xs text-[var(--brand-primary)]">
                   <div className="flex flex-wrap items-center gap-2">
                     {[
                       { value: "best" as OfferSort, label: copy.sortBestValue },
@@ -1820,8 +1857,8 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                         onClick={() => setSearchSort(preset.value)}
                         className={`rounded-full border px-3 py-1 text-[11px] font-semibold transition ${
                           searchSort === preset.value
-                            ? "border-[#1D4F91] bg-[#E8EFF7] text-[#1D4F91]"
-                            : "border-[#C9D8EA] bg-white text-[#0F386E] hover:border-[#1D4F91]"
+                            ? "border-[var(--brand-primary)] bg-[color:rgba(0,123,255,0.12)] text-[var(--brand-primary)]"
+                            : "border-[var(--brand-border)] bg-white text-[var(--brand-primary)] hover:border-[var(--brand-primary)]"
                         }`}
                       >
                         {preset.label}
@@ -1836,7 +1873,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                     <select
                       value={purchasePartner}
                       onChange={(e) => setPurchasePartner(e.target.value as PurchasePartner)}
-                      className="h-8 rounded-lg border border-[#C2D1DF] bg-[#F7FAFE] px-2 text-xs text-[#363535] focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
+                      className="h-8 rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-2 text-xs text-[var(--brand-ink)] focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[color:rgba(0,123,255,0.2)]"
                     >
                     {SEARCH_PARTNERS_VISIBLE.map((partner) => (
                         <option key={partner.value} value={partner.value}>
@@ -1850,7 +1887,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                     <select
                       value={searchSort}
                       onChange={(e) => setSearchSort(e.target.value as OfferSort)}
-                      className="h-8 rounded-lg border border-[#C2D1DF] bg-[#F7FAFE] px-2 text-xs text-[#363535] focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
+                      className="h-8 rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-2 text-xs text-[var(--brand-ink)] focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[color:rgba(0,123,255,0.2)]"
                     >
                       <option value="best">{copy.bestDeal}</option>
                       <option value="cheapest">{copy.cheapest}</option>
@@ -1863,46 +1900,46 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
 
               <div className="mt-4 grid gap-3">
                 {bestOffer ? (
-                  <div className="rounded-xl border border-[#C9D8EA] bg-[#E9F0F9] p-4 shadow-sm">
+                  <div className="rounded-xl border border-[var(--brand-border)] bg-[color:rgba(0,123,255,0.08)] p-4 shadow-sm">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="text-xs font-semibold uppercase tracking-wide text-[#1D4F91]">
+                      <div className="text-xs font-semibold uppercase tracking-wide text-[var(--brand-primary)]">
                         {copy.bestValueRightNow}
                       </div>
-                      <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-semibold text-[#0F386E] ring-1 ring-[#C9D8EA]">
+                      <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-semibold text-[var(--brand-primary)] ring-1 ring-[var(--brand-border)]">
                         {copy.score} {Math.round((offerView.scores.get(bestOffer.id) ?? 0) * 100)}
                       </span>
                     </div>
-                    <div className="mt-2 flex flex-wrap items-center gap-4 text-sm font-semibold text-[#000034]">
+                    <div className="mt-2 flex flex-wrap items-center gap-4 text-sm font-semibold text-[var(--brand-ink)]">
                       <div>
                         {copy.price}: {formatMoney(bestOffer.currency, bestOffer.priceTotal)}
                       </div>
-                      <div className="text-xs font-semibold text-[#1D4F91]">
+                      <div className="text-xs font-semibold text-[var(--brand-primary)]">
                         {copy.duration}: {formatDurationMinutes(offerView.durations.get(bestOffer.id))}
                       </div>
-                      <div className="text-xs font-semibold text-[#1D4F91]">
+                      <div className="text-xs font-semibold text-[var(--brand-primary)]">
                         {copy.stops}: {offerView.stops.get(bestOffer.id) ?? "—"}
                       </div>
-                      <div className="text-xs font-semibold text-[#1D4F91]">
+                      <div className="text-xs font-semibold text-[var(--brand-primary)]">
                         {copy.airline}: {airlineName(bestOffer.validatingAirlineCodes[0] ?? "") || "—"}
                       </div>
                     </div>
-                    <div className="mt-1 text-[11px] font-semibold text-[#1D4F91]">
+                    <div className="mt-1 text-[11px] font-semibold text-[var(--brand-primary)]">
                       {copy.basedOn}
                     </div>
                   </div>
                 ) : null}
                 {searchLoading ? (
-                  <div className="rounded-xl border border-[#D9E2EA] p-4 text-sm text-[#363535]">
+                  <div className="rounded-xl border border-[var(--brand-border)] p-4 text-sm text-[var(--brand-muted)]">
                     {copy.fetchingFares}
                   </div>
                 ) : null}
 
                 {!searchLoading && offerView.offers.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-[#D9E2EA] p-6 text-sm text-[#363535]">
+                  <div className="rounded-xl border border-dashed border-[var(--brand-border)] p-6 text-sm text-[var(--brand-muted)]">
                     {searchResults ? (
                       <div className="grid gap-3">
                         <span>{copy.noResults}</span>
-                        <div className="text-xs font-semibold text-[#1D4F91]">
+                        <div className="text-xs font-semibold text-[var(--brand-primary)]">
                           {copy.noResultsHelpTitle}
                         </div>
                         <div className="flex flex-wrap gap-2 text-xs">
@@ -1913,7 +1950,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                                 setNonStop(false);
                                 void runSearch({ ignoreFlex: true });
                               }}
-                              className="rounded-full border border-[#C9D8EA] bg-white px-3 py-1 font-semibold text-[#1D4F91] hover:border-[#1D4F91]"
+                              className="rounded-full border border-[var(--brand-border)] bg-white px-3 py-1 font-semibold text-[var(--brand-primary)] hover:border-[var(--brand-primary)]"
                             >
                               {copy.tryDisableNonstop}
                             </button>
@@ -1925,7 +1962,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                                 setFlexibleDates(true);
                                 void runSearch();
                               }}
-                              className="rounded-full border border-[#C9D8EA] bg-white px-3 py-1 font-semibold text-[#1D4F91] hover:border-[#1D4F91]"
+                              className="rounded-full border border-[var(--brand-border)] bg-white px-3 py-1 font-semibold text-[var(--brand-primary)] hover:border-[var(--brand-primary)]"
                             >
                               {copy.tryEnableFlexible}
                             </button>
@@ -1933,7 +1970,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                         </div>
                         {departureDate ? (
                           <div className="grid gap-2 text-xs">
-                            <div className="font-semibold text-[#0F386E]">
+                            <div className="font-semibold text-[var(--brand-primary)]">
                               {copy.tryDifferentDates}
                             </div>
                             <div className="flex flex-wrap gap-2">
@@ -1960,7 +1997,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                                         ignoreFlex: true,
                                       });
                                     }}
-                                    className="rounded-full border border-[#C9D8EA] bg-white px-3 py-1 font-semibold text-[#1D4F91] hover:border-[#1D4F91]"
+                                    className="rounded-full border border-[var(--brand-border)] bg-white px-3 py-1 font-semibold text-[var(--brand-primary)] hover:border-[var(--brand-primary)]"
                                   >
                                     {formatShortDate(pair.depart)}
                                     {pair.ret ? ` → ${formatShortDate(pair.ret)}` : ""}
@@ -1972,7 +2009,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                         ) : null}
                         {nearbyAirports(origin).length > 0 ? (
                           <div className="grid gap-2 text-xs">
-                            <div className="font-semibold text-[#0F386E]">
+                            <div className="font-semibold text-[var(--brand-primary)]">
                               {copy.tryNearbyOrigin}
                             </div>
                             <div className="flex flex-wrap gap-2">
@@ -1984,7 +2021,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                                     setOrigin(alt);
                                     void runSearch({ origin: alt, ignoreFlex: true });
                                   }}
-                                  className="rounded-full border border-[#C9D8EA] bg-white px-3 py-1 font-semibold text-[#1D4F91] hover:border-[#1D4F91]"
+                                  className="rounded-full border border-[var(--brand-border)] bg-white px-3 py-1 font-semibold text-[var(--brand-primary)] hover:border-[var(--brand-primary)]"
                                 >
                                   {alt}
                                 </button>
@@ -1994,7 +2031,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                         ) : null}
                         {nearbyAirports(destination).length > 0 ? (
                           <div className="grid gap-2 text-xs">
-                            <div className="font-semibold text-[#0F386E]">
+                            <div className="font-semibold text-[var(--brand-primary)]">
                               {copy.tryNearbyDestination}
                             </div>
                             <div className="flex flex-wrap gap-2">
@@ -2006,7 +2043,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                                     setDestination(alt);
                                     void runSearch({ destination: alt, ignoreFlex: true });
                                   }}
-                                  className="rounded-full border border-[#C9D8EA] bg-white px-3 py-1 font-semibold text-[#1D4F91] hover:border-[#1D4F91]"
+                                  className="rounded-full border border-[var(--brand-border)] bg-white px-3 py-1 font-semibold text-[var(--brand-primary)] hover:border-[var(--brand-primary)]"
                                 >
                                   {alt}
                                 </button>
@@ -2055,14 +2092,14 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                   return (
                   <div
                     key={offer.id}
-                    className="rounded-xl border border-[#B6C6D6] border-t-2 border-t-[#FFCC30] bg-[#FDFEFF] p-4 shadow-md"
+                    className="rounded-xl border border-[var(--brand-border)] border-t-2 border-t-[var(--brand-accent)] bg-white p-4 shadow-md"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div>
-                        <div className="text-lg font-semibold text-[#000034]">
+                        <div className="text-lg font-semibold text-[var(--brand-ink)]">
                           {formatMoney(offer.currency, offer.priceTotal)}
                         </div>
-                        <div className="mt-1 inline-flex flex-wrap items-center gap-2 text-xs text-[#0F386E]">
+                        <div className="mt-1 inline-flex flex-wrap items-center gap-2 text-xs text-[var(--brand-primary)]">
                           {searchSort === "best" && typeof score === "number" ? (
                             <span>
                               {copy.dealScore}: {Math.round(score * 100)}
@@ -2076,7 +2113,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                                 {badge.label}
                               </span>
                               {isBest && Number.isFinite(avgPrice) && avgPrice > 0 ? (
-                                <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-2 w-56 -translate-x-1/2 rounded-lg bg-[#000034] px-2 py-1 text-[11px] text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100">
+                                <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-2 w-56 -translate-x-1/2 rounded-lg bg-[#001F3F] px-2 py-1 text-[11px] text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100">
                                   <span className="block font-semibold text-white">
                                     Why it&apos;s best
                                   </span>
@@ -2115,60 +2152,63 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                               >
                                 {warning.label}
                               </span>
-                              <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-2 w-44 -translate-x-1/2 rounded-lg bg-[#000034] px-2 py-1 text-[11px] text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100">
+                              <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-2 w-44 -translate-x-1/2 rounded-lg bg-[#001F3F] px-2 py-1 text-[11px] text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100">
                                 {warning.label.replace(copy.outlierPrefix, "")}
                               </span>
                             </span>
                           ) : null}
                         </div>
                       </div>
-                      <div className="rounded-full bg-[#E9F0F9] px-2 py-0.5 text-[11px] font-semibold text-[#1D4F91] ring-1 ring-[#C9D8EA]">
+                      <div className="rounded-full bg-[color:rgba(0,123,255,0.12)] px-2 py-0.5 text-[11px] font-semibold text-[var(--brand-primary)] ring-1 ring-[var(--brand-border)]">
                         {airlineLabel}
                       </div>
                     </div>
                     <div className="mt-3 grid gap-2 sm:grid-cols-3">
-                      <div className="rounded-lg bg-[#F7FAFE] px-2 py-1.5">
-                        <div className="text-[10px] font-semibold uppercase tracking-wide text-[#1D4F91]">
+                      <div className="rounded-lg bg-[var(--brand-surface)] px-2 py-1.5">
+                        <div className="text-[10px] font-semibold uppercase tracking-wide text-[var(--brand-primary)]">
                           {copy.totalDuration}
                         </div>
-                        <div className="text-xs font-semibold text-[#000034]">
+                        <div className="text-xs font-semibold text-[var(--brand-ink)]">
                           {formatDurationMinutes(duration)}
                         </div>
                       </div>
-                      <div className="rounded-lg bg-[#F7FAFE] px-2 py-1.5">
-                        <div className="text-[10px] font-semibold uppercase tracking-wide text-[#1D4F91]">
+                      <div className="rounded-lg bg-[var(--brand-surface)] px-2 py-1.5">
+                        <div className="text-[10px] font-semibold uppercase tracking-wide text-[var(--brand-primary)]">
                           {copy.stops}
                         </div>
-                        <div className="text-xs font-semibold text-[#000034]">
+                        <div className="text-xs font-semibold text-[var(--brand-ink)]">
                           {typeof stops === "number" ? stops : "—"}
                         </div>
                       </div>
-                      <div className="rounded-lg bg-[#F7FAFE] px-2 py-1.5">
-                        <div className="text-[10px] font-semibold uppercase tracking-wide text-[#1D4F91]">
+                      <div className="rounded-lg bg-[var(--brand-surface)] px-2 py-1.5">
+                        <div className="text-[10px] font-semibold uppercase tracking-wide text-[var(--brand-primary)]">
                           {copy.airlines}
                         </div>
-                        <div className="text-xs font-semibold text-[#000034]">
+                        <div className="text-xs font-semibold text-[var(--brand-ink)]">
                           {airlines.length ? airlines.map(airlineName).join(", ") : "—"}
                         </div>
                       </div>
                     </div>
-                    <div className="mt-3 rounded-lg border border-[#C9D8EA] bg-[#E9F0F9] px-3 py-2 text-[11px] font-semibold text-[#1D4F91]">
+                    <div className="mt-3 rounded-lg border border-[var(--brand-border)] bg-[color:rgba(0,123,255,0.08)] px-3 py-2 text-[11px] font-semibold text-[var(--brand-primary)]">
                       {copy.bookOnPartnerSites}
                     </div>
                     <div className="mt-3 grid gap-2">
                       {offer.itineraries.map((it, idx) => (
-                        <div key={idx} className="rounded-lg border border-[#C2D1DF] bg-[#E8F0FA] p-3 text-xs text-[#363535]">
+                        <div
+                          key={idx}
+                          className="rounded-lg border border-[var(--brand-border)] bg-[color:rgba(0,123,255,0.08)] p-3 text-xs text-[var(--brand-ink)]"
+                        >
                           <div className="flex flex-wrap items-center justify-between gap-2">
-                            <div className="text-sm font-semibold text-[#000034]">
-                              <span className="rounded-md bg-[#DDEBFA] px-2 py-0.5 ring-1 ring-[#B6C6D6]">
+                            <div className="text-sm font-semibold text-[var(--brand-ink)]">
+                              <span className="rounded-md bg-[color:rgba(0,123,255,0.12)] px-2 py-0.5 ring-1 ring-[var(--brand-border)]">
                                 {it.segments[0]?.departure.iataCode}
                               </span>{" "}
-                              <span className="text-[#1D4F91]">→</span>{" "}
-                              <span className="rounded-md bg-[#DDEBFA] px-2 py-0.5 ring-1 ring-[#B6C6D6]">
+                              <span className="text-[var(--brand-primary)]">→</span>{" "}
+                              <span className="rounded-md bg-[color:rgba(0,123,255,0.12)] px-2 py-0.5 ring-1 ring-[var(--brand-border)]">
                                 {it.segments[it.segments.length - 1]?.arrival.iataCode}
                               </span>
                             </div>
-                            <div className="text-[#0F386E]">
+                            <div className="text-[var(--brand-primary)]">
                               {copy.durationLabel}: {formatIsoDuration(it.duration)}
                             </div>
                           </div>
@@ -2190,21 +2230,21 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                                         {seg.arrival.iataCode} {formatDateTime(seg.arrival.at)}
                                       </span>
                                     </div>
-                                    <div className="flex flex-wrap items-center gap-1 text-[11px] font-semibold text-[#1D4F91]">
-                                      <span className="rounded-full bg-[#E9F0F9] px-2 py-0.5 ring-1 ring-[#C9D8EA]">
+                                    <div className="flex flex-wrap items-center gap-1 text-[11px] font-semibold text-[var(--brand-primary)]">
+                                      <span className="rounded-full bg-[color:rgba(0,123,255,0.12)] px-2 py-0.5 ring-1 ring-[var(--brand-border)]">
                                         {copy.flightLabel} {seg.carrierCode}
                                         {seg.number}
                                       </span>
-                                      <span className="rounded-full bg-[#E9F0F9] px-2 py-0.5 ring-1 ring-[#C9D8EA]">
+                                      <span className="rounded-full bg-[color:rgba(0,123,255,0.12)] px-2 py-0.5 ring-1 ring-[var(--brand-border)]">
                                         {formatIsoDuration(seg.duration)}
                                       </span>
-                                      <span className="rounded-full bg-[#E9F0F9] px-2 py-0.5 ring-1 ring-[#C9D8EA]">
+                                      <span className="rounded-full bg-[color:rgba(0,123,255,0.12)] px-2 py-0.5 ring-1 ring-[var(--brand-border)]">
                                         {copy.stops}: {seg.numberOfStops}
                                       </span>
                                     </div>
                                   </div>
                                   {next && typeof layoverMinutes === "number" ? (
-                                    <div className="mt-2 rounded-lg border border-[#C9D8EA] bg-[#F7FAFE] px-2 py-1 text-[11px] font-semibold text-[#1D4F91]">
+                                    <div className="mt-2 rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-2 py-1 text-[11px] font-semibold text-[var(--brand-primary)]">
                                       {copy.layoverLabel} {formatDurationMinutes(layoverMinutes)} ·{" "}
                                       {seg.arrival.iataCode}
                                     </div>
@@ -2216,18 +2256,18 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                         </div>
                       ))}
                     </div>
-                    <div className="mt-4 flex flex-wrap items-center gap-2 rounded-lg bg-white/90 px-2 py-2 shadow-sm ring-1 ring-[#E4ECF3] backdrop-blur-sm sm:static sm:bg-transparent sm:px-0 sm:py-0 sm:shadow-none sm:ring-0 sticky bottom-3 z-10">
+                    <div className="mt-4 flex flex-wrap items-center gap-2 rounded-lg bg-white/90 px-2 py-2 shadow-sm ring-1 ring-[var(--brand-border)] backdrop-blur-sm sm:static sm:bg-transparent sm:px-0 sm:py-0 sm:shadow-none sm:ring-0 sticky bottom-3 z-10">
                       {purchaseUrl ? (
                         <a
                           href={purchaseUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex h-8 items-center justify-center rounded-lg bg-gradient-to-r from-[#1D4F91] to-[#0F386E] px-3 text-xs font-semibold text-white shadow-sm hover:from-[#0F386E] hover:to-[#1D4F91]"
+                          className="inline-flex h-8 items-center justify-center rounded-lg bg-gradient-to-r from-[var(--brand-primary)] to-[#0069D9] px-3 text-xs font-semibold text-white shadow-sm hover:from-[#0069D9] hover:to-[var(--brand-primary)]"
                         >
                           {copy.buy}
                         </a>
                       ) : (
-                        <span className="inline-flex h-8 items-center rounded-lg border border-[#D9E2EA] px-3 text-xs text-[#0F386E]">
+                        <span className="inline-flex h-8 items-center rounded-lg border border-[var(--brand-border)] px-3 text-xs text-[var(--brand-primary)]">
                           {copy.buyUnavailable}
                         </span>
                       )}
@@ -2235,12 +2275,12 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                         <button
                           type="button"
                           onClick={() => void shareDealLink(purchaseUrl)}
-                          className="inline-flex h-8 items-center rounded-lg border border-[#C9D8EA] bg-white px-3 text-xs font-semibold text-[#1D4F91] hover:border-[#1D4F91]"
+                          className="inline-flex h-8 items-center rounded-lg border border-[var(--brand-border)] bg-white px-3 text-xs font-semibold text-[var(--brand-primary)] hover:border-[var(--brand-primary)]"
                         >
                           {copy.shareDeal}
                         </button>
                       ) : null}
-                      <span className="text-[10px] font-semibold text-[#69707a]">
+                      <span className="text-[10px] font-semibold text-[var(--brand-muted)]">
                         Prices can change fast.
                       </span>
                     </div>
@@ -2255,9 +2295,9 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
             id="explore"
             className="-mt-6 grid items-start gap-6 scroll-mt-20 lg:grid-cols-[420px_1fr]"
           >
-            <div className="rounded-2xl border border-[#B6C6D6] bg-white p-5 shadow-lg ring-2 ring-[#B6C6D6]">
+            <div className="rounded-2xl border border-[var(--brand-border)] bg-white p-5 shadow-lg ring-2 ring-[var(--brand-border)]">
               <h2 className="text-sm font-semibold">{copy.exploreTitle}</h2>
-              <p className="mt-1 text-xs text-[#363535]">{copy.exploreNote}</p>
+              <p className="mt-1 text-xs text-[var(--brand-muted)]">{copy.exploreNote}</p>
 
               <form
                 className="mt-4 grid gap-3"
@@ -2273,8 +2313,8 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                     onChange={setExploreOrigin}
                     labels={airportLabels}
                   />
-                  <label className="relative text-xs font-medium text-[#000034]">
-                    <span className="pointer-events-none absolute left-3 top-1.5 text-[10px] text-[#000034]">
+                  <label className="relative text-xs font-medium text-[var(--brand-ink)]">
+                    <span className="pointer-events-none absolute left-3 top-1.5 text-[10px] text-[var(--brand-ink)]">
                       {copy.maxPrice}
                     </span>
                     <input
@@ -2282,34 +2322,34 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                       min={1}
                       value={exploreMaxPrice}
                       onChange={(e) => setExploreMaxPrice(Number(e.target.value))}
-                      className="h-10 rounded-xl border border-[#C2D1DF] bg-[#F7FAFE] px-3 pt-3 pb-1 text-sm outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
+                      className="h-10 rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 pt-3 pb-1 text-sm outline-none focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[color:rgba(0,123,255,0.2)]"
                     />
                   </label>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <label className="grid gap-1 text-xs font-medium text-[#000034]">
+                  <label className="grid gap-1 text-xs font-medium text-[var(--brand-ink)]">
                     {copy.depart}
                     <input
                       type="date"
                       value={exploreDepartureDate}
                       onChange={(e) => setExploreDepartureDate(e.target.value)}
-                      className="h-10 rounded-xl border border-[#C2D1DF] bg-[#F7FAFE] px-3 text-sm outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
+                      className="h-10 rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 text-sm outline-none focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[color:rgba(0,123,255,0.2)]"
                     />
                   </label>
-                  <label className="grid gap-1 text-xs font-medium text-[#000034]">
+                  <label className="grid gap-1 text-xs font-medium text-[var(--brand-ink)]">
                     {copy.returnOptional}
                     <input
                       type="date"
                       value={exploreReturnDate}
                       onChange={(e) => setExploreReturnDate(e.target.value)}
-                      className="h-10 rounded-xl border border-[#C2D1DF] bg-[#F7FAFE] px-3 text-sm outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
+                      className="h-10 rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 text-sm outline-none focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[color:rgba(0,123,255,0.2)]"
                     />
                   </label>
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <label className="grid gap-1 text-xs font-medium text-[#000034]">
+                  <label className="grid gap-1 text-xs font-medium text-[var(--brand-ink)]">
                     {copy.adults}
                     <input
                       type="number"
@@ -2317,26 +2357,26 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                       max={9}
                       value={exploreAdults}
                       onChange={(e) => setExploreAdults(Number(e.target.value))}
-                      className="h-10 rounded-xl border border-[#C2D1DF] bg-[#F7FAFE] px-3 text-sm outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
+                      className="h-10 rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 text-sm outline-none focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[color:rgba(0,123,255,0.2)]"
                     />
                   </label>
-                  <label className="grid gap-1 text-xs font-medium text-[#000034]">
+                  <label className="grid gap-1 text-xs font-medium text-[var(--brand-ink)]">
                     {copy.currency}
                     <input
                       value={exploreCurrency}
                       onChange={(e) => setExploreCurrency(e.target.value.toUpperCase())}
-                      className="h-10 rounded-xl border border-[#C2D1DF] bg-[#F7FAFE] px-3 text-sm outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
+                      className="h-10 rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 text-sm outline-none focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[color:rgba(0,123,255,0.2)]"
                       placeholder="USD"
                     />
                   </label>
-                  <label className="flex h-10 items-center gap-2 rounded-xl border border-[#C2D1DF] bg-[#F7FAFE] px-3 py-2 text-sm sm:col-span-2">
+                  <label className="flex h-10 items-center gap-2 rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 py-2 text-sm sm:col-span-2">
                     <input
                       type="checkbox"
                       checked={exploreNonStop}
                       onChange={(e) => setExploreNonStop(e.target.checked)}
-                      className="h-4 w-4 accent-[#006A52]"
+                      className="h-4 w-4 accent-[var(--brand-success)]"
                     />
-                    <span className="text-sm text-[#363535]">{copy.nonstop}</span>
+                    <span className="text-sm text-[var(--brand-ink)]">{copy.nonstop}</span>
                   </label>
                 </div>
 
@@ -2350,7 +2390,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
 
                 {exploreError ? (
                   <div
-                    className="rounded-xl border border-[#F5CFB3] bg-[#FBE9DC] px-3 py-2 text-xs text-[#D57800]"
+                    className="rounded-xl border border-[color:rgba(253,126,20,0.35)] bg-[color:rgba(253,126,20,0.12)] px-3 py-2 text-xs text-[var(--brand-accent)]"
                     role="status"
                     aria-live="polite"
                   >
@@ -2360,20 +2400,20 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
               </form>
             </div>
 
-            <div className="rounded-2xl border border-[#B6C6D6] bg-white p-5 shadow-lg ring-2 ring-[#B6C6D6]">
+            <div className="rounded-2xl border border-[var(--brand-border)] bg-white p-5 shadow-lg ring-2 ring-[var(--brand-border)]">
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-semibold">{copy.dealsTitle}</h2>
-                <div className="text-xs text-[#0F386E]">
+                <div className="text-xs text-[var(--brand-primary)]">
                   {exploreResults ? `${exploreResults.deals.length} ${copy.destinationsLabel}` : "—"}
                 </div>
               </div>
-              <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-[#0F386E]">
+              <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-[var(--brand-primary)]">
                 <label className="flex items-center gap-2">
                   {copy.buyVia}
                   <select
                     value={explorePurchasePartner}
                     onChange={(e) => setExplorePurchasePartner(e.target.value as PurchasePartner)}
-                    className="h-8 rounded-lg border border-[#C2D1DF] bg-[#F7FAFE] px-2 text-xs text-[#363535] focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
+                    className="h-8 rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-2 text-xs text-[var(--brand-ink)] focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[color:rgba(0,123,255,0.2)]"
                   >
                     {EXPLORE_PARTNERS_VISIBLE.map((partner) => (
                       <option key={partner.value} value={partner.value}>
@@ -2386,7 +2426,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
 
               <div className="mt-4 grid gap-3">
                 {!exploreLoading && exploreView.deals.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-[#D9E2EA] p-6 text-sm text-[#363535]">
+                  <div className="rounded-xl border border-dashed border-[var(--brand-border)] p-6 text-sm text-[var(--brand-muted)]">
                     {copy.runExploreToSee}
                   </div>
                 ) : null}
@@ -2409,50 +2449,50 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                   return (
                   <div
                     key={`${key}-${idx}`}
-                    className="rounded-xl border border-[#B6C6D6] border-t-2 border-t-[#006A52] bg-white p-4 shadow-md"
+                    className="rounded-xl border border-[var(--brand-border)] border-t-2 border-t-[var(--brand-success)] bg-white p-4 shadow-md"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="text-sm font-semibold text-[#000034]">
+                      <div className="text-sm font-semibold text-[var(--brand-ink)]">
                         {airportLabel(deal.destination)}
                       </div>
-                      <div className="text-sm font-semibold text-[#000034]">
+                      <div className="text-sm font-semibold text-[var(--brand-ink)]">
                         {formatMoney(deal.currency, deal.priceTotal)}
                       </div>
                     </div>
                     <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] font-semibold">
                       {Number.isFinite(exploreMaxPrice) ? (
-                        <span className="rounded-full bg-[#FFF4C2] px-2 py-0.5 text-[#000034] ring-1 ring-[#FFE28A]">
+                        <span className="rounded-full bg-[color:rgba(253,126,20,0.18)] px-2 py-0.5 text-[var(--brand-ink)] ring-1 ring-[color:rgba(253,126,20,0.4)]">
                           {copy.budgetCap}: {formatMoney(exploreCurrency, String(exploreMaxPrice))}
                         </span>
                       ) : null}
                       {exploreNonStop ? (
-                        <span className="rounded-full bg-[#E6F3EE] px-2 py-0.5 text-[#006A52] ring-1 ring-[#CFE5DC]">
+                        <span className="rounded-full bg-[color:rgba(40,167,69,0.12)] px-2 py-0.5 text-[var(--brand-success)] ring-1 ring-[color:rgba(40,167,69,0.3)]">
                           {copy.nonstopOnly}
                         </span>
                       ) : null}
                     </div>
                     <div className="mt-2 grid gap-2 sm:grid-cols-3">
-                      <div className="rounded-lg bg-[#F7FAFE] px-2 py-1.5">
-                        <div className="text-[10px] font-semibold uppercase tracking-wide text-[#1D4F91]">
+                      <div className="rounded-lg bg-[var(--brand-surface)] px-2 py-1.5">
+                        <div className="text-[10px] font-semibold uppercase tracking-wide text-[var(--brand-primary)]">
                           {copy.duration}
                         </div>
-                        <div className="text-xs font-semibold text-[#000034]">
+                        <div className="text-xs font-semibold text-[var(--brand-ink)]">
                           {formatDurationMinutes(deal.durationMinutes)}
                         </div>
                       </div>
-                      <div className="rounded-lg bg-[#F7FAFE] px-2 py-1.5">
-                        <div className="text-[10px] font-semibold uppercase tracking-wide text-[#1D4F91]">
+                      <div className="rounded-lg bg-[var(--brand-surface)] px-2 py-1.5">
+                        <div className="text-[10px] font-semibold uppercase tracking-wide text-[var(--brand-primary)]">
                           {copy.maxStops}
                         </div>
-                        <div className="text-xs font-semibold text-[#000034]">
+                        <div className="text-xs font-semibold text-[var(--brand-ink)]">
                           {typeof deal.maxStops === "number" ? deal.maxStops : "—"}
                         </div>
                       </div>
-                      <div className="rounded-lg bg-[#F7FAFE] px-2 py-1.5">
-                        <div className="text-[10px] font-semibold uppercase tracking-wide text-[#1D4F91]">
+                      <div className="rounded-lg bg-[var(--brand-surface)] px-2 py-1.5">
+                        <div className="text-[10px] font-semibold uppercase tracking-wide text-[var(--brand-primary)]">
                           {copy.tripLength}
                         </div>
-                        <div className="text-xs font-semibold text-[#000034]">
+                        <div className="text-xs font-semibold text-[var(--brand-ink)]">
                           {(() => {
                             const days = tripLengthDays(deal.departureDate, deal.returnDate);
                             return typeof days === "number" ? `${days} ${copy.daysLabel}` : "—";
@@ -2468,34 +2508,34 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                           >
                             {warning.label}
                           </span>
-                          <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-2 w-44 -translate-x-1/2 rounded-lg bg-[#000034] px-2 py-1 text-[11px] text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100">
+                          <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-2 w-44 -translate-x-1/2 rounded-lg bg-[#001F3F] px-2 py-1 text-[11px] text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100">
                             {warning.label.replace(copy.outlierPrefix, "")}
                           </span>
                         </span>
                       </div>
                     ) : null}
-                    <div className="mt-2 text-xs text-[#363535]">
+                    <div className="mt-2 text-xs text-[var(--brand-muted)]">
                       {deal.departureDate ? `${copy.departLabel}: ${deal.departureDate}` : null}
                       {deal.returnDate ? ` • ${copy.returnLabel}: ${deal.returnDate}` : null}
                       {typeof tripDays === "number"
                         ? ` • ${copy.tripLength}: ${tripDays} ${copy.daysLabel}`
                         : null}
                     </div>
-                    <div className="mt-3 rounded-lg border border-[#C9D8EA] bg-[#E9F0F9] px-3 py-2 text-[11px] font-semibold text-[#1D4F91]">
+                    <div className="mt-3 rounded-lg border border-[var(--brand-border)] bg-[color:rgba(0,123,255,0.08)] px-3 py-2 text-[11px] font-semibold text-[var(--brand-primary)]">
                       {copy.bookOnPartnerSites}
                     </div>
-                    <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg bg-white/90 px-2 py-2 shadow-sm ring-1 ring-[#E4ECF3] backdrop-blur-sm sm:static sm:bg-transparent sm:px-0 sm:py-0 sm:shadow-none sm:ring-0 sticky bottom-3 z-10">
+                    <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg bg-white/90 px-2 py-2 shadow-sm ring-1 ring-[var(--brand-border)] backdrop-blur-sm sm:static sm:bg-transparent sm:px-0 sm:py-0 sm:shadow-none sm:ring-0 sticky bottom-3 z-10">
                       {purchaseUrl ? (
                         <a
                           href={purchaseUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex h-8 items-center justify-center rounded-lg bg-gradient-to-r from-[#1D4F91] to-[#0F386E] px-3 text-xs font-semibold text-white shadow-sm hover:from-[#0F386E] hover:to-[#1D4F91]"
+                          className="inline-flex h-8 items-center justify-center rounded-lg bg-gradient-to-r from-[var(--brand-primary)] to-[#0069D9] px-3 text-xs font-semibold text-white shadow-sm hover:from-[#0069D9] hover:to-[var(--brand-primary)]"
                         >
                           {copy.buy}
                         </a>
                       ) : (
-                        <span className="inline-flex h-8 items-center rounded-lg border border-[#D9E2EA] px-3 text-xs text-[#0F386E]">
+                        <span className="inline-flex h-8 items-center rounded-lg border border-[var(--brand-border)] px-3 text-xs text-[var(--brand-primary)]">
                           {copy.buyUnavailable}
                         </span>
                       )}
@@ -2503,12 +2543,12 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                         <button
                           type="button"
                           onClick={() => void shareDealLink(purchaseUrl)}
-                          className="inline-flex h-8 items-center rounded-lg border border-[#C9D8EA] bg-white px-3 text-xs font-semibold text-[#1D4F91] hover:border-[#1D4F91]"
+                          className="inline-flex h-8 items-center rounded-lg border border-[var(--brand-border)] bg-white px-3 text-xs font-semibold text-[var(--brand-primary)] hover:border-[var(--brand-primary)]"
                         >
                           {copy.shareDeal}
                         </button>
                       ) : null}
-                      <span className="text-[10px] font-semibold text-[#69707a]">
+                      <span className="text-[10px] font-semibold text-[var(--brand-muted)]">
                         Prices can change fast.
                       </span>
                       {explorePurchasePartner === "klook" && klookUrl ? (
@@ -2516,7 +2556,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                           href={klookUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex text-xs font-medium text-[#1D4F91] hover:underline"
+                          className="inline-flex text-xs font-medium text-[var(--brand-primary)] hover:underline"
                         >
                           {copy.klookCta}
                         </a>
@@ -2526,14 +2566,14 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                           href={deal.links.flightOffers}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex text-xs font-medium text-[#1D4F91] hover:underline"
+                          className="inline-flex text-xs font-medium text-[var(--brand-primary)] hover:underline"
                         >
                           {copy.viewAmadeusOffer}
                         </a>
                       ) : null}
                     </div>
                     {SHOW_EXPLORE_LINKS && purchaseUrl ? (
-                      <div className="mt-2 max-w-full rounded-lg border border-dashed border-[#C9D8EA] bg-[#F7FAFE] px-2 py-1 text-[10px] text-[#1D4F91] break-all">
+                      <div className="mt-2 max-w-full rounded-lg border border-dashed border-[var(--brand-border)] bg-[var(--brand-surface)] px-2 py-1 text-[10px] text-[var(--brand-primary)] break-all">
                         {purchaseUrl}
                       </div>
                     ) : null}
