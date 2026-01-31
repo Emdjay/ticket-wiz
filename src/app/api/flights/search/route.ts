@@ -34,35 +34,60 @@ const QuerySchema = z.object({
   max: z.coerce.number().int().min(1).max(50).default(20),
 });
 
-function pickOffer(raw: any): FlightOffer {
+type UnknownRecord = Record<string, unknown>;
+
+const asRecord = (value: unknown): UnknownRecord =>
+  value && typeof value === "object" ? (value as UnknownRecord) : {};
+
+const asArray = (value: unknown): unknown[] => (Array.isArray(value) ? value : []);
+
+const asString = (value: unknown): string =>
+  typeof value === "string" ? value : value == null ? "" : String(value);
+
+const asNumber = (value: unknown): number => {
+  if (typeof value === "number") return value;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
+};
+
+function pickOffer(raw: unknown): FlightOffer {
+  const offer = asRecord(raw);
+  const price = asRecord(offer.price);
+  const itineraries = asArray(offer.itineraries);
+
   return {
-    id: String(raw?.id ?? ""),
-    priceTotal: String(raw?.price?.total ?? ""),
-    currency: String(raw?.price?.currency ?? ""),
-    validatingAirlineCodes: Array.isArray(raw?.validatingAirlineCodes)
-      ? raw.validatingAirlineCodes.map(String)
+    id: asString(offer.id),
+    priceTotal: asString(price.total),
+    currency: asString(price.currency),
+    validatingAirlineCodes: Array.isArray(offer.validatingAirlineCodes)
+      ? (offer.validatingAirlineCodes as unknown[]).map(asString)
       : [],
-    itineraries: Array.isArray(raw?.itineraries)
-      ? raw.itineraries.map((it: any) => ({
-          duration: String(it?.duration ?? ""),
-          segments: Array.isArray(it?.segments)
-            ? it.segments.map((seg: any) => ({
-                departure: {
-                  iataCode: String(seg?.departure?.iataCode ?? ""),
-                  at: String(seg?.departure?.at ?? ""),
-                },
-                arrival: {
-                  iataCode: String(seg?.arrival?.iataCode ?? ""),
-                  at: String(seg?.arrival?.at ?? ""),
-                },
-                carrierCode: String(seg?.carrierCode ?? ""),
-                number: String(seg?.number ?? ""),
-                duration: String(seg?.duration ?? ""),
-                numberOfStops: Number(seg?.numberOfStops ?? 0),
-              }))
-            : [],
-        }))
-      : [],
+    itineraries: itineraries.map((it) => {
+      const itRec = asRecord(it);
+      const segments = asArray(itRec.segments);
+      return {
+        duration: asString(itRec.duration),
+        segments: segments.map((seg) => {
+          const segRec = asRecord(seg);
+          const departure = asRecord(segRec.departure);
+          const arrival = asRecord(segRec.arrival);
+          return {
+            departure: {
+              iataCode: asString(departure.iataCode),
+              at: asString(departure.at),
+            },
+            arrival: {
+              iataCode: asString(arrival.iataCode),
+              at: asString(arrival.at),
+            },
+            carrierCode: asString(segRec.carrierCode),
+            number: asString(segRec.number),
+            duration: asString(segRec.duration),
+            numberOfStops: asNumber(segRec.numberOfStops),
+          };
+        }),
+      };
+    }),
   };
 }
 
@@ -109,17 +134,21 @@ export async function GET(request: Request) {
       }
     );
 
-    const json = (await response.json().catch(() => null)) as any;
+    const json = (await response.json().catch(() => null)) as unknown;
+    const jsonRecord = asRecord(json);
     if (!response.ok) {
+      const errors = asArray(jsonRecord.errors);
+      const firstError = errors.length ? asRecord(errors[0]) : {};
       const message =
-        json?.errors?.[0]?.detail ||
-        json?.errors?.[0]?.title ||
-        json?.error_description ||
+        asString(firstError.detail) ||
+        asString(firstError.title) ||
+        asString(jsonRecord.error_description) ||
         "Flight search failed.";
       return NextResponse.json({ error: message, raw: json }, { status: response.status });
     }
 
-    const offers = Array.isArray(json?.data) ? json.data.map(pickOffer) : [];
+    const data = jsonRecord.data;
+    const offers = Array.isArray(data) ? data.map(pickOffer) : [];
     const payload: FlightSearchResponse = { provider: "amadeus", offers };
     return NextResponse.json(payload);
   } catch (error) {

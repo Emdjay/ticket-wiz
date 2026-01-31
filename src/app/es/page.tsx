@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import Image from "next/image";
+import Link from "next/link";
 import { HtmlLangSetter } from "@/components/HtmlLangSetter";
 import { LegalLinksModal } from "@/components/LegalLinksModal";
 
@@ -77,13 +78,21 @@ export default function SpanishHomePage() {
         />
         <div className="mx-auto flex min-h-screen max-w-5xl flex-col items-center justify-center gap-8 px-6 py-16 text-center">
           <div className="flex w-full justify-end">
-            <a
+            <Link
               href="/"
               className="inline-flex items-center rounded-full border border-[var(--brand-border)] bg-white px-3 py-1 text-[11px] font-semibold text-[var(--brand-primary)] shadow-sm transition hover:border-[var(--brand-primary)]"
             >
               EN
-            </a>
+            </Link>
           </div>
+          <Link
+            href="/es/app"
+            className="inline-flex items-center gap-2 rounded-full border border-[var(--brand-border)] bg-white/90 px-4 py-1 text-[11px] font-semibold text-[var(--brand-primary)] shadow-sm transition hover:border-[var(--brand-primary)]"
+          >
+            Mejor oferta de la semana
+            <span className="text-[var(--brand-ink)]">→</span>
+            Ver en la app
+          </Link>
           <div className="inline-flex h-[140px] w-[140px] items-center justify-center overflow-hidden rounded-full bg-white ring-1 ring-[var(--brand-border)]">
             <Image
               src="/ticket-wiz-logo.png"
@@ -120,21 +129,32 @@ export default function SpanishHomePage() {
               Enlaces de compra listos
             </span>
           </div>
+          <div className="flex flex-wrap items-center justify-center gap-3 rounded-full border border-[var(--brand-border)] bg-white/80 px-5 py-2 text-[11px] font-semibold text-[var(--brand-muted)] shadow-sm">
+            <span>Comunidad early access</span>
+            <span className="text-[var(--brand-border)]">•</span>
+            <span>Powered by Amadeus</span>
+            <span className="text-[var(--brand-border)]">•</span>
+            <span>Nuevas ofertas cada semana</span>
+          </div>
           <div className="flex flex-wrap items-center justify-center gap-3">
-            <a
+            <Link
               href="/es/app"
               className="inline-flex h-11 items-center justify-center rounded-xl bg-[var(--brand-primary)] px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0069D9]"
             >
               Ir a la app
-            </a>
+            </Link>
+          </div>
+          <div className="text-xs text-[var(--brand-muted)]">
+            ¿Preguntas?{" "}
             <a
+              className="font-semibold text-[var(--brand-primary)] hover:underline"
               href="https://mail.zoho.com/zm/#mail/compose?to=info@ticket-wiz.com"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex h-11 items-center justify-center rounded-xl border border-[var(--brand-border)] bg-white px-5 text-sm font-semibold text-[var(--brand-primary)] shadow-sm transition hover:border-[var(--brand-primary)]"
             >
               Contáctanos
             </a>
+            .
           </div>
           <div className="text-xs text-[var(--brand-muted)]">
             Correo:{" "}

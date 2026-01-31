@@ -36,6 +36,22 @@ const EnvList = z
       .filter(Boolean)
   );
 
+type UnknownRecord = Record<string, unknown>;
+
+const asRecord = (value: unknown): UnknownRecord =>
+  value && typeof value === "object" ? (value as UnknownRecord) : {};
+
+const asArray = (value: unknown): unknown[] => (Array.isArray(value) ? value : []);
+
+const asString = (value: unknown): string =>
+  typeof value === "string" ? value : value == null ? "" : String(value);
+
+const asNumber = (value: unknown): number => {
+  if (typeof value === "number") return value;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
+};
+
 function readIntEnv(name: string, fallback: number): number {
   const raw = process.env[name];
   const parsed = raw ? Number(raw) : Number.NaN;
@@ -64,35 +80,44 @@ function formatDurationMinutes(totalMinutes: number) {
   return `${hours}h ${minutes}m`;
 }
 
-function pickOffer(raw: any): FlightOffer {
+function pickOffer(raw: unknown): FlightOffer {
+  const offer = asRecord(raw);
+  const price = asRecord(offer.price);
+  const itineraries = asArray(offer.itineraries);
+
   return {
-    id: String(raw?.id ?? ""),
-    priceTotal: String(raw?.price?.total ?? ""),
-    currency: String(raw?.price?.currency ?? ""),
-    validatingAirlineCodes: Array.isArray(raw?.validatingAirlineCodes)
-      ? raw.validatingAirlineCodes.map(String)
+    id: asString(offer.id),
+    priceTotal: asString(price.total),
+    currency: asString(price.currency),
+    validatingAirlineCodes: Array.isArray(offer.validatingAirlineCodes)
+      ? (offer.validatingAirlineCodes as unknown[]).map(asString)
       : [],
-    itineraries: Array.isArray(raw?.itineraries)
-      ? raw.itineraries.map((it: any) => ({
-          duration: String(it?.duration ?? ""),
-          segments: Array.isArray(it?.segments)
-            ? it.segments.map((seg: any) => ({
-                departure: {
-                  iataCode: String(seg?.departure?.iataCode ?? ""),
-                  at: String(seg?.departure?.at ?? ""),
-                },
-                arrival: {
-                  iataCode: String(seg?.arrival?.iataCode ?? ""),
-                  at: String(seg?.arrival?.at ?? ""),
-                },
-                carrierCode: String(seg?.carrierCode ?? ""),
-                number: String(seg?.number ?? ""),
-                duration: String(seg?.duration ?? ""),
-                numberOfStops: Number(seg?.numberOfStops ?? 0),
-              }))
-            : [],
-        }))
-      : [],
+    itineraries: itineraries.map((it) => {
+      const itRec = asRecord(it);
+      const segments = asArray(itRec.segments);
+      return {
+        duration: asString(itRec.duration),
+        segments: segments.map((seg) => {
+          const segRec = asRecord(seg);
+          const departure = asRecord(segRec.departure);
+          const arrival = asRecord(segRec.arrival);
+          return {
+            departure: {
+              iataCode: asString(departure.iataCode),
+              at: asString(departure.at),
+            },
+            arrival: {
+              iataCode: asString(arrival.iataCode),
+              at: asString(arrival.at),
+            },
+            carrierCode: asString(segRec.carrierCode),
+            number: asString(segRec.number),
+            duration: asString(segRec.duration),
+            numberOfStops: asNumber(segRec.numberOfStops),
+          };
+        }),
+      };
+    }),
   };
 }
 
@@ -139,9 +164,11 @@ async function fetchBestOffer(args: {
     headers: { Authorization: `Bearer ${args.token}` },
     cache: "no-store",
   });
-  const json = (await response.json().catch(() => null)) as any;
-  if (!response.ok || !Array.isArray(json?.data)) return null;
-  const offers = json.data.map(pickOffer).filter((offer: FlightOffer) => offer.id);
+  const json = (await response.json().catch(() => null)) as unknown;
+  const jsonRecord = asRecord(json);
+  const data = jsonRecord.data;
+  if (!response.ok || !Array.isArray(data)) return null;
+  const offers = data.map(pickOffer).filter((offer) => offer.id);
   if (offers.length === 0) return null;
   const scored = scoreOffers(offers);
   const best = offers.reduce((bestOffer: FlightOffer, offer: FlightOffer) => {
@@ -220,9 +247,10 @@ export async function GET(request: Request) {
             cache: "no-store",
           }
         );
-        const json = (await response.json().catch(() => null)) as any;
-        if (!response.ok || !Array.isArray(json?.data)) return [];
-        return json.data.map((raw: any) => ({
+        const json = (await response.json().catch(() => null)) as unknown;
+        const data = asRecord(json).data;
+        if (!response.ok || !Array.isArray(data)) return [];
+        return data.map((raw) => ({
           offer: pickOffer(raw),
           destination,
         }));
@@ -310,6 +338,8 @@ export async function GET(request: Request) {
     });
 
     const savedSearches = await getSavedSearches();
+    type SavedSearch = (typeof savedSearches)[number];
+    type SavedResult = { search: SavedSearch; best: { offer: FlightOffer; score: number } };
     if (savedSearches.length > 0) {
       const savedResults = await mapWithConcurrency(savedSearches, 3, async (search) => {
         const best = await fetchBestOffer({
@@ -326,33 +356,33 @@ export async function GET(request: Request) {
         return best ? { search, best } : null;
       });
 
-      await Promise.all(
-        savedResults
-          .filter(Boolean)
-          .map(async (result: any) => {
-            const bestOffer = result.best.offer as FlightOffer;
-            const scorePct = Math.round(result.best.score * 100);
-            const totalDuration = bestOffer.itineraries.reduce((sum: number, it: any) => {
-              return sum + parseIsoDurationToMinutes(it.duration);
-            }, 0);
-            const maxStops = bestOffer.itineraries.reduce((maxStops: number, it: any) => {
-              const segments = it.segments.length;
-              return Math.max(maxStops, Math.max(0, segments - 1));
-            }, 0);
-            const priceLabel = formatMoney(bestOffer.currency, bestOffer.priceTotal);
-            const durationLabel = formatDurationMinutes(totalDuration);
-            const stopsLabel = `${maxStops} stop${maxStops === 1 ? "" : "s"}`;
-            const airlineCode = bestOffer.validatingAirlineCodes[0] ?? "Multiple carriers";
-            const purchaseUrl = buildKiwiAffiliateUrl({
-              origin: result.search.origin,
-              destination: result.search.destination,
-              depart: result.search.departure_date,
-              returnDate: result.search.return_date ?? undefined,
-              adults: result.search.adults,
-            });
+      const validResults = savedResults.filter((result): result is SavedResult => Boolean(result));
 
-            const subjectLine = `Weekly price update: ${result.search.origin} → ${result.search.destination} from ${priceLabel}`;
-            const htmlBody = `
+      await Promise.all(
+        validResults.map(async (result) => {
+          const bestOffer = result.best.offer;
+          const scorePct = Math.round(result.best.score * 100);
+          const totalDuration = bestOffer.itineraries.reduce((sum: number, it: Itinerary) => {
+            return sum + parseIsoDurationToMinutes(it.duration);
+          }, 0);
+          const maxStops = bestOffer.itineraries.reduce((maxValue: number, it: Itinerary) => {
+            const segments = it.segments.length;
+            return Math.max(maxValue, Math.max(0, segments - 1));
+          }, 0);
+          const priceLabel = formatMoney(bestOffer.currency, bestOffer.priceTotal);
+          const durationLabel = formatDurationMinutes(totalDuration);
+          const stopsLabel = `${maxStops} stop${maxStops === 1 ? "" : "s"}`;
+          const airlineCode = bestOffer.validatingAirlineCodes[0] ?? "Multiple carriers";
+          const purchaseUrl = buildKiwiAffiliateUrl({
+            origin: result.search.origin,
+            destination: result.search.destination,
+            depart: result.search.departure_date,
+            returnDate: result.search.return_date ?? undefined,
+            adults: result.search.adults,
+          });
+
+          const subjectLine = `Weekly price update: ${result.search.origin} → ${result.search.destination} from ${priceLabel}`;
+          const htmlBody = `
               <div style="font-family:Arial,sans-serif;line-height:1.5;">
                 <h2 style="margin:0 0 8px;">Weekly Price Update</h2>
                 <p style="margin:0 0 12px;">${result.search.origin} → ${result.search.destination} · ${priceLabel}</p>
@@ -372,13 +402,13 @@ export async function GET(request: Request) {
               </div>
             `;
 
-            await resend.emails.send({
-              from: resendFrom,
-              to: result.search.email,
-              subject: subjectLine,
-              html: htmlBody,
-            });
-          })
+          await resend.emails.send({
+            from: resendFrom,
+            to: result.search.email,
+            subject: subjectLine,
+            html: htmlBody,
+          });
+        })
       );
     }
 

@@ -2,14 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import type { ExploreResponse, FlightSearchResponse } from "@/lib/flights";
-import {
-  OUTLIER_DURATION_MULTIPLIER,
-  OUTLIER_MAX_STOPS,
-  median,
-  parseIsoDurationToMinutes,
-  scoreOffers,
-} from "@/lib/dealScore";
+import { median, parseIsoDurationToMinutes, scoreOffers } from "@/lib/dealScore";
 import {
   buildAviasalesLink,
   buildKayakLink,
@@ -36,7 +31,6 @@ type PurchasePartner =
   | "aviasales";
 
 const KLOOK_SEARCH_URL_TEMPLATE = PARTNER_ENV.KLOOK_SEARCH_URL_TEMPLATE;
-const AVIASALES_DEEPLINK_TEMPLATE = PARTNER_ENV.AVIASALES_DEEPLINK_TEMPLATE;
 const SHOW_EXPLORE_LINKS =
   (process.env.NEXT_PUBLIC_SHOW_LINKS ?? "").trim().toLowerCase() === "true";
 
@@ -98,8 +92,27 @@ const COPY = {
     tabExplore: "Explore",
     searchFlightsTitle: "Search flights",
     searchFlightsNote: "Search direct routes and dates in seconds.",
+    searchPrompt: "Enter your route below to begin.",
+    locationCta: "Use my location",
+    locationFinding: "Finding a nearby airport…",
+    locationSuccess: "Origin set to ",
+    locationError: "Couldn’t access location.",
+    datePlaceholder: "MM/DD/YYYY",
+    sampleRoutesTitle: "Try a sample route",
+    sampleRoutes: [
+      { origin: "MIA", destination: "JFK", label: "Miami → New York" },
+      { origin: "LAX", destination: "LAS", label: "Los Angeles → Las Vegas" },
+      { origin: "CHI", destination: "MCO", label: "Chicago → Orlando" },
+    ],
     exploreTitle: "Explore destinations",
     exploreNote: "Browse destination ideas by budget and nonstop preference.",
+    exploreMonthTitle: "Deals by month",
+    exploreMonthPresets: {
+      any: "Anytime",
+      thisMonth: "This month",
+      nextMonth: "Next month",
+      next3Months: "Next 3 months",
+    },
     origin: "Origin",
     destination: "Destination",
     selected: "Selected",
@@ -126,6 +139,10 @@ const COPY = {
     cheapest: "Cheapest",
     fastest: "Fastest",
     fewestStops: "Fewest stops",
+    sortBestValueTip: "Balances price, duration, and stops.",
+    sortCheapestTip: "Lowest total fare.",
+    sortFastestTip: "Shortest total travel time.",
+    sortFewestStopsTip: "Lowest number of stops.",
     bestValueRightNow: "Best value right now",
     score: "Score",
     price: "Price",
@@ -147,6 +164,8 @@ const COPY = {
     runExploreToSee: "Run an explore search to see destinations here.",
     dealsTitle: "Deals",
     dealScore: "Deal score",
+    dealScoreTooltip:
+      "Score based on price (60%), duration (25%), and stops (15%), normalized to this search.",
     bookOnPartnerSites: "You book on partner sites. We don’t add fees.",
     budgetCap: "Budget cap",
     nonstopOnly: "Nonstop only",
@@ -172,9 +191,10 @@ const COPY = {
     trendMid: "Price near avg",
     trendHigh: "Price above avg",
     saveSearchTitle: "Save this search",
+    saveSearchNote: "Get weekly alerts for this route.",
     saveSearchCta: "Save search",
     saveSearchPlaceholder: "you@email.com",
-    saveSearchSuccess: "Saved. You’ll get weekly updates.",
+    saveSearchSuccess: "Alert set—check your email!",
     saveSearchError: "Enter a valid email to save.",
     saveSearchSaving: "Saving...",
     noResultsHelpTitle: "Try one of these:",
@@ -272,8 +292,27 @@ const COPY = {
     tabExplore: "Explorar",
     searchFlightsTitle: "Buscar vuelos",
     searchFlightsNote: "Busca rutas y fechas directas en segundos.",
+    searchPrompt: "Ingresa tu ruta para comenzar.",
+    locationCta: "Usar mi ubicación",
+    locationFinding: "Buscando un aeropuerto cercano…",
+    locationSuccess: "Origen establecido: ",
+    locationError: "No pudimos acceder a tu ubicación.",
+    datePlaceholder: "DD/MM/AAAA",
+    sampleRoutesTitle: "Prueba una ruta sugerida",
+    sampleRoutes: [
+      { origin: "MIA", destination: "JFK", label: "Miami → Nueva York" },
+      { origin: "LAX", destination: "LAS", label: "Los Ángeles → Las Vegas" },
+      { origin: "CHI", destination: "MCO", label: "Chicago → Orlando" },
+    ],
     exploreTitle: "Explorar destinos",
     exploreNote: "Explora destinos por presupuesto y preferencias de escalas.",
+    exploreMonthTitle: "Ofertas por mes",
+    exploreMonthPresets: {
+      any: "Cualquier mes",
+      thisMonth: "Este mes",
+      nextMonth: "Próximo mes",
+      next3Months: "Próximos 3 meses",
+    },
     origin: "Origen",
     destination: "Destino",
     selected: "Seleccionado",
@@ -300,6 +339,10 @@ const COPY = {
     cheapest: "Más barato",
     fastest: "Más rápido",
     fewestStops: "Menos escalas",
+    sortBestValueTip: "Equilibra precio, duración y escalas.",
+    sortCheapestTip: "Tarifa total más baja.",
+    sortFastestTip: "Menor tiempo de viaje.",
+    sortFewestStopsTip: "Menor número de escalas.",
     bestValueRightNow: "Mejor valor ahora",
     score: "Puntaje",
     price: "Precio",
@@ -321,6 +364,8 @@ const COPY = {
     runExploreToSee: "Ejecuta una exploración para ver destinos aquí.",
     dealsTitle: "Ofertas",
     dealScore: "Puntaje de oferta",
+    dealScoreTooltip:
+      "Puntaje según precio (60%), duración (25%) y escalas (15%), normalizado a esta búsqueda.",
     bookOnPartnerSites: "Reservas en sitios asociados. No añadimos cargos.",
     budgetCap: "Tope de presupuesto",
     nonstopOnly: "Solo sin escalas",
@@ -346,9 +391,10 @@ const COPY = {
     trendMid: "Precio cerca del promedio",
     trendHigh: "Precio por encima",
     saveSearchTitle: "Guardar esta búsqueda",
+    saveSearchNote: "Recibe alertas semanales de esta ruta.",
     saveSearchCta: "Guardar",
     saveSearchPlaceholder: "tu@email.com",
-    saveSearchSuccess: "Guardado. Recibirás actualizaciones semanales.",
+    saveSearchSuccess: "Alerta activada—revisa tu correo.",
     saveSearchError: "Ingresa un correo válido para guardar.",
     saveSearchSaving: "Guardando...",
     noResultsHelpTitle: "Prueba con una de estas opciones:",
@@ -463,6 +509,62 @@ const AIRPORT_REGIONS: Record<string, Airport[]> = {
 };
 
 const REGION_KEYS = Object.keys(AIRPORT_REGIONS);
+
+type AirportCoords = { lat: number; lon: number };
+
+const AIRPORT_COORDS: Record<string, AirportCoords> = {
+  ATL: { lat: 33.6407, lon: -84.4277 },
+  BOS: { lat: 42.3656, lon: -71.0096 },
+  CLT: { lat: 35.2144, lon: -80.9473 },
+  DCA: { lat: 38.8512, lon: -77.0402 },
+  DEN: { lat: 39.8561, lon: -104.6737 },
+  DFW: { lat: 32.8998, lon: -97.0403 },
+  EWR: { lat: 40.6895, lon: -74.1745 },
+  IAD: { lat: 38.9531, lon: -77.4565 },
+  IAH: { lat: 29.9902, lon: -95.3368 },
+  JFK: { lat: 40.6413, lon: -73.7781 },
+  LAS: { lat: 36.084, lon: -115.1537 },
+  LAX: { lat: 33.9416, lon: -118.4085 },
+  LGA: { lat: 40.7769, lon: -73.874 },
+  MCO: { lat: 28.4312, lon: -81.3081 },
+  MIA: { lat: 25.7959, lon: -80.2871 },
+  MSP: { lat: 44.8848, lon: -93.2223 },
+  ORD: { lat: 41.9742, lon: -87.9073 },
+  PHL: { lat: 39.8744, lon: -75.2424 },
+  PHX: { lat: 33.4342, lon: -112.0116 },
+  SAN: { lat: 32.7338, lon: -117.1933 },
+  SEA: { lat: 47.4502, lon: -122.3088 },
+  SFO: { lat: 37.6213, lon: -122.379 },
+};
+
+const haversineKm = (a: AirportCoords, b: AirportCoords) => {
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const dLat = toRad(b.lat - a.lat);
+  const dLon = toRad(b.lon - a.lon);
+  const lat1 = toRad(a.lat);
+  const lat2 = toRad(b.lat);
+  const sinLat = Math.sin(dLat / 2);
+  const sinLon = Math.sin(dLon / 2);
+  const h =
+    sinLat * sinLat + Math.cos(lat1) * Math.cos(lat2) * (sinLon * sinLon);
+  return 6371 * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+};
+
+const nearestAirportCode = (lat: number, lon: number) => {
+  const coordsList = Object.entries(AIRPORT_COORDS);
+  if (coordsList.length === 0) return null;
+  const target = { lat, lon };
+  let best = coordsList[0];
+  let bestDistance = haversineKm(target, best[1]);
+  for (const entry of coordsList.slice(1)) {
+    const distance = haversineKm(target, entry[1]);
+    if (distance < bestDistance) {
+      best = entry;
+      bestDistance = distance;
+    }
+  }
+  return best[0];
+};
 
 function formatAirport(airport: Airport) {
   return `${airport.code} · ${airport.city}`;
@@ -858,6 +960,10 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
   const [flexibleDates, setFlexibleDates] = useState(false);
   const [searchSort, setSearchSort] = useState<OfferSort>("best");
   const [purchasePartner, setPurchasePartner] = useState<PurchasePartner>("kiwi");
+  const [locationStatus, setLocationStatus] = useState<
+    "idle" | "locating" | "success" | "error"
+  >("idle");
+  const [locationMessage, setLocationMessage] = useState<string | null>(null);
 
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
@@ -966,10 +1072,30 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
   const [exploreAdults, setExploreAdults] = useState(1);
   const [exploreNonStop, setExploreNonStop] = useState(false);
   const [explorePurchasePartner, setExplorePurchasePartner] = useState<PurchasePartner>("kiwi");
+  const [exploreMonthPreset, setExploreMonthPreset] = useState<
+    "any" | "thisMonth" | "nextMonth" | "next3Months"
+  >("any");
 
   const [exploreLoading, setExploreLoading] = useState(false);
   const [exploreError, setExploreError] = useState<string | null>(null);
   const [exploreResults, setExploreResults] = useState<ExploreResponse | null>(null);
+
+  const getMonthStartIso = (offset: number) => {
+    const now = new Date();
+    const year = now.getUTCFullYear();
+    const month = now.getUTCMonth() + offset;
+    return new Date(Date.UTC(year, month, 1)).toISOString().slice(0, 10);
+  };
+
+  const applyExploreMonthPreset = (
+    preset: "any" | "thisMonth" | "nextMonth" | "next3Months"
+  ) => {
+    setExploreMonthPreset(preset);
+    if (preset === "any") return;
+    const offset = preset === "thisMonth" ? 0 : preset === "nextMonth" ? 1 : 3;
+    setExploreDepartureDate(getMonthStartIso(offset));
+    setExploreReturnDate("");
+  };
 
   const flexOffsets = [-3, 0, 3];
   const flexDepartDates = flexOffsets.map((offset) => shiftIsoDate(departureDate, offset));
@@ -1044,15 +1170,15 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
     const outliers = new Map<string, string>();
     deals.forEach((deal) => {
       const outlierReasons: string[] = [];
-      if (typeof deal.maxStops === "number" && deal.maxStops >= OUTLIER_MAX_STOPS) {
-        outlierReasons.push("2+ stops");
+      if (typeof deal.maxStops === "number" && deal.maxStops > 1) {
+        outlierReasons.push("extra stops");
       }
       if (
         typeof deal.durationMinutes === "number" &&
         medianDuration > 0 &&
-        deal.durationMinutes > medianDuration * OUTLIER_DURATION_MULTIPLIER
+        deal.durationMinutes > medianDuration
       ) {
-        outlierReasons.push("very long duration");
+        outlierReasons.push("long duration");
       }
       if (outlierReasons.length > 0) {
         outliers.set(dealKey(deal), outlierReasons.join(" · "));
@@ -1220,6 +1346,38 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
     }
   }
 
+  function requestLocation() {
+    if (typeof window === "undefined" || !navigator.geolocation) {
+      setLocationStatus("error");
+      setLocationMessage(copy.locationError);
+      return;
+    }
+    setLocationStatus("locating");
+    setLocationMessage(copy.locationFinding);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const nearest = nearestAirportCode(
+          position.coords.latitude,
+          position.coords.longitude
+        );
+        if (!nearest) {
+          setLocationStatus("error");
+          setLocationMessage(copy.locationError);
+          return;
+        }
+        setOrigin(nearest);
+        setExploreOrigin(nearest);
+        setLocationStatus("success");
+        setLocationMessage(`${copy.locationSuccess}${airportLabel(nearest)}`);
+      },
+      () => {
+        setLocationStatus("error");
+        setLocationMessage(copy.locationError);
+      },
+      { enableHighAccuracy: false, timeout: 8000 }
+    );
+  }
+
   async function runExplore() {
     setExploreError(null);
     setExploreResults(null);
@@ -1297,18 +1455,18 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
             <div className="text-sm font-semibold text-[var(--brand-ink)]">Ticket Wiz</div>
             <div className="flex flex-wrap items-center gap-3 text-xs text-[var(--brand-muted)]">
               <div className="inline-flex items-center gap-2">
-                <a
+                <Link
                   href="/"
                   className="inline-flex items-center rounded-full border border-[var(--brand-border)] bg-white px-3 py-1 text-[11px] font-semibold text-[var(--brand-primary)] shadow-sm transition hover:border-[var(--brand-primary)]"
                 >
                   EN
-                </a>
-                <a
+                </Link>
+                <Link
                   href="/es"
                   className="inline-flex items-center rounded-full border border-[var(--brand-border)] bg-white px-3 py-1 text-[11px] font-semibold text-[var(--brand-primary)] shadow-sm transition hover:border-[var(--brand-primary)]"
                 >
                   ES
-                </a>
+                </Link>
               </div>
             </div>
           </div>
@@ -1556,6 +1714,22 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
             <div className="rounded-2xl border border-[var(--brand-border)] bg-white p-5 shadow-lg ring-2 ring-[var(--brand-border)]">
               <h2 className="text-sm font-semibold">{copy.searchFlightsTitle}</h2>
               <p className="mt-1 text-xs text-[var(--brand-muted)]">{copy.searchFlightsNote}</p>
+              <div className="mt-2 text-[11px] font-semibold text-[var(--brand-primary)]">
+                {copy.searchPrompt}
+              </div>
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
+                <button
+                  type="button"
+                  onClick={requestLocation}
+                  disabled={locationStatus === "locating"}
+                  className="rounded-full border border-[var(--brand-border)] bg-white px-3 py-1 font-semibold text-[var(--brand-primary)] shadow-sm transition hover:border-[var(--brand-primary)] disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {locationStatus === "locating" ? copy.locationFinding : copy.locationCta}
+                </button>
+                {locationMessage ? (
+                  <span className="text-[var(--brand-muted)]">{locationMessage}</span>
+                ) : null}
+              </div>
 
               <form
                 className="mt-4 grid gap-3"
@@ -1591,6 +1765,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                       type="date"
                       value={departureDate}
                       onChange={(e) => setDepartureDate(e.target.value)}
+                      placeholder={copy.datePlaceholder}
                       className="h-10 rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 text-sm outline-none focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[color:rgba(0,123,255,0.2)]"
                     />
                   </label>
@@ -1600,6 +1775,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                       type="date"
                       value={returnDate}
                       onChange={(e) => setReturnDate(e.target.value)}
+                      placeholder={copy.datePlaceholder}
                       className="h-10 rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 text-sm outline-none focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[color:rgba(0,123,255,0.2)]"
                     />
                   </label>
@@ -1737,6 +1913,9 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                   <div className="text-xs font-semibold text-[var(--brand-primary)]">
                     {copy.saveSearchTitle}
                   </div>
+                  <div className="text-[11px] text-[var(--brand-muted)]">
+                    {copy.saveSearchNote}
+                  </div>
                   <div className="flex flex-wrap gap-2">
                     <input
                       type="email"
@@ -1847,14 +2026,27 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                 <div className="flex flex-wrap items-center gap-3 text-xs text-[var(--brand-primary)]">
                   <div className="flex flex-wrap items-center gap-2">
                     {[
-                      { value: "best" as OfferSort, label: copy.sortBestValue },
-                      { value: "cheapest" as OfferSort, label: copy.sortCheapest },
-                      { value: "fastest" as OfferSort, label: copy.sortFastest },
+                      {
+                        value: "best" as OfferSort,
+                        label: copy.sortBestValue,
+                        tip: copy.sortBestValueTip,
+                      },
+                      {
+                        value: "cheapest" as OfferSort,
+                        label: copy.sortCheapest,
+                        tip: copy.sortCheapestTip,
+                      },
+                      {
+                        value: "fastest" as OfferSort,
+                        label: copy.sortFastest,
+                        tip: copy.sortFastestTip,
+                      },
                     ].map((preset) => (
                       <button
                         key={preset.value}
                         type="button"
                         onClick={() => setSearchSort(preset.value)}
+                        title={preset.tip}
                         className={`rounded-full border px-3 py-1 text-[11px] font-semibold transition ${
                           searchSort === preset.value
                             ? "border-[var(--brand-primary)] bg-[color:rgba(0,123,255,0.12)] text-[var(--brand-primary)]"
@@ -1887,6 +2079,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                     <select
                       value={searchSort}
                       onChange={(e) => setSearchSort(e.target.value as OfferSort)}
+                      title={copy.sortFewestStopsTip}
                       className="h-8 rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] px-2 text-xs text-[var(--brand-ink)] focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[color:rgba(0,123,255,0.2)]"
                     >
                       <option value="best">{copy.bestDeal}</option>
@@ -1899,6 +2092,11 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
               </div>
 
               <div className="mt-4 grid gap-3">
+                {searchLoading ? (
+                  <div className="h-1 w-full overflow-hidden rounded-full bg-[var(--brand-border)]">
+                    <div className="h-full w-1/2 animate-pulse bg-gradient-to-r from-[var(--brand-primary)] to-[#0069D9]" />
+                  </div>
+                ) : null}
                 {bestOffer ? (
                   <div className="rounded-xl border border-[var(--brand-border)] bg-[color:rgba(0,123,255,0.08)] p-4 shadow-sm">
                     <div className="flex flex-wrap items-center justify-between gap-2">
@@ -2053,7 +2251,32 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                         ) : null}
                       </div>
                     ) : (
-                      copy.runSearchToSee
+                      <div className="grid gap-3">
+                        <span>{copy.runSearchToSee}</span>
+                        <div className="text-xs font-semibold text-[var(--brand-primary)]">
+                          {copy.sampleRoutesTitle}
+                        </div>
+                        <div className="flex flex-wrap gap-2 text-xs">
+                          {copy.sampleRoutes.map((route) => (
+                            <button
+                              key={`${route.origin}-${route.destination}`}
+                              type="button"
+                              onClick={() => {
+                                setOrigin(route.origin);
+                                setDestination(route.destination);
+                                void runSearch({
+                                  origin: route.origin,
+                                  destination: route.destination,
+                                  ignoreFlex: true,
+                                });
+                              }}
+                              className="rounded-full border border-[var(--brand-border)] bg-white px-3 py-1 font-semibold text-[var(--brand-primary)] hover:border-[var(--brand-primary)]"
+                            >
+                              {route.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                     )}
                   </div>
                 ) : null}
@@ -2101,7 +2324,7 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                         </div>
                         <div className="mt-1 inline-flex flex-wrap items-center gap-2 text-xs text-[var(--brand-primary)]">
                           {searchSort === "best" && typeof score === "number" ? (
-                            <span>
+                            <span title={copy.dealScoreTooltip}>
                               {copy.dealScore}: {Math.round(score * 100)}
                             </span>
                           ) : null}
@@ -2327,13 +2550,44 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                   </label>
                 </div>
 
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  <span className="text-[11px] font-semibold text-[var(--brand-primary)]">
+                    {copy.exploreMonthTitle}
+                  </span>
+                  {(
+                    [
+                      { key: "any", label: copy.exploreMonthPresets.any },
+                      { key: "thisMonth", label: copy.exploreMonthPresets.thisMonth },
+                      { key: "nextMonth", label: copy.exploreMonthPresets.nextMonth },
+                      { key: "next3Months", label: copy.exploreMonthPresets.next3Months },
+                    ] as const
+                  ).map((preset) => (
+                    <button
+                      key={preset.key}
+                      type="button"
+                      onClick={() => applyExploreMonthPreset(preset.key)}
+                      className={`rounded-full border px-3 py-1 font-semibold transition ${
+                        exploreMonthPreset === preset.key
+                          ? "border-[var(--brand-primary)] bg-[color:rgba(0,123,255,0.12)] text-[var(--brand-primary)]"
+                          : "border-[var(--brand-border)] bg-white text-[var(--brand-primary)] hover:border-[var(--brand-primary)]"
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+
                 <div className="grid grid-cols-2 gap-3">
                   <label className="grid gap-1 text-xs font-medium text-[var(--brand-ink)]">
                     {copy.depart}
                     <input
                       type="date"
                       value={exploreDepartureDate}
-                      onChange={(e) => setExploreDepartureDate(e.target.value)}
+                      onChange={(e) => {
+                        setExploreDepartureDate(e.target.value);
+                        setExploreMonthPreset("any");
+                      }}
+                      placeholder={copy.datePlaceholder}
                       className="h-10 rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 text-sm outline-none focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[color:rgba(0,123,255,0.2)]"
                     />
                   </label>
@@ -2342,7 +2596,11 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
                     <input
                       type="date"
                       value={exploreReturnDate}
-                      onChange={(e) => setExploreReturnDate(e.target.value)}
+                      onChange={(e) => {
+                        setExploreReturnDate(e.target.value);
+                        setExploreMonthPreset("any");
+                      }}
+                      placeholder={copy.datePlaceholder}
                       className="h-10 rounded-xl border border-[var(--brand-border)] bg-[var(--brand-surface)] px-3 text-sm outline-none focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[color:rgba(0,123,255,0.2)]"
                     />
                   </label>
@@ -2425,6 +2683,11 @@ export function TicketWizApp({ locale = "en" }: { locale?: Locale }) {
               </div>
 
               <div className="mt-4 grid gap-3">
+                {exploreLoading ? (
+                  <div className="h-1 w-full overflow-hidden rounded-full bg-[var(--brand-border)]">
+                    <div className="h-full w-1/2 animate-pulse bg-gradient-to-r from-[var(--brand-primary)] to-[#0069D9]" />
+                  </div>
+                ) : null}
                 {!exploreLoading && exploreView.deals.length === 0 ? (
                   <div className="rounded-xl border border-dashed border-[var(--brand-border)] p-6 text-sm text-[var(--brand-muted)]">
                     {copy.runExploreToSee}

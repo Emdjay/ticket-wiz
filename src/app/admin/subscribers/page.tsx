@@ -40,7 +40,7 @@ export default function SubscribersAdminPage() {
       const data = await response.json();
       setSubscribers(data.subscribers ?? []);
       setStatus("idle");
-    } catch (error) {
+    } catch {
       setStatus("error");
       setMessage("Failed to load subscribers.");
     }
@@ -65,7 +65,7 @@ export default function SubscribersAdminPage() {
         return;
       }
       setSubscribers((prev) => prev.filter((s) => s.email !== email));
-    } catch (error) {
+    } catch {
       setStatus("error");
       setMessage("Failed to delete.");
     }

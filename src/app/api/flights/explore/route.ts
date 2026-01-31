@@ -33,20 +33,34 @@ const QuerySchema = z.object({
     .transform((v) => v === "true"),
 });
 
+type UnknownRecord = Record<string, unknown>;
+
+const asRecord = (value: unknown): UnknownRecord =>
+  value && typeof value === "object" ? (value as UnknownRecord) : {};
+
+const asArray = (value: unknown): unknown[] => (Array.isArray(value) ? value : []);
+
+const asString = (value: unknown): string =>
+  typeof value === "string" ? value : value == null ? "" : String(value);
+
 function defaultDepartureDate(): string {
   const d = new Date();
   d.setDate(d.getDate() + 21);
   return d.toISOString().slice(0, 10);
 }
 
-function pickDeal(raw: any, currencyFallback: string): ExploreDeal {
+function pickDeal(raw: unknown, currencyFallback: string): ExploreDeal {
+  const deal = asRecord(raw);
+  const price = asRecord(deal.price);
+  const links = asRecord(deal.links);
+
   return {
-    destination: String(raw?.destination ?? ""),
-    priceTotal: String(raw?.price?.total ?? ""),
-    currency: String(raw?.price?.currency ?? currencyFallback),
-    departureDate: raw?.departureDate ? String(raw.departureDate) : undefined,
-    returnDate: raw?.returnDate ? String(raw.returnDate) : undefined,
-    links: raw?.links?.flightOffers ? { flightOffers: String(raw.links.flightOffers) } : undefined,
+    destination: asString(deal.destination),
+    priceTotal: asString(price.total),
+    currency: asString(price.currency) || currencyFallback,
+    departureDate: deal.departureDate ? asString(deal.departureDate) : undefined,
+    returnDate: deal.returnDate ? asString(deal.returnDate) : undefined,
+    links: links.flightOffers ? { flightOffers: asString(links.flightOffers) } : undefined,
   };
 }
 
@@ -134,37 +148,44 @@ async function fallbackExploreViaOffers(args: {
       headers: { Authorization: `Bearer ${args.token}` },
       cache: "no-store",
     });
-    const json = (await res.json().catch(() => null)) as any;
-    if (!res.ok || !Array.isArray(json?.data) || json.data.length === 0) return null;
+    const json = (await res.json().catch(() => null)) as unknown;
+    const jsonRecord = asRecord(json);
+    const data = jsonRecord.data;
+    if (!res.ok || !Array.isArray(data) || data.length === 0) return null;
 
-    const cheapest = json.data
-      .map((o: any) => ({
-        destination,
-        priceTotal: String(o?.price?.total ?? ""),
-        currency: String(o?.price?.currency ?? args.currency),
-        departureDate: args.departureDate,
-        returnDate: args.returnDate,
-        durationMinutes: Array.isArray(o?.itineraries)
-          ? o.itineraries.reduce((sum: number, it: any) => {
-              return sum + parseIsoDurationToMinutes(String(it?.duration ?? ""));
-            }, 0)
-          : undefined,
-        maxStops: Array.isArray(o?.itineraries)
-          ? o.itineraries.reduce((maxStops: number, it: any) => {
-              const segments = Array.isArray(it?.segments) ? it.segments.length : 0;
-              return Math.max(maxStops, Math.max(0, segments - 1));
-            }, 0)
-          : undefined,
-      }))
-      .filter((d: CandidateDeal) => d.priceTotal && !Number.isNaN(Number(d.priceTotal)))
-      .sort((a: CandidateDeal, b: CandidateDeal) => Number(a.priceTotal) - Number(b.priceTotal))[0];
+    const cheapest = data
+      .map((o) => {
+        const offer = asRecord(o);
+        const price = asRecord(offer.price);
+        const itineraries = asArray(offer.itineraries);
+        const durationMinutes = itineraries.reduce((sum, it) => {
+          const itRec = asRecord(it);
+          return sum + parseIsoDurationToMinutes(asString(itRec.duration));
+        }, 0);
+        const maxStops = itineraries.reduce((maxValue, it) => {
+          const itRec = asRecord(it);
+          const segments = asArray(itRec.segments);
+          return Math.max(maxValue, Math.max(0, segments.length - 1));
+        }, 0);
+        return {
+          destination,
+          priceTotal: asString(price.total),
+          currency: asString(price.currency) || args.currency,
+          departureDate: args.departureDate,
+          returnDate: args.returnDate,
+          durationMinutes: durationMinutes || undefined,
+          maxStops: maxStops || undefined,
+        };
+      })
+      .filter((d): d is CandidateDeal => d.priceTotal && !Number.isNaN(Number(d.priceTotal)))
+      .sort((a, b) => Number(a.priceTotal) - Number(b.priceTotal))[0];
 
     return cheapest ?? null;
   });
 
   return perDestination
-    .filter(Boolean)
-    .map((d: any) => ({
+    .filter((d): d is CandidateDeal => Boolean(d))
+    .map((d) => ({
       destination: d.destination,
       priceTotal: d.priceTotal,
       currency: d.currency,
@@ -220,10 +241,12 @@ export async function GET(request: Request) {
       }
     );
 
-    const json = (await response.json().catch(() => null)) as any;
+    const json = (await response.json().catch(() => null)) as unknown;
+    const jsonRecord = asRecord(json);
     if (!response.ok) {
-      const firstError = json?.errors?.[0];
-      const code = firstError?.code;
+      const errors = asArray(jsonRecord.errors);
+      const firstError = errors.length ? asRecord(errors[0]) : {};
+      const code = asString(firstError.code);
 
       // Known Amadeus test-env instability for /v1/shopping/flight-destinations (code 141).
       // Fallback: approximate “explore” by querying a small destination set via flight-offers.
@@ -243,16 +266,15 @@ export async function GET(request: Request) {
       }
 
       const message =
-        firstError?.detail ||
-        firstError?.title ||
-        json?.error_description ||
+        asString(firstError.detail) ||
+        asString(firstError.title) ||
+        asString(jsonRecord.error_description) ||
         "Explore search failed.";
       return NextResponse.json({ error: message, raw: json }, { status: response.status });
     }
 
-    const deals = Array.isArray(json?.data)
-      ? json.data.map((d: any) => pickDeal(d, parsed.data.currency))
-      : [];
+    const data = jsonRecord.data;
+    const deals = Array.isArray(data) ? data.map((d) => pickDeal(d, parsed.data.currency)) : [];
     const payload: ExploreResponse = { provider: "amadeus", deals };
     return NextResponse.json(payload);
   } catch (error) {

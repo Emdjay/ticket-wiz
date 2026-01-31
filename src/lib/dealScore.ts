@@ -1,7 +1,8 @@
 import type { FlightOffer } from "@/lib/flights";
 
-export const OUTLIER_MAX_STOPS = 2;
-export const OUTLIER_DURATION_MULTIPLIER = 1.6;
+export const STOP_PENALTY_PER_STOP = 0.06;
+export const DURATION_PENALTY_FACTOR = 0.1;
+export const DURATION_PENALTY_CAP = 0.2;
 
 export function parseIsoDurationToMinutes(raw: string): number {
   const match = /^PT(?:(\d+)H)?(?:(\d+)M)?$/.exec(raw);
@@ -23,6 +24,35 @@ export function median(values: number[]): number {
     return (sorted[mid - 1] + sorted[mid]) / 2;
   }
   return sorted[mid];
+}
+
+export function mean(values: number[]): number {
+  if (values.length === 0) return 0;
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+export function stdDev(values: number[], avg = mean(values)): number {
+  if (values.length === 0) return 0;
+  const variance =
+    values.reduce((sum, value) => sum + (value - avg) * (value - avg), 0) / values.length;
+  return Math.sqrt(variance);
+}
+
+function zScores(values: number[]): number[] {
+  if (values.length === 0) return [];
+  const avg = mean(values);
+  const sd = stdDev(values, avg);
+  if (!Number.isFinite(sd) || sd === 0) return values.map(() => 0);
+  return values.map((value) => (value - avg) / sd);
+}
+
+function normalizeZScores(values: number[]): number[] {
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  if (!Number.isFinite(min) || !Number.isFinite(max) || min === max) {
+    return values.map(() => 0.5);
+  }
+  return values.map((value) => (value - min) / (max - min));
 }
 
 export function scoreOffers(offers: FlightOffer[]) {
@@ -56,13 +86,11 @@ export function scoreOffers(offers: FlightOffer[]) {
     maxStops.push(itineraryStops.length ? Math.max(...itineraryStops) : 0);
   }
 
-  const minPrice = Math.min(...prices);
-  const maxPrice = Math.max(...prices);
-  const minDuration = Math.min(...durations);
-  const maxDuration = Math.max(...durations);
-  const minStops = Math.min(...stops);
-  const maxStopsCount = Math.max(...stops);
   const medianDuration = median(durations);
+
+  const priceScores = normalizeZScores(zScores(prices).map((value) => -value));
+  const durationScores = normalizeZScores(zScores(durations).map((value) => -value));
+  const stopsScores = normalizeZScores(zScores(stops).map((value) => -value));
 
   const scores = new Map<string, number>();
   const durationById = new Map<string, number>();
@@ -71,7 +99,6 @@ export function scoreOffers(offers: FlightOffer[]) {
   const outliersById = new Map<string, string>();
 
   offers.forEach((offer, index) => {
-    const price = prices[index];
     const duration = durations[index];
     const stopCount = stops[index];
     const maxStopCount = maxStops[index];
@@ -80,19 +107,23 @@ export function scoreOffers(offers: FlightOffer[]) {
     stopsById.set(offer.id, stopCount);
     maxStopsById.set(offer.id, maxStopCount);
 
-    const priceNorm = maxPrice === minPrice ? 0.5 : (price - minPrice) / (maxPrice - minPrice);
-    const durationNorm =
-      maxDuration === minDuration ? 0.5 : (duration - minDuration) / (maxDuration - minDuration);
-    const stopsNorm =
-      maxStopsCount === minStops ? 0.5 : (stopCount - minStops) / (maxStopsCount - minStops);
+    const priceScore = priceScores[index] ?? 0.5;
+    const durationScore = durationScores[index] ?? 0.5;
+    const stopsScore = stopsScores[index] ?? 0.5;
 
-    let score = 0.7 * (1 - priceNorm) + 0.2 * (1 - durationNorm) + 0.1 * (1 - stopsNorm);
+    let score = 0.6 * priceScore + 0.25 * durationScore + 0.15 * stopsScore;
     const outlierReasons: string[] = [];
-    if (maxStopCount >= OUTLIER_MAX_STOPS) outlierReasons.push("2+ stops");
-    if (medianDuration > 0 && duration > medianDuration * OUTLIER_DURATION_MULTIPLIER) {
-      outlierReasons.push("very long duration");
-    }
-    if (outlierReasons.length > 0) score -= 0.12;
+    const stopPenalty = Math.max(0, stopCount - 1) * STOP_PENALTY_PER_STOP;
+    const durationPenalty =
+      medianDuration > 0 && duration > medianDuration
+        ? Math.min(
+            DURATION_PENALTY_CAP,
+            ((duration - medianDuration) / medianDuration) * DURATION_PENALTY_FACTOR
+          )
+        : 0;
+    if (stopPenalty > 0) outlierReasons.push("extra stops");
+    if (durationPenalty > 0) outlierReasons.push("long duration");
+    score -= stopPenalty + durationPenalty;
     score = clamp01(score);
     scores.set(offer.id, score);
     if (outlierReasons.length > 0) {
