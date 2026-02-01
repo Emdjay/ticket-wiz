@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { Resend } from "resend";
 import { getAmadeusAccessToken, getAmadeusBaseUrl } from "@/lib/amadeus";
+import { normalizeResendFrom } from "@/lib/email";
 import { buildKiwiAffiliateUrl } from "@/lib/partners";
 import { getWeeklyDeal } from "@/lib/weeklyDeal";
 
@@ -47,7 +48,7 @@ export async function POST(request: Request) {
   }
 
   const resendApiKey = process.env.RESEND_API_KEY ?? "";
-  const resendFrom = process.env.RESEND_FROM ?? "";
+  const resendFrom = normalizeResendFrom(process.env.RESEND_FROM ?? "");
   if (!resendApiKey || !resendFrom) {
     return NextResponse.json(
       { error: "Missing RESEND_API_KEY or RESEND_FROM." },

@@ -3,6 +3,7 @@ import { Resend } from "resend";
 import { getAmadeusAccessToken, getAmadeusBaseUrl } from "@/lib/amadeus";
 import type { FlightOffer } from "@/lib/flights";
 import { parseIsoDurationToMinutes, scoreOffers } from "@/lib/dealScore";
+import { normalizeResendFrom } from "@/lib/email";
 import { buildKiwiAffiliateUrl } from "@/lib/partners";
 import { getSubscribers } from "@/lib/subscribers";
 import { getSavedSearches, markSavedSearchSent } from "@/lib/savedSearches";
@@ -149,7 +150,7 @@ export async function GET(request: Request) {
   }
 
   const resendApiKey = process.env.RESEND_API_KEY ?? "";
-  const resendFrom = process.env.RESEND_FROM ?? "";
+  const resendFrom = normalizeResendFrom(process.env.RESEND_FROM ?? "");
   if (!resendApiKey || !resendFrom) {
     return NextResponse.json(
       { error: "Missing RESEND_API_KEY or RESEND_FROM." },

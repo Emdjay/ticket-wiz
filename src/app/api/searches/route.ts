@@ -7,6 +7,7 @@ import {
   getSavedSearchesByEmail,
   updateSavedSearch,
 } from "@/lib/savedSearches";
+import { normalizeResendFrom } from "@/lib/email";
 
 const IataCode = z
   .string()
@@ -88,7 +89,7 @@ export async function POST(request: Request) {
       nonStop: parsed.data.nonStop ?? false,
     });
     const resendApiKey = process.env.RESEND_API_KEY ?? "";
-    const resendFrom = process.env.RESEND_FROM ?? "";
+    const resendFrom = normalizeResendFrom(process.env.RESEND_FROM ?? "");
     if (resendApiKey && resendFrom) {
       const originUrl = new URL(request.url).origin;
       const deepLink = buildDeepLink(originUrl, parsed.data);
