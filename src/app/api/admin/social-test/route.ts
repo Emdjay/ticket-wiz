@@ -35,20 +35,22 @@ export async function POST(request: Request) {
       );
     }
 
-    const { deal } = dealResult;
+    const { context, top, totalDurationMinutes, maxStops } = dealResult;
+    const deal = top.offer;
 
     // Extract deal info for the post
     const outboundItinerary = deal.itineraries[0];
     const firstSegment = outboundItinerary.segments[0];
-    const lastSegment = outboundItinerary.segments[outboundItinerary.segments.length - 1];
 
-    const origin = firstSegment.departure.iataCode;
-    const destination = lastSegment.arrival.iataCode;
-    const price = parseFloat(deal.price.total);
-    const currency = deal.price.currency;
+    const origin = context.origin;
+    const destination = top.destination;
+    const price = parseFloat(deal.priceTotal);
+    const currency = deal.currency || context.currency;
     const airline = deal.validatingAirlineCodes?.[0];
-    const duration = outboundItinerary.duration?.replace("PT", "").toLowerCase();
-    const stops = outboundItinerary.segments.length - 1;
+    const hours = Math.floor(totalDurationMinutes / 60);
+    const mins = totalDurationMinutes % 60;
+    const duration = `${hours}h ${mins}m`;
+    const stops = maxStops;
     const departureDate = firstSegment.departure.at?.split("T")[0];
 
     // Format the post
@@ -117,20 +119,22 @@ export async function GET(request: Request) {
       );
     }
 
-    const { deal } = dealResult;
+    const { context, top, totalDurationMinutes, maxStops } = dealResult;
+    const deal = top.offer;
 
     // Extract deal info
     const outboundItinerary = deal.itineraries[0];
     const firstSegment = outboundItinerary.segments[0];
-    const lastSegment = outboundItinerary.segments[outboundItinerary.segments.length - 1];
 
-    const origin = firstSegment.departure.iataCode;
-    const destination = lastSegment.arrival.iataCode;
-    const price = parseFloat(deal.price.total);
-    const currency = deal.price.currency;
+    const origin = context.origin;
+    const destination = top.destination;
+    const price = parseFloat(deal.priceTotal);
+    const currency = deal.currency || context.currency;
     const airline = deal.validatingAirlineCodes?.[0];
-    const duration = outboundItinerary.duration?.replace("PT", "").toLowerCase();
-    const stops = outboundItinerary.segments.length - 1;
+    const hours = Math.floor(totalDurationMinutes / 60);
+    const mins = totalDurationMinutes % 60;
+    const duration = `${hours}h ${mins}m`;
+    const stops = maxStops;
     const departureDate = firstSegment.departure.at?.split("T")[0];
 
     // Format the post
