@@ -10,6 +10,7 @@ import { getSubscribers } from "@/lib/subscribers";
 import { getSavedSearches, markSavedSearchSent } from "@/lib/savedSearches";
 import { buildUnsubscribeUrl, createUnsubscribeToken } from "@/lib/unsubscribe";
 import { getWeeklyDeal } from "@/lib/weeklyDeal";
+import { postWeeklyDealToSocial } from "@/lib/social";
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -380,6 +381,26 @@ export async function GET(request: Request) {
       );
     }
 
+    // Post to social media (non-blocking, don't fail the cron if social fails)
+    let socialResults: { facebook?: { success: boolean; postId?: string; error?: string } } = {};
+    try {
+      const firstSegment = top.offer.itineraries[0]?.segments[0];
+      const lastSegment = top.offer.itineraries[0]?.segments.slice(-1)[0];
+      socialResults = await postWeeklyDealToSocial({
+        origin: context.origin,
+        destination: top.destination,
+        price: parseFloat(top.offer.priceTotal),
+        currency: top.offer.currency || context.currency,
+        airline: top.offer.validatingAirlineCodes[0],
+        duration: durationLabel,
+        stops: maxStops,
+        departureDate: firstSegment?.departure?.at?.split("T")[0],
+        bookingUrl: purchaseUrl,
+      });
+    } catch (socialError) {
+      console.error("Social posting failed:", socialError);
+    }
+
     return NextResponse.json({
       ok: true,
       sent: subscribers.length,
@@ -390,6 +411,7 @@ export async function GET(request: Request) {
         currency: top.offer.currency || context.currency,
         score: top.score,
       },
+      social: socialResults,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Weekly email failed.";
