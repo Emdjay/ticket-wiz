@@ -29,7 +29,7 @@ export function buildBrandedEmailHtml({ contentHtml, footerNote, unsubscribeUrl 
               <table role="presentation" cellpadding="0" cellspacing="0" width="600" style="width:600px;max-width:600px;background:#ffffff;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;">
                 <tr>
                   <td style="padding:20px 24px;border-bottom:1px solid #e5e7eb;">
-                    <img src="${logoUrl}" alt="Ticket Wiz" style="height:72px;display:block;margin:0 0 8px;" />
+                    <img src="${logoUrl}" alt="Ticket Wiz" style="height:96px;display:block;margin:0 0 8px;" />
                     <div style="color:#6c757d;font-size:14px;">Ticket Wiz • Flight deals finder</div>
                   </td>
                 </tr>
