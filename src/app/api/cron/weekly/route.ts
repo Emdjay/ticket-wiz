@@ -1,40 +1,12 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
-import { z } from "zod";
 import { getAmadeusAccessToken, getAmadeusBaseUrl } from "@/lib/amadeus";
 import type { FlightOffer } from "@/lib/flights";
 import { parseIsoDurationToMinutes, scoreOffers } from "@/lib/dealScore";
 import { buildKiwiAffiliateUrl } from "@/lib/partners";
 import { getSubscribers } from "@/lib/subscribers";
 import { getSavedSearches, markSavedSearchSent } from "@/lib/savedSearches";
-
-const DEFAULT_DESTINATIONS = [
-  "ATL",
-  "ORD",
-  "LAX",
-  "DFW",
-  "DEN",
-  "LAS",
-  "MCO",
-  "SEA",
-  "SFO",
-  "IAH",
-  "BOS",
-  "JFK",
-  "EWR",
-  "LGA",
-  "CLT",
-  "PHX",
-];
-
-const EnvList = z
-  .string()
-  .transform((value) =>
-    value
-      .split(",")
-      .map((item) => item.trim().toUpperCase())
-      .filter(Boolean)
-  );
+import { getWeeklyDeal } from "@/lib/weeklyDeal";
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -51,18 +23,6 @@ const asNumber = (value: unknown): number => {
   const n = Number(value);
   return Number.isFinite(n) ? n : 0;
 };
-
-function readIntEnv(name: string, fallback: number): number {
-  const raw = process.env[name];
-  const parsed = raw ? Number(raw) : Number.NaN;
-  return Number.isFinite(parsed) ? parsed : fallback;
-}
-
-function addDaysIso(daysAhead: number) {
-  const d = new Date();
-  d.setDate(d.getDate() + daysAhead);
-  return d.toISOString().slice(0, 10);
-}
 
 function formatMoney(currency: string, amount: string) {
   const n = Number(amount);
@@ -197,22 +157,6 @@ export async function GET(request: Request) {
     );
   }
 
-  const origin = (process.env.WEEKLY_DEAL_ORIGIN ?? "MIA").trim().toUpperCase();
-  const currency = (process.env.WEEKLY_DEAL_CURRENCY ?? "USD").trim().toUpperCase();
-  const maxPriceRaw = process.env.WEEKLY_DEAL_MAX_PRICE;
-  const maxPrice = maxPriceRaw ? Number(maxPriceRaw) : undefined;
-  const adults = Math.max(1, readIntEnv("WEEKLY_DEAL_ADULTS", 1));
-  const nonStop = (process.env.WEEKLY_DEAL_NONSTOP ?? "").trim().toLowerCase() === "true";
-  const departureDate = addDaysIso(readIntEnv("WEEKLY_DEAL_DEPARTURE_DAYS_AHEAD", 21));
-  const returnDays = readIntEnv("WEEKLY_DEAL_RETURN_DAYS_AHEAD", 28);
-  const returnDate = returnDays > 0 ? addDaysIso(returnDays) : undefined;
-  const maxResults = Math.min(50, Math.max(5, readIntEnv("WEEKLY_DEAL_MAX_RESULTS", 20)));
-
-  const destinations =
-    process.env.WEEKLY_DEAL_DESTINATIONS && process.env.WEEKLY_DEAL_DESTINATIONS.trim()
-      ? EnvList.parse(process.env.WEEKLY_DEAL_DESTINATIONS)
-      : DEFAULT_DESTINATIONS;
-
   try {
     const subscribers = await getSubscribers();
     if (subscribers.length === 0) {
@@ -221,103 +165,36 @@ export async function GET(request: Request) {
 
     const token = await getAmadeusAccessToken();
     const baseUrl = getAmadeusBaseUrl();
-
-    const offersWithRoute = await mapWithConcurrency(
-      destinations.filter((d) => d !== origin),
-      4,
-      async (destination) => {
-        const params = new URLSearchParams({
-          originLocationCode: origin,
-          destinationLocationCode: destination,
-          departureDate,
-          adults: String(adults),
-          currencyCode: currency,
-          max: String(maxResults),
-        });
-        if (returnDate) params.set("returnDate", returnDate);
-        if (nonStop) params.set("nonStop", "true");
-        if (typeof maxPrice === "number" && Number.isFinite(maxPrice)) {
-          params.set("maxPrice", String(maxPrice));
-        }
-
-        const response = await fetch(
-          `${baseUrl}/v2/shopping/flight-offers?${params.toString()}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-            cache: "no-store",
-          }
-        );
-        const json = (await response.json().catch(() => null)) as unknown;
-        const data = asRecord(json).data;
-        if (!response.ok || !Array.isArray(data)) return [];
-        return data.map((raw) => ({
-          offer: pickOffer(raw),
-          destination,
-        }));
-      }
-    );
-
-    const flattened = offersWithRoute.flat();
-    if (flattened.length === 0) {
+    const weeklyResult = await getWeeklyDeal({ token, baseUrl });
+    if (!weeklyResult) {
       return NextResponse.json({ ok: true, message: "No offers found." });
     }
 
-    const offersForScore = flattened.map(({ offer, destination }) => ({
-      ...offer,
-      id: `${destination}-${offer.id}`,
-    }));
-    const scored = scoreOffers(offersForScore);
-
-    const scoredOffers = flattened.map(({ offer, destination }) => {
-      const scoredId = `${destination}-${offer.id}`;
-      return {
-        offer,
-        destination,
-        score: scored.scores.get(scoredId) ?? 0,
-      };
-    });
-
-    scoredOffers.sort((a, b) => {
-      if (b.score !== a.score) return b.score - a.score;
-      return Number(a.offer.priceTotal) - Number(b.offer.priceTotal);
-    });
-
-    const top = scoredOffers[0];
-    if (!top) {
-      return NextResponse.json({ ok: true, message: "No scored offers." });
-    }
-
-    type Itinerary = FlightOffer["itineraries"][number];
-    const totalDuration = top.offer.itineraries.reduce((sum: number, it: Itinerary) => {
-      return sum + parseIsoDurationToMinutes(it.duration);
-    }, 0);
-    const maxStops = top.offer.itineraries.reduce((maxStops: number, it: Itinerary) => {
-      const segments = it.segments.length;
-      return Math.max(maxStops, Math.max(0, segments - 1));
-    }, 0);
-
+    const { context, top, totalDurationMinutes, maxStops } = weeklyResult;
     const purchaseUrl = buildKiwiAffiliateUrl({
-      origin,
+      origin: context.origin,
       destination: top.destination,
-      depart: departureDate,
-      returnDate,
-      adults,
+      depart: context.departureDate,
+      returnDate: context.returnDate,
+      adults: context.adults,
     });
 
     const scorePct = Math.round(top.score * 100);
-    const priceLabel = formatMoney(top.offer.currency || currency, top.offer.priceTotal);
-    const durationLabel = formatDurationMinutes(totalDuration);
+    const priceLabel = formatMoney(top.offer.currency || context.currency, top.offer.priceTotal);
+    const durationLabel = formatDurationMinutes(totalDurationMinutes);
     const stopsLabel = `${maxStops} stop${maxStops === 1 ? "" : "s"}`;
     const airlineCode = top.offer.validatingAirlineCodes[0] ?? "Multiple carriers";
 
-    const subject = `Ticket Wiz weekly best deal: ${origin} → ${top.destination} from ${priceLabel}`;
+    const subject = `Ticket Wiz weekly best deal: ${context.origin} → ${top.destination} from ${priceLabel}`;
     const html = `
       <div style="font-family:Arial,sans-serif;line-height:1.5;">
         <h2 style="margin:0 0 8px;">Weekly Best Deal</h2>
-        <p style="margin:0 0 12px;">${origin} → ${top.destination} · ${priceLabel}</p>
+        <p style="margin:0 0 12px;">${context.origin} → ${top.destination} · ${priceLabel}</p>
         <ul style="padding-left:18px;margin:0 0 12px;">
           <li>Score: ${scorePct}/100</li>
-          <li>Dates: ${departureDate}${returnDate ? ` → ${returnDate}` : ""}</li>
+          <li>Dates: ${context.departureDate}${
+            context.returnDate ? ` → ${context.returnDate}` : ""
+          }</li>
           <li>Duration: ${durationLabel}</li>
           <li>Stops: ${stopsLabel}</li>
           <li>Airline: ${airlineCode}</li>
@@ -328,6 +205,19 @@ export async function GET(request: Request) {
         <p style="color:#64748b;font-size:12px;margin:0;">You are receiving this because you subscribed to Ticket Wiz alerts.</p>
       </div>
     `;
+    const text = [
+      "Weekly Best Deal",
+      `${context.origin} → ${top.destination} · ${priceLabel}`,
+      `Score: ${scorePct}/100`,
+      `Dates: ${context.departureDate}${
+        context.returnDate ? ` → ${context.returnDate}` : ""
+      }`,
+      `Duration: ${durationLabel}`,
+      `Stops: ${stopsLabel}`,
+      `Airline: ${airlineCode}`,
+      `Book this deal: ${purchaseUrl}`,
+      "You are receiving this because you subscribed to Ticket Wiz alerts.",
+    ].join("\n");
 
     const resend = new Resend(resendApiKey);
     await resend.emails.send({
@@ -335,6 +225,7 @@ export async function GET(request: Request) {
       to: subscribers.map((s) => s.email),
       subject,
       html,
+      text,
     });
 
     const savedSearches = await getSavedSearches();
@@ -436,12 +327,34 @@ export async function GET(request: Request) {
                 <p style="color:#64748b;font-size:12px;margin:0;">You are receiving this because you saved a Ticket Wiz search.</p>
               </div>
             `;
+          const textBody = [
+            `${cadenceLabel} Price Update`,
+            `${result.search.origin} → ${result.search.destination} · ${priceLabel}`,
+            `Score: ${scorePct}/100`,
+            `Dates: ${result.search.departure_date}${
+              result.search.return_date ? ` → ${result.search.return_date}` : ""
+            }`,
+            `Duration: ${durationLabel}`,
+            `Stops: ${stopsLabel}`,
+            `Airline: ${airlineCode}`,
+            ...(typeof priceDrop === "number" && priceDrop > 0 && daysSinceLast && daysSinceLast >= 6
+              ? [
+                  `Price drop since last week: ${formatMoney(
+                    bestOffer.currency,
+                    String(priceDrop)
+                  )}`,
+                ]
+              : []),
+            `Book this deal: ${purchaseUrl}`,
+            "You are receiving this because you saved a Ticket Wiz search.",
+          ].join("\n");
 
           await resend.emails.send({
             from: resendFrom,
             to: result.search.email,
             subject: subjectLine,
             html: htmlBody,
+            text: textBody,
           });
         await markSavedSearchSent(result.search.id, Number.isFinite(priceValue) ? priceValue : null);
         })
@@ -452,10 +365,10 @@ export async function GET(request: Request) {
       ok: true,
       sent: subscribers.length,
       deal: {
-        origin,
+        origin: context.origin,
         destination: top.destination,
         price: top.offer.priceTotal,
-        currency: top.offer.currency || currency,
+        currency: top.offer.currency || context.currency,
         score: top.score,
       },
     });
