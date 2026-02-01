@@ -4,9 +4,11 @@ import { getAmadeusAccessToken, getAmadeusBaseUrl } from "@/lib/amadeus";
 import type { FlightOffer } from "@/lib/flights";
 import { parseIsoDurationToMinutes, scoreOffers } from "@/lib/dealScore";
 import { buildOutboundUrl, normalizeResendFrom } from "@/lib/email";
+import { buildBrandedEmailHtml } from "@/lib/emailTemplates";
 import { buildKiwiAffiliateUrl } from "@/lib/partners";
 import { getSubscribers } from "@/lib/subscribers";
 import { getSavedSearches, markSavedSearchSent } from "@/lib/savedSearches";
+import { buildUnsubscribeUrl, createUnsubscribeToken } from "@/lib/unsubscribe";
 import { getWeeklyDeal } from "@/lib/weeklyDeal";
 
 type UnknownRecord = Record<string, unknown>;
@@ -190,48 +192,54 @@ export async function GET(request: Request) {
     const airlineCode = top.offer.validatingAirlineCodes[0] ?? "Multiple carriers";
 
     const subject = `Ticket Wiz weekly best deal: ${context.origin} → ${top.destination} from ${priceLabel}`;
-    const html = `
-      <div style="font-family:Arial,sans-serif;line-height:1.5;">
-        <h2 style="margin:0 0 8px;">Weekly Best Deal</h2>
-        <p style="margin:0 0 12px;">${context.origin} → ${top.destination} · ${priceLabel}</p>
-        <ul style="padding-left:18px;margin:0 0 12px;">
-          <li>Score: ${scorePct}/100</li>
-          <li>Dates: ${context.departureDate}${
-            context.returnDate ? ` → ${context.returnDate}` : ""
-          }</li>
-          <li>Duration: ${durationLabel}</li>
-          <li>Stops: ${stopsLabel}</li>
-          <li>Airline: ${airlineCode}</li>
-        </ul>
-        <p style="margin:0 0 8px;">
-          <a href="${purchaseUrl}" target="_blank" rel="noopener noreferrer">Book this deal</a>
-        </p>
-        <p style="color:#64748b;font-size:12px;margin:0;">You are receiving this because you subscribed to Ticket Wiz alerts.</p>
-      </div>
-    `;
-    const text = [
-      "Weekly Best Deal",
-      `${context.origin} → ${top.destination} · ${priceLabel}`,
-      `Score: ${scorePct}/100`,
-      `Dates: ${context.departureDate}${
-        context.returnDate ? ` → ${context.returnDate}` : ""
-      }`,
-      `Duration: ${durationLabel}`,
-      `Stops: ${stopsLabel}`,
-      `Airline: ${airlineCode}`,
-      `Book this deal: ${purchaseUrl}`,
-      "You are receiving this because you subscribed to Ticket Wiz alerts.",
-    ].join("\n");
-
     const resend = new Resend(resendApiKey);
-    await resend.emails.send({
-      from: resendFrom,
-      to: subscribers.map((s) => s.email),
-      subject,
-      html,
-      text,
-      ...(resendReplyTo ? { replyTo: resendReplyTo } : {}),
-    });
+    await Promise.all(
+      subscribers.map(async (subscriber) => {
+        const unsubscribeToken = createUnsubscribeToken(subscriber.email);
+        const unsubscribeUrl = unsubscribeToken ? buildUnsubscribeUrl(unsubscribeToken) : undefined;
+        const html = buildBrandedEmailHtml({
+          contentHtml: `
+            <h2 style="margin:0 0 8px;font-size:22px;color:#001f3f;">Weekly Best Deal</h2>
+            <p style="margin:0 0 16px;font-size:16px;">${context.origin} → ${top.destination} · ${priceLabel}</p>
+            <table style="width:100%;border-collapse:collapse;font-size:14px;margin-bottom:20px;">
+              <tr><td style="padding:4px 0;color:#6c757d;">Score</td><td style="padding:4px 0;text-align:right;">${scorePct}/100</td></tr>
+              <tr><td style="padding:4px 0;color:#6c757d;">Dates</td><td style="padding:4px 0;text-align:right;">${context.departureDate}${
+                context.returnDate ? ` → ${context.returnDate}` : ""
+              }</td></tr>
+              <tr><td style="padding:4px 0;color:#6c757d;">Duration</td><td style="padding:4px 0;text-align:right;">${durationLabel}</td></tr>
+              <tr><td style="padding:4px 0;color:#6c757d;">Stops</td><td style="padding:4px 0;text-align:right;">${stopsLabel}</td></tr>
+              <tr><td style="padding:4px 0;color:#6c757d;">Airline</td><td style="padding:4px 0;text-align:right;">${airlineCode}</td></tr>
+            </table>
+            <a href="${purchaseUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:#007bff;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:600;">Book this deal</a>
+          `,
+          footerNote: "You are receiving this because you subscribed to Ticket Wiz alerts.",
+          unsubscribeUrl,
+        });
+        const text = [
+          "Weekly Best Deal",
+          `${context.origin} → ${top.destination} · ${priceLabel}`,
+          `Score: ${scorePct}/100`,
+          `Dates: ${context.departureDate}${
+            context.returnDate ? ` → ${context.returnDate}` : ""
+          }`,
+          `Duration: ${durationLabel}`,
+          `Stops: ${stopsLabel}`,
+          `Airline: ${airlineCode}`,
+          `Book this deal: ${purchaseUrl}`,
+          "You are receiving this because you subscribed to Ticket Wiz alerts.",
+          ...(unsubscribeUrl ? [`Unsubscribe: ${unsubscribeUrl}`] : []),
+        ].join("\n");
+
+        await resend.emails.send({
+          from: resendFrom,
+          to: subscriber.email,
+          subject,
+          html,
+          text,
+          ...(resendReplyTo ? { replyTo: resendReplyTo } : {}),
+        });
+      })
+    );
 
     const savedSearches = await getSavedSearches();
     type SavedSearch = (typeof savedSearches)[number];
@@ -308,33 +316,34 @@ export async function GET(request: Request) {
                 ? "Biweekly"
                 : "Weekly";
           const subjectLine = `${cadenceLabel} price update: ${result.search.origin} → ${result.search.destination} from ${priceLabel}`;
-          const htmlBody = `
-              <div style="font-family:Arial,sans-serif;line-height:1.5;">
-                <h2 style="margin:0 0 8px;">${cadenceLabel} Price Update</h2>
-                <p style="margin:0 0 12px;">${result.search.origin} → ${result.search.destination} · ${priceLabel}</p>
-                <ul style="padding-left:18px;margin:0 0 12px;">
-                  <li>Score: ${scorePct}/100</li>
-                  <li>Dates: ${result.search.departure_date}${
-                    result.search.return_date ? ` → ${result.search.return_date}` : ""
-                  }</li>
-                  <li>Duration: ${durationLabel}</li>
-                  <li>Stops: ${stopsLabel}</li>
-                  <li>Airline: ${airlineCode}</li>
-                  ${
-                    typeof priceDrop === "number" && priceDrop > 0 && daysSinceLast && daysSinceLast >= 6
-                      ? `<li>Price drop since last week: ${formatMoney(
-                          bestOffer.currency,
-                          String(priceDrop)
-                        )}</li>`
-                      : ""
-                  }
-                </ul>
-                <p style="margin:0 0 8px;">
-                  <a href="${purchaseUrl}" target="_blank" rel="noopener noreferrer">Book this deal</a>
-                </p>
-                <p style="color:#64748b;font-size:12px;margin:0;">You are receiving this because you saved a Ticket Wiz search.</p>
-              </div>
-            `;
+          const unsubscribeToken = createUnsubscribeToken(result.search.email);
+          const unsubscribeUrl = unsubscribeToken ? buildUnsubscribeUrl(unsubscribeToken) : undefined;
+          const htmlBody = buildBrandedEmailHtml({
+            contentHtml: `
+              <h2 style="margin:0 0 8px;font-size:22px;color:#001f3f;">${cadenceLabel} Price Update</h2>
+              <p style="margin:0 0 16px;font-size:16px;">${result.search.origin} → ${result.search.destination} · ${priceLabel}</p>
+              <table style="width:100%;border-collapse:collapse;font-size:14px;margin-bottom:20px;">
+                <tr><td style="padding:4px 0;color:#6c757d;">Score</td><td style="padding:4px 0;text-align:right;">${scorePct}/100</td></tr>
+                <tr><td style="padding:4px 0;color:#6c757d;">Dates</td><td style="padding:4px 0;text-align:right;">${result.search.departure_date}${
+                  result.search.return_date ? ` → ${result.search.return_date}` : ""
+                }</td></tr>
+                <tr><td style="padding:4px 0;color:#6c757d;">Duration</td><td style="padding:4px 0;text-align:right;">${durationLabel}</td></tr>
+                <tr><td style="padding:4px 0;color:#6c757d;">Stops</td><td style="padding:4px 0;text-align:right;">${stopsLabel}</td></tr>
+                <tr><td style="padding:4px 0;color:#6c757d;">Airline</td><td style="padding:4px 0;text-align:right;">${airlineCode}</td></tr>
+                ${
+                  typeof priceDrop === "number" && priceDrop > 0 && daysSinceLast && daysSinceLast >= 6
+                    ? `<tr><td style="padding:4px 0;color:#6c757d;">Price drop</td><td style="padding:4px 0;text-align:right;">${formatMoney(
+                        bestOffer.currency,
+                        String(priceDrop)
+                      )}</td></tr>`
+                    : ""
+                }
+              </table>
+              <a href="${purchaseUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:#007bff;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:600;">Book this deal</a>
+            `,
+            footerNote: "You are receiving this because you saved a Ticket Wiz search.",
+            unsubscribeUrl,
+          });
           const textBody = [
             `${cadenceLabel} Price Update`,
             `${result.search.origin} → ${result.search.destination} · ${priceLabel}`,
@@ -355,6 +364,7 @@ export async function GET(request: Request) {
               : []),
             `Book this deal: ${purchaseUrl}`,
             "You are receiving this because you saved a Ticket Wiz search.",
+            ...(unsubscribeUrl ? [`Unsubscribe: ${unsubscribeUrl}`] : []),
           ].join("\n");
 
           await resend.emails.send({

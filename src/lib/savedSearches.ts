@@ -158,6 +158,14 @@ export async function deleteSavedSearch(args: { id: number; email: string }) {
   `;
 }
 
+export async function deleteSavedSearchesByEmail(email: string) {
+  await ensureSavedSearchesTable();
+  await sql`
+    DELETE FROM saved_searches
+    WHERE email = ${email}
+  `;
+}
+
 export async function markSavedSearchSent(id: number, price?: number | null) {
   await ensureSavedSearchesTable();
   const priceValue = typeof price === "number" && Number.isFinite(price) ? price : null;

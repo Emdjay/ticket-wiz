@@ -8,6 +8,8 @@ import {
   updateSavedSearch,
 } from "@/lib/savedSearches";
 import { normalizeResendFrom } from "@/lib/email";
+import { buildBrandedEmailHtml } from "@/lib/emailTemplates";
+import { buildUnsubscribeUrl, createUnsubscribeToken } from "@/lib/unsubscribe";
 
 const IataCode = z
   .string()
@@ -96,27 +98,34 @@ export async function POST(request: Request) {
       const deepLink = buildDeepLink(originUrl, parsed.data);
       const resend = new Resend(resendApiKey);
       const subject = `Alert confirmed: ${parsed.data.origin} → ${parsed.data.destination}`;
-      const html = `
-        <div style="font-family:Arial,sans-serif;line-height:1.5;">
-          <h2 style="margin:0 0 8px;">Your alert is set</h2>
-          <p style="margin:0 0 12px;">
+      const unsubscribeToken = createUnsubscribeToken(parsed.data.email);
+      const unsubscribeUrl = unsubscribeToken ? buildUnsubscribeUrl(unsubscribeToken) : undefined;
+      const html = buildBrandedEmailHtml({
+        contentHtml: `
+          <h2 style="margin:0 0 8px;font-size:22px;color:#001f3f;">Your alert is set</h2>
+          <p style="margin:0 0 16px;font-size:16px;">
             We’ll send weekly price updates for ${parsed.data.origin} → ${parsed.data.destination}.
           </p>
-          <p style="margin:0 0 12px;">
-            <a href="${deepLink}" target="_blank" rel="noopener noreferrer">
-              View this search in Ticket Wiz
-            </a>
-          </p>
-          <p style="color:#64748b;font-size:12px;margin:0;">
-            You can manage or pause alerts anytime.
-          </p>
-        </div>
-      `;
+          <a href="${deepLink}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:#007bff;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:600;">
+            View this search in Ticket Wiz
+          </a>
+        `,
+        footerNote: "You can manage or pause alerts anytime.",
+        unsubscribeUrl,
+      });
+      const text = [
+        "Your alert is set",
+        `We’ll send weekly price updates for ${parsed.data.origin} → ${parsed.data.destination}.`,
+        `View this search in Ticket Wiz: ${deepLink}`,
+        "You can manage or pause alerts anytime.",
+        ...(unsubscribeUrl ? [`Unsubscribe: ${unsubscribeUrl}`] : []),
+      ].join("\n");
       await resend.emails.send({
         from: resendFrom,
         to: parsed.data.email,
         subject,
         html,
+        text,
         ...(resendReplyTo ? { replyTo: resendReplyTo } : {}),
       });
     }

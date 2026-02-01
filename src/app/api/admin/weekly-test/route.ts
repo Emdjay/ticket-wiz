@@ -3,7 +3,9 @@ import { z } from "zod";
 import { Resend } from "resend";
 import { getAmadeusAccessToken, getAmadeusBaseUrl } from "@/lib/amadeus";
 import { buildOutboundUrl, normalizeResendFrom } from "@/lib/email";
+import { buildBrandedEmailHtml } from "@/lib/emailTemplates";
 import { buildKiwiAffiliateUrl } from "@/lib/partners";
+import { buildUnsubscribeUrl, createUnsubscribeToken } from "@/lib/unsubscribe";
 import { getWeeklyDeal } from "@/lib/weeklyDeal";
 
 function assertAdmin(request: Request) {
@@ -81,27 +83,28 @@ export async function POST(request: Request) {
     const durationLabel = formatDurationMinutes(totalDurationMinutes);
     const stopsLabel = `${maxStops} stop${maxStops === 1 ? "" : "s"}`;
     const airlineCode = top.offer.validatingAirlineCodes[0] ?? "Multiple carriers";
+    const unsubscribeToken = createUnsubscribeToken(parsed.data.email);
+    const unsubscribeUrl = unsubscribeToken ? buildUnsubscribeUrl(unsubscribeToken) : undefined;
 
     const subject = `Ticket Wiz weekly best deal: ${context.origin} → ${top.destination} from ${priceLabel}`;
-    const html = `
-      <div style="font-family:Arial,sans-serif;line-height:1.5;">
-        <h2 style="margin:0 0 8px;">Weekly Best Deal</h2>
-        <p style="margin:0 0 12px;">${context.origin} → ${top.destination} · ${priceLabel}</p>
-        <ul style="padding-left:18px;margin:0 0 12px;">
-          <li>Score: ${scorePct}/100</li>
-          <li>Dates: ${context.departureDate}${
+    const html = buildBrandedEmailHtml({
+      contentHtml: `
+        <h2 style="margin:0 0 8px;font-size:22px;color:#001f3f;">Weekly Best Deal</h2>
+        <p style="margin:0 0 16px;font-size:16px;">${context.origin} → ${top.destination} · ${priceLabel}</p>
+        <table style="width:100%;border-collapse:collapse;font-size:14px;margin-bottom:20px;">
+          <tr><td style="padding:4px 0;color:#6c757d;">Score</td><td style="padding:4px 0;text-align:right;">${scorePct}/100</td></tr>
+          <tr><td style="padding:4px 0;color:#6c757d;">Dates</td><td style="padding:4px 0;text-align:right;">${context.departureDate}${
             context.returnDate ? ` → ${context.returnDate}` : ""
-          }</li>
-          <li>Duration: ${durationLabel}</li>
-          <li>Stops: ${stopsLabel}</li>
-          <li>Airline: ${airlineCode}</li>
-        </ul>
-        <p style="margin:0 0 8px;">
-          <a href="${purchaseUrl}" target="_blank" rel="noopener noreferrer">Book this deal</a>
-        </p>
-        <p style="color:#64748b;font-size:12px;margin:0;">Test send for Ticket Wiz weekly deal.</p>
-      </div>
-    `;
+          }</td></tr>
+          <tr><td style="padding:4px 0;color:#6c757d;">Duration</td><td style="padding:4px 0;text-align:right;">${durationLabel}</td></tr>
+          <tr><td style="padding:4px 0;color:#6c757d;">Stops</td><td style="padding:4px 0;text-align:right;">${stopsLabel}</td></tr>
+          <tr><td style="padding:4px 0;color:#6c757d;">Airline</td><td style="padding:4px 0;text-align:right;">${airlineCode}</td></tr>
+        </table>
+        <a href="${purchaseUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:#007bff;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:600;">Book this deal</a>
+      `,
+      footerNote: "Test send for Ticket Wiz weekly deal.",
+      unsubscribeUrl,
+    });
     const text = [
       "Weekly Best Deal",
       `${context.origin} → ${top.destination} · ${priceLabel}`,
@@ -114,6 +117,7 @@ export async function POST(request: Request) {
       `Airline: ${airlineCode}`,
       `Book this deal: ${purchaseUrl}`,
       "Test send for Ticket Wiz weekly deal.",
+      ...(unsubscribeUrl ? [`Unsubscribe: ${unsubscribeUrl}`] : []),
     ].join("\n");
 
     const resend = new Resend(resendApiKey);
