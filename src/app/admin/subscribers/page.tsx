@@ -175,7 +175,7 @@ export default function SubscribersAdminPage() {
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={loadSubscribers}
+            onClick={() => loadSubscribers()}
             className="h-9 rounded-xl bg-[#0F386E] px-4 text-xs font-semibold text-white shadow-md hover:bg-[#1D4F91]"
           >
             {status === "loading" ? "Loading..." : "Load subscribers"}
