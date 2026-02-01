@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { Resend } from "resend";
 import { getAmadeusAccessToken, getAmadeusBaseUrl } from "@/lib/amadeus";
-import { normalizeResendFrom } from "@/lib/email";
+import { buildOutboundUrl, normalizeResendFrom } from "@/lib/email";
 import { buildKiwiAffiliateUrl } from "@/lib/partners";
 import { getWeeklyDeal } from "@/lib/weeklyDeal";
 
@@ -49,6 +49,7 @@ export async function POST(request: Request) {
 
   const resendApiKey = process.env.RESEND_API_KEY ?? "";
   const resendFrom = normalizeResendFrom(process.env.RESEND_FROM ?? "");
+  const resendReplyTo = normalizeResendFrom(process.env.RESEND_REPLY_TO ?? "");
   if (!resendApiKey || !resendFrom) {
     return NextResponse.json(
       { error: "Missing RESEND_API_KEY or RESEND_FROM." },
@@ -65,13 +66,15 @@ export async function POST(request: Request) {
     }
 
     const { context, top, totalDurationMinutes, maxStops } = weeklyResult;
-    const purchaseUrl = buildKiwiAffiliateUrl({
-      origin: context.origin,
-      destination: top.destination,
-      depart: context.departureDate,
-      returnDate: context.returnDate,
-      adults: context.adults,
-    });
+    const purchaseUrl = buildOutboundUrl(
+      buildKiwiAffiliateUrl({
+        origin: context.origin,
+        destination: top.destination,
+        depart: context.departureDate,
+        returnDate: context.returnDate,
+        adults: context.adults,
+      })
+    );
 
     const scorePct = Math.round(top.score * 100);
     const priceLabel = formatMoney(top.offer.currency || context.currency, top.offer.priceTotal);
@@ -120,6 +123,7 @@ export async function POST(request: Request) {
       subject,
       html,
       text,
+      ...(resendReplyTo ? { replyTo: resendReplyTo } : {}),
     });
 
     return NextResponse.json({

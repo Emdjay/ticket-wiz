@@ -3,7 +3,7 @@ import { Resend } from "resend";
 import { getAmadeusAccessToken, getAmadeusBaseUrl } from "@/lib/amadeus";
 import type { FlightOffer } from "@/lib/flights";
 import { parseIsoDurationToMinutes, scoreOffers } from "@/lib/dealScore";
-import { normalizeResendFrom } from "@/lib/email";
+import { buildOutboundUrl, normalizeResendFrom } from "@/lib/email";
 import { buildKiwiAffiliateUrl } from "@/lib/partners";
 import { getSubscribers } from "@/lib/subscribers";
 import { getSavedSearches, markSavedSearchSent } from "@/lib/savedSearches";
@@ -151,6 +151,7 @@ export async function GET(request: Request) {
 
   const resendApiKey = process.env.RESEND_API_KEY ?? "";
   const resendFrom = normalizeResendFrom(process.env.RESEND_FROM ?? "");
+  const resendReplyTo = normalizeResendFrom(process.env.RESEND_REPLY_TO ?? "");
   if (!resendApiKey || !resendFrom) {
     return NextResponse.json(
       { error: "Missing RESEND_API_KEY or RESEND_FROM." },
@@ -172,13 +173,15 @@ export async function GET(request: Request) {
     }
 
     const { context, top, totalDurationMinutes, maxStops } = weeklyResult;
-    const purchaseUrl = buildKiwiAffiliateUrl({
-      origin: context.origin,
-      destination: top.destination,
-      depart: context.departureDate,
-      returnDate: context.returnDate,
-      adults: context.adults,
-    });
+    const purchaseUrl = buildOutboundUrl(
+      buildKiwiAffiliateUrl({
+        origin: context.origin,
+        destination: top.destination,
+        depart: context.departureDate,
+        returnDate: context.returnDate,
+        adults: context.adults,
+      })
+    );
 
     const scorePct = Math.round(top.score * 100);
     const priceLabel = formatMoney(top.offer.currency || context.currency, top.offer.priceTotal);
@@ -227,6 +230,7 @@ export async function GET(request: Request) {
       subject,
       html,
       text,
+      ...(resendReplyTo ? { replyTo: resendReplyTo } : {}),
     });
 
     const savedSearches = await getSavedSearches();
@@ -287,13 +291,15 @@ export async function GET(request: Request) {
             Number.isFinite(priceValue) && typeof lastSentPrice === "number"
               ? lastSentPrice - priceValue
               : null;
-          const purchaseUrl = buildKiwiAffiliateUrl({
-            origin: result.search.origin,
-            destination: result.search.destination,
-            depart: result.search.departure_date,
-            returnDate: result.search.return_date ?? undefined,
-            adults: result.search.adults,
-          });
+          const purchaseUrl = buildOutboundUrl(
+            buildKiwiAffiliateUrl({
+              origin: result.search.origin,
+              destination: result.search.destination,
+              depart: result.search.departure_date,
+              returnDate: result.search.return_date ?? undefined,
+              adults: result.search.adults,
+            })
+          );
 
           const cadenceLabel =
             result.search.frequency === "daily"
@@ -357,6 +363,7 @@ export async function GET(request: Request) {
             subject: subjectLine,
             html: htmlBody,
             text: textBody,
+            ...(resendReplyTo ? { replyTo: resendReplyTo } : {}),
           });
         await markSavedSearchSent(result.search.id, Number.isFinite(priceValue) ? priceValue : null);
         })

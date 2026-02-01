@@ -90,6 +90,7 @@ export async function POST(request: Request) {
     });
     const resendApiKey = process.env.RESEND_API_KEY ?? "";
     const resendFrom = normalizeResendFrom(process.env.RESEND_FROM ?? "");
+    const resendReplyTo = normalizeResendFrom(process.env.RESEND_REPLY_TO ?? "");
     if (resendApiKey && resendFrom) {
       const originUrl = new URL(request.url).origin;
       const deepLink = buildDeepLink(originUrl, parsed.data);
@@ -116,6 +117,7 @@ export async function POST(request: Request) {
         to: parsed.data.email,
         subject,
         html,
+        ...(resendReplyTo ? { replyTo: resendReplyTo } : {}),
       });
     }
     return NextResponse.json({ ok: true });
