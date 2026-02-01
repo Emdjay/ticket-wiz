@@ -102,11 +102,11 @@ export async function POST(request: Request) {
       const unsubscribeUrl = unsubscribeToken ? buildUnsubscribeUrl(unsubscribeToken) : undefined;
       const html = buildBrandedEmailHtml({
         contentHtml: `
-          <h2 style="margin:0 0 8px;font-size:22px;color:#001f3f;">Your alert is set</h2>
+          <h2 style="margin:0 0 10px;font-size:24px;color:#001f3f;">Your alert is set</h2>
           <p style="margin:0 0 16px;font-size:16px;">
             We’ll send weekly price updates for ${parsed.data.origin} → ${parsed.data.destination}.
           </p>
-          <a href="${deepLink}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:#007bff;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:600;">
+          <a href="${deepLink}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:#007bff;color:#ffffff;text-decoration:none;padding:14px 22px;border-radius:10px;font-weight:600;">
             View this search in Ticket Wiz
           </a>
         `,

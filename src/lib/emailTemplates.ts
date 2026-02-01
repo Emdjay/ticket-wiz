@@ -29,18 +29,22 @@ export function buildBrandedEmailHtml({ contentHtml, footerNote, unsubscribeUrl 
               <table role="presentation" cellpadding="0" cellspacing="0" width="600" style="width:600px;max-width:600px;background:#ffffff;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;">
                 <tr>
                   <td style="padding:20px 24px;border-bottom:1px solid #e5e7eb;">
-                    <img src="${logoUrl}" alt="Ticket Wiz" style="height:96px;display:block;margin:0 0 8px;" />
-                    <div style="color:#6c757d;font-size:14px;">Ticket Wiz • Flight deals finder</div>
+                    <img src="${logoUrl}" alt="Ticket Wiz" style="height:96px;display:block;margin:0 0 10px;" />
+                    <div style="color:#6c757d;font-size:15px;">Ticket Wiz • Flight deals finder</div>
                   </td>
                 </tr>
                 <tr>
-                  <td style="padding:24px;color:#212529;font-family:Arial,sans-serif;">
+                  <td style="padding:26px;color:#212529;font-family:Arial,sans-serif;line-height:1.55;">
                     ${contentHtml}
                   </td>
                 </tr>
                 <tr>
                   <td style="padding:16px 24px;border-top:1px solid #e5e7eb;font-size:12px;color:#6c757d;line-height:1.6;font-family:Arial,sans-serif;">
-                    <p style="Margin:0 0 8px;">${footerNote}</p>
+                    ${
+                      footerNote
+                        ? `<p style="Margin:0 0 8px;">${footerNote}</p>`
+                        : ""
+                    }
                     <p style="Margin:0 0 8px;">
                       <a href="${aboutUrl}" style="color:#007bff;text-decoration:none;">About</a> ·
                       <a href="${privacyUrl}" style="color:#007bff;text-decoration:none;">Privacy</a> ·

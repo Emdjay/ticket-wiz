@@ -89,7 +89,7 @@ export async function POST(request: Request) {
     const subject = `Ticket Wiz weekly best deal: ${context.origin} → ${top.destination} from ${priceLabel}`;
     const html = buildBrandedEmailHtml({
       contentHtml: `
-        <h2 style="margin:0 0 8px;font-size:22px;color:#001f3f;">Weekly Best Deal</h2>
+        <h2 style="margin:0 0 10px;font-size:24px;color:#001f3f;">Weekly Best Deal</h2>
         <p style="margin:0 0 16px;font-size:16px;">${context.origin} → ${top.destination} · ${priceLabel}</p>
         <table style="width:100%;border-collapse:collapse;font-size:14px;margin-bottom:20px;">
           <tr><td style="padding:4px 0;color:#6c757d;">Score</td><td style="padding:4px 0;text-align:right;">${scorePct}/100</td></tr>
@@ -100,9 +100,9 @@ export async function POST(request: Request) {
           <tr><td style="padding:4px 0;color:#6c757d;">Stops</td><td style="padding:4px 0;text-align:right;">${stopsLabel}</td></tr>
           <tr><td style="padding:4px 0;color:#6c757d;">Airline</td><td style="padding:4px 0;text-align:right;">${airlineCode}</td></tr>
         </table>
-        <a href="${purchaseUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:#007bff;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:600;">Book this deal</a>
+        <a href="${purchaseUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:#007bff;color:#ffffff;text-decoration:none;padding:14px 22px;border-radius:10px;font-weight:600;">Book this deal</a>
       `,
-      footerNote: "Test send for Ticket Wiz weekly deal.",
+      footerNote: "You are receiving this because you subscribed to Ticket Wiz alerts.",
       unsubscribeUrl,
     });
     const text = [
@@ -116,7 +116,7 @@ export async function POST(request: Request) {
       `Stops: ${stopsLabel}`,
       `Airline: ${airlineCode}`,
       `Book this deal: ${purchaseUrl}`,
-      "Test send for Ticket Wiz weekly deal.",
+      "You are receiving this because you subscribed to Ticket Wiz alerts.",
       ...(unsubscribeUrl ? [`Unsubscribe: ${unsubscribeUrl}`] : []),
     ].join("\n");
 
