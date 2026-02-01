@@ -262,6 +262,7 @@ export async function GET(request: Request) {
 
       await Promise.all(
         validResults.map(async (result) => {
+          type Itinerary = FlightOffer["itineraries"][number];
           const bestOffer = result.best.offer;
           const scorePct = Math.round(result.best.score * 100);
           const totalDuration = bestOffer.itineraries.reduce((sum: number, it: Itinerary) => {
