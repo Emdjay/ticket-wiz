@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type Subscriber = {
   email: string;
@@ -13,6 +13,17 @@ export default function SubscribersAdminPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [search, setSearch] = useState("");
+  const [remembered, setRemembered] = useState(false);
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem("ticketWizAdminToken") ?? "";
+    if (stored) {
+      setToken(stored);
+      setRemembered(true);
+      loadSubscribers(stored);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -20,8 +31,9 @@ export default function SubscribersAdminPage() {
     return subscribers.filter((s) => s.email.toLowerCase().includes(term));
   }, [search, subscribers]);
 
-  async function loadSubscribers() {
-    if (!token.trim()) {
+  async function loadSubscribers(nextToken?: string) {
+    const activeToken = (nextToken ?? token).trim();
+    if (!activeToken) {
       setStatus("error");
       setMessage("Enter your admin token.");
       return;
@@ -30,7 +42,7 @@ export default function SubscribersAdminPage() {
     setMessage(null);
     try {
       const response = await fetch("/api/admin/subscribers", {
-        headers: { Authorization: `Bearer ${token.trim()}` },
+        headers: { Authorization: `Bearer ${activeToken}` },
       });
       if (!response.ok) {
         setStatus("error");
@@ -121,7 +133,15 @@ export default function SubscribersAdminPage() {
           type="password"
           value={token}
           onChange={(event) => {
-            setToken(event.target.value);
+            const next = event.target.value;
+            setToken(next);
+            if (next.trim()) {
+              window.localStorage.setItem("ticketWizAdminToken", next);
+              setRemembered(true);
+            } else {
+              window.localStorage.removeItem("ticketWizAdminToken");
+              setRemembered(false);
+            }
             if (status !== "idle") {
               setStatus("idle");
               setMessage(null);
@@ -129,6 +149,29 @@ export default function SubscribersAdminPage() {
           }}
           className="h-10 rounded-xl border border-[#C2D1DF] bg-white px-3 text-sm text-[#363535] outline-none focus:border-[#1D4F91] focus:ring-2 focus:ring-[#C9D8EA]"
         />
+        <div className="flex flex-wrap items-center gap-2 text-xs text-[#69707a]">
+          {remembered ? (
+            <span className="rounded-full bg-[#EEF4FF] px-2 py-1 text-[#1D4F91]">
+              Remembered token
+            </span>
+          ) : (
+            <span>Token not saved yet.</span>
+          )}
+          {remembered ? (
+            <button
+              type="button"
+              onClick={() => {
+                window.localStorage.removeItem("ticketWizAdminToken");
+                setRemembered(false);
+                setToken("");
+                setSubscribers([]);
+              }}
+              className="rounded-full border border-[#C9D8EA] bg-white px-2 py-1 text-[11px] font-semibold text-[#1D4F91] hover:border-[#1D4F91]"
+            >
+              Clear token
+            </button>
+          ) : null}
+        </div>
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
