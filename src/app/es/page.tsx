@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { HtmlLangSetter } from "@/components/HtmlLangSetter";
 import { LegalLinksModal } from "@/components/LegalLinksModal";
+import { AnimatedBackground } from "@/components/AnimatedBackground";
 
 export const metadata: Metadata = {
   title: "Ticket Wiz | Ofertas de vuelos rápido",
@@ -68,8 +69,11 @@ export default function SpanishHomePage() {
           className="object-cover tw-fade-in"
         />
       </div>
+      <div className="absolute inset-0 z-[5]">
+        <AnimatedBackground />
+      </div>
       <HtmlLangSetter lang="es" />
-      <div className="relative z-10 min-h-screen bg-white/80 backdrop-blur-sm">
+      <div className="relative z-10 min-h-screen bg-white/60 backdrop-blur-[2px]">
         <Script
           id="faq-schema-es"
           type="application/ld+json"

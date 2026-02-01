@@ -3,6 +3,7 @@ import Script from "next/script";
 import Image from "next/image";
 import Link from "next/link";
 import { LegalLinksModal } from "@/components/LegalLinksModal";
+import { AnimatedBackground } from "@/components/AnimatedBackground";
 
 export const metadata: Metadata = {
   title: "Ticket Wiz | Flight deals, simplified",
@@ -72,7 +73,10 @@ export default function Home() {
           className="object-cover tw-fade-in"
         />
       </div>
-      <div className="relative z-10 min-h-screen bg-white/80 backdrop-blur-sm">
+      <div className="absolute inset-0 z-[5]">
+        <AnimatedBackground />
+      </div>
+      <div className="relative z-10 min-h-screen bg-white/60 backdrop-blur-[2px]">
         <Script
           id="faq-schema"
           type="application/ld+json"

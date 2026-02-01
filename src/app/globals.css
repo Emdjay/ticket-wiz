@@ -54,8 +54,93 @@ body {
     opacity: 0;
     transform: translateY(4px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Background animation keyframes */
+@keyframes fly-across {
+  0% {
+    transform: translateX(0) translateY(0);
+    opacity: 0;
+  }
+
+  5% {
+    opacity: 1;
+  }
+
+  95% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(calc(100vw + 200px)) translateY(-20px);
+    opacity: 0;
+  }
+}
+
+@keyframes fly-airplane {
+  0% {
+    transform: translateX(0) translateY(0);
+    opacity: 0;
+  }
+
+  5% {
+    opacity: 1;
+  }
+
+  95% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(calc(-100vw - 300px)) translateY(30px);
+    opacity: 0;
+  }
+}
+
+@keyframes bird-flap {
+
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+
+  50% {
+    transform: scaleY(0.7);
+  }
+}
+
+@keyframes fade-trail {
+  0% {
+    opacity: 0;
+  }
+
+  20% {
+    opacity: 0.9;
+  }
+
+  100% {
+    opacity: 0.6;
+  }
+}
+
+
+.animate-fly-across {
+  animation: fly-across 5s ease-in-out forwards;
+}
+
+.animate-fly-airplane {
+  animation: fly-airplane 6s ease-in-out forwards;
+}
+
+.animate-bird-flap {
+  animation: bird-flap 0.3s ease-in-out infinite;
+}
+
+.animate-fade-trail {
+  animation: fade-trail 2s ease-out forwards;
 }
