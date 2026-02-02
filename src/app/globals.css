@@ -130,7 +130,7 @@ body {
 
 
 .animate-fly-across {
-  animation: fly-across 10s ease-in-out forwards;
+  animation: fly-across 20s ease-in-out forwards;
 }
 
 .animate-fly-airplane {

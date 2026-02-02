@@ -22,7 +22,7 @@ export function AnimatedBackground() {
 
             setTimeout(() => {
                 setElements((prev) => prev.filter((el) => el.id !== id));
-            }, 10000);
+            }, 20000);
         };
 
         const spawnAirplane = () => {
